@@ -1,0 +1,71 @@
+#tocke za umjeravanje
+[TOCKA1]
+startIndeks = 0
+endIndeks = 15
+brojZanemarenih = 5
+crefFaktor = 0.8
+[TOCKA2]
+startIndeks = 15
+endIndeks = 30
+brojZanemarenih = 5
+crefFaktor = 0.0
+[TOCKA3]
+startIndeks = 30
+endIndeks = 40
+brojZanemarenih = 5
+crefFaktor = 0.6
+[TOCKA4]
+startIndeks = 40
+endIndeks = 50
+brojZanemarenih = 5
+crefFaktor = 0.2
+[TOCKA5]
+startIndeks = 50
+endIndeks = 60
+brojZanemarenih = 5
+crefFaktor = 0.95
+
+#podaci o mjerenju
+[MJERENJE]
+opseg = 400
+koncentracijaCRM = 10000
+sljedivostCRM = 2
+provjeraLinearnosti = True
+komponenta = NOX
+dilucija = ASGU-370
+cistiZrak = T702
+
+#provjera konvertera
+[KONVERTER]
+cNOX50 = 200
+cNOX95 = 180
+[KTOCKA1]
+startIndeks = 0
+endIndeks = 10
+brojZanemarenih = 5
+crefFaktor = 1
+[KTOCKA2]
+startIndeks = 10
+endIndeks = 20
+brojZanemarenih = 5
+crefFaktor = 1
+[KTOCKA3]
+startIndeks = 20
+endIndeks = 30
+brojZanemarenih = 5
+crefFaktor = 1
+[KTOCKA4]
+startIndeks = 30
+endIndeks = 40
+brojZanemarenih = 5
+crefFaktor = 1
+[KTOCKA5]
+startIndeks = 40
+endIndeks = 50
+brojZanemarenih = 5
+crefFaktor = 1
+[KTOCKA6]
+startIndeks = 50
+endIndeks = 60
+brojZanemarenih = 5
+crefFaktor = 1
