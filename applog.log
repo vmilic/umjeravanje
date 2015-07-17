@@ -1,0 +1,230 @@
+INFO:::2015-07-17 14:48:21,972:::konfig_klase:::__init__:::LOC:19:::Pocetak inicijalizacije konfiguracijskog objekta.
+INFO:::2015-07-17 14:48:21,972:::konfig_klase:::__init__:::LOC:57:::Inicijalizacija REST url-a za podatke o mjernim uredjajima, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj
+INFO:::2015-07-17 14:48:21,972:::konfig_klase:::__init__:::LOC:60:::Inicijalizacija REST url-a za podatke o postajama, url=http://172.20.0.178:8080/SKZ-war/webresources/drzavna_mreza/postaje
+INFO:::2015-07-17 14:48:21,972:::konfig_klase:::__init__:::LOC:68:::Postavljene tocke za umjeravanje ['TOCKA1', 'TOCKA2', 'TOCKA3', 'TOCKA4', 'TOCKA5']
+INFO:::2015-07-17 14:48:21,972:::konfig_klase:::__init__:::LOC:76:::Postavljene tocke za konverter ['KTOCKA1', 'KTOCKA2', 'KTOCKA3', 'KTOCKA4', 'KTOCKA5', 'KTOCKA6']
+INFO:::2015-07-17 14:48:21,972:::konfig_klase:::__init__:::LOC:77:::Kraj inicijalizacije konfiguracijskog objekta.
+INFO:::2015-07-17 14:48:21,972:::pomocne_funkcije:::pripremi_mape_postaja_i_uredjaja:::LOC:197:::Sastavljanje mapa postaja i uredjaja
+INFO:::2015-07-17 14:48:21,982:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:22,012:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:23,982:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,042:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,072:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,142:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,162:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,232:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,252:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,312:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,342:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,402:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,422:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,492:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,512:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,582:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,602:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,672:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,692:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,702:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,722:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,732:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,752:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,762:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,782:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,792:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,812:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,822:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,832:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,842:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,862:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,872:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,882:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,892:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,892:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,902:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,922:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,932:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,962:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,962:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:24,992:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,002:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,022:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,042:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,082:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,092:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,132:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,132:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,172:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,172:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,202:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,212:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,232:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,242:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,262:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,272:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,292:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,302:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,322:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,332:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,342:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/CO_KT1/lokacija , code=500
+INFO:::2015-07-17 14:48:25,342:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,352:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,362:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/CO_OS1/lokacija , code=500
+INFO:::2015-07-17 14:48:25,362:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,372:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,382:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/CO_SK1/lokacija , code=500
+INFO:::2015-07-17 14:48:25,382:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,392:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,402:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/CO_ZG1/lokacija , code=500
+INFO:::2015-07-17 14:48:25,402:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,422:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,422:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/CO_ZG2/lokacija , code=500
+INFO:::2015-07-17 14:48:25,422:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,442:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,442:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/CO_ZG3/lokacija , code=500
+INFO:::2015-07-17 14:48:25,452:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,462:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,462:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/H2S_KT1/lokacija , code=500
+INFO:::2015-07-17 14:48:25,472:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,482:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,492:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/H2S_SK1/lokacija , code=500
+INFO:::2015-07-17 14:48:25,492:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,502:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,512:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/KT1_PM10/lokacija , code=500
+INFO:::2015-07-17 14:48:25,512:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,522:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,532:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/NH3_KT1/lokacija , code=500
+INFO:::2015-07-17 14:48:25,532:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,542:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,552:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/NO2_OS1/lokacija , code=500
+INFO:::2015-07-17 14:48:25,552:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,572:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,572:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/NO2_SK1/lokacija , code=500
+INFO:::2015-07-17 14:48:25,572:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,592:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,592:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/NO2_ZG1/lokacija , code=500
+INFO:::2015-07-17 14:48:25,602:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,612:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,622:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/NO2_ZG2/lokacija , code=500
+INFO:::2015-07-17 14:48:25,622:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,632:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,642:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/NO2_ZG3/lokacija , code=500
+INFO:::2015-07-17 14:48:25,642:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,652:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,662:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/O3_ZG3/lokacija , code=500
+INFO:::2015-07-17 14:48:25,662:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,672:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,682:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/OS1_BTX/lokacija , code=500
+INFO:::2015-07-17 14:48:25,682:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,702:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,702:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/OS1_PM10/lokacija , code=500
+INFO:::2015-07-17 14:48:25,712:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,722:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,732:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI1_BTX/lokacija , code=500
+INFO:::2015-07-17 14:48:25,732:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,742:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,752:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI1_CO/lokacija , code=500
+INFO:::2015-07-17 14:48:25,752:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,762:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,772:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI1_H2S/lokacija , code=500
+INFO:::2015-07-17 14:48:25,772:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,792:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,792:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI1_NO2/lokacija , code=500
+INFO:::2015-07-17 14:48:25,802:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,812:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,812:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI1_PM10/lokacija , code=500
+INFO:::2015-07-17 14:48:25,822:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,832:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,842:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI1_SO2/lokacija , code=500
+INFO:::2015-07-17 14:48:25,842:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,852:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,862:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI2_CO/lokacija , code=500
+INFO:::2015-07-17 14:48:25,862:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,872:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,882:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI2_NO2/lokacija , code=500
+INFO:::2015-07-17 14:48:25,882:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,892:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,902:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI2_O3/lokacija , code=500
+INFO:::2015-07-17 14:48:25,902:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,912:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,922:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI2_PM10/lokacija , code=500
+INFO:::2015-07-17 14:48:25,922:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,932:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,942:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI2_SO2/lokacija , code=500
+INFO:::2015-07-17 14:48:25,942:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,952:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,962:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SB1_BTX/lokacija , code=500
+INFO:::2015-07-17 14:48:25,962:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,972:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:25,982:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SB1_H2S/lokacija , code=500
+INFO:::2015-07-17 14:48:25,982:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:25,992:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:26,002:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SB1_NO2/lokacija , code=500
+INFO:::2015-07-17 14:48:26,012:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:26,032:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:26,042:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SB1_O3/lokacija , code=500
+INFO:::2015-07-17 14:48:26,042:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:26,072:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:26,092:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SB1_PM25/lokacija , code=500
+INFO:::2015-07-17 14:48:26,092:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:26,112:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:26,132:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SB1_SO2/lokacija , code=500
+INFO:::2015-07-17 14:48:26,132:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:26,142:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:26,162:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:26,172:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:26,202:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:26,202:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:26,232:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:26,232:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:26,262:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:26,262:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:26,292:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:26,292:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:26,302:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SK1_BTX/lokacija , code=500
+INFO:::2015-07-17 14:48:26,302:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:26,312:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:26,322:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SK1_PM10/lokacija , code=500
+INFO:::2015-07-17 14:48:26,322:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:26,332:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:26,342:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SO2_KT1/lokacija , code=500
+INFO:::2015-07-17 14:48:26,342:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:26,352:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:26,362:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SO2_OS1/lokacija , code=500
+INFO:::2015-07-17 14:48:26,362:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:26,372:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:26,382:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SO2_SK1/lokacija , code=500
+INFO:::2015-07-17 14:48:26,382:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:26,402:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:26,402:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SO2_ZG1/lokacija , code=500
+INFO:::2015-07-17 14:48:26,402:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:26,422:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:26,422:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SO2_ZG2/lokacija , code=500
+INFO:::2015-07-17 14:48:26,432:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:26,442:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:26,452:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SO2_ZG3/lokacija , code=500
+INFO:::2015-07-17 14:48:26,452:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:26,462:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:26,462:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/ZG1_BTX/lokacija , code=500
+INFO:::2015-07-17 14:48:26,472:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:26,482:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:26,482:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/ZG1_PM10/lokacija , code=500
+INFO:::2015-07-17 14:48:26,492:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:26,502:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:26,502:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/ZG1_PM10g/lokacija , code=500
+INFO:::2015-07-17 14:48:26,512:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:26,522:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:26,522:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/ZG2_PM10/lokacija , code=500
+INFO:::2015-07-17 14:48:26,522:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:26,532:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:26,542:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/ZG3_PM10/lokacija , code=500
+INFO:::2015-07-17 14:48:26,542:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+INFO:::2015-07-17 14:48:26,552:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+ERROR:::2015-07-17 14:48:26,562:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:153:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/ZG3_PM10g/lokacija , code=500
+INFO:::2015-07-17 14:48:28,462:::read_file_wizard:::__init__:::LOC:20:::Inicijalizacija Wizada za citanje podataka
+INFO:::2015-07-17 14:48:40,670:::display:::read_data:::LOC:143:::Wizard je uspjesno ucitao podatke iz datoteke
+INFO:::2015-07-17 14:48:40,670:::display:::read_data:::LOC:153:::updateani gui elementi, Ucitani file=C:/Users/DHMZ-Milic/Documents/GitHub/umjeravanje/EAS 300E - CO-002026-E -CONC1min-CONC1-20141211-6.csv , Postaja=Plitvicka jezera , Uredjaj=2026-E
+INFO:::2015-07-17 14:48:40,730:::display:::postavi_sirove_podatke:::LOC:215:::Popunjavanje tablice sa "sirovim" podacima
+INFO:::2015-07-17 14:48:40,750:::konfig_klase:::set_mjerenje:::LOC:161:::Postavljeno novo mjerenje , self.mjerenje=CO
+INFO:::2015-07-17 14:48:40,750:::konfig_klase:::set_mjerenje:::LOC:164:::Postavljen novi opseg , self.opseg=15
+INFO:::2015-07-17 14:48:40,750:::konfig_klase:::set_mjerenje:::LOC:161:::Postavljeno novo mjerenje , self.mjerenje=CO
+INFO:::2015-07-17 14:48:40,750:::konfig_klase:::set_mjerenje:::LOC:164:::Postavljen novi opseg , self.opseg=15

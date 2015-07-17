@@ -7,7 +7,7 @@ Created on Tue May 12 10:05:56 2015
 import logging
 import numpy as np
 import pandas as pd
-from app.model.konfig_klase import UKonfig
+#from app.model.konfig_klase import UKonfig
 
 
 class RacunUmjeravanja(object):
@@ -76,7 +76,8 @@ class RacunUmjeravanja(object):
             testFrejm = len(self.data) > 0
         else:
             testFrejm = False
-        testKonfig = isinstance(self.konfig, UKonfig)
+        #testKonfig = isinstance(self.konfig, UKonfig)
+        testKonfig = False #TODO!
         if testFrejm and testKonfig:
             self.reset_results()
             if self.konfig.testLinearnosti is True:

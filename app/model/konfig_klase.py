@@ -8,32 +8,73 @@ import logging
 import configparser
 
 
-class BaseKonfig(object):
+class MainKonfig(object):
     """
-    Base class for konfig use
-    cfg --> ConfigParser object
-    sections --> lista (ili bilo koji iterable objekt) sa bitnim sectionima
-    """
-    def __init__(self, cfg, sections):
-        self.cfg = cfg
-        self.listaSectiona = sections
+    Konfig objekt sa glavnim postavkama aplikacije
 
-    def provjeri_postojanje_elemenata(self):
-        """
-        Metoda radi grubu provjeru strukture konfig objekta.
-        Vraca False ako nesto ne valja, inace vraca True
-        """
-        if not isinstance(self.cfg, configparser.ConfigParser):
-            msg = 'konfig objekt nije instanca ConfigParser, type self.cfg={0}'
-            logging.error(msg.format(type(self.cfg)))
-            return False
-        sec = self.cfg.sections()
-        for section in self.listaSectiona:
-            if section not in sec:
-                msg = 'konfigu nedostaje trazeni section, section={0}'
-                logging.error(msg.format(str(section)))
-                return False
-        return True
+    error types:
+    AttributeError, TypeError
+    """
+    def __init__(self, cfg):
+        logging.info('Pocetak inicijalizacije konfiguracijskog objekta.')
+        if not isinstance(cfg, configparser.ConfigParser):
+            raise TypeError('Objektu nije prosljedjena instanca ConfigParser.')
+        # konfiguracijski objekt
+        msg = 'Preuzeta instanca configparsera, self.cfg={0}'.format(cfg)
+        logging.debug(msg)
+        self.cfg = cfg
+        # bitni memberi za umjeravanje
+        self.mjerenje = None  # podatak sto se umjerava (header u config objektu NOX,SO2...)
+        msg = 'Inicjializacija mjerenja, self.mjerenje={0}'.format(str(self.mjerenje))
+        logging.debug(msg)
+        self.opseg = 0  # norma: opseg mjerenja ovisno o izabranom mjerenju
+        msg = 'Inicjializacija opsega mjerenja, self.opseg={0}'.format(str(self.opseg))
+        logging.debug(msg)
+        self.dilucija = None  # izabrana dilucijska jedinica (header u config objektu)
+        msg = 'Inicjializacija dilucijske jedinice, self.dilucija={0}'.format(str(self.dilucija))
+        logging.debug(msg)
+        self.cistiZrak = None  # izabrani generator cistog zraka (header u config objektu)
+        msg = 'Inicjializacija generatora cistog zraka, self.cistiZrak={0}'.format(str(self.cistiZrak))
+        logging.debug(msg)
+        self.provjeraLinearnosti = False
+        msg = 'Inicjializacija provjere linearnosti, self.provjeraLinearnosti={0}'.format(str(self.provjeraLinearnosti))
+        logging.debug(msg)
+        self.koncentracijaCRM = 0
+        msg = 'Inicjializacija koncenracije CRM-a, self.koncentracijaCRM={0}'.format(str(self.koncentracijaCRM))
+        logging.debug(msg)
+        self.sljedivostCRM = 0
+        msg = 'Inicjializacija sljedivosti CRM-a, self.sljedivostCRM={0}'.format(str(self.sljedivostCRM))
+        logging.debug(msg)
+        self.cNOX50 = 0
+        msg = 'Inicjializacija cNOX50, self.cNOX50={0}'.format(str(self.cNOX50))
+        logging.debug(msg)
+        self.cNOX95 = 0
+        msg = 'Inicjializacija cNOX95, self.cNOX95={0}'.format(str(self.cNOX95))
+        logging.debug(msg)
+        # REST podaci
+        self.uredjajUrl = self.get_konfig_element('REST', 'uredjaj')
+        msg = 'Inicijalizacija REST url-a za podatke o mjernim uredjajima, url={0}'.format(self.uredjajUrl)
+        logging.info(msg)
+        self.postajeUrl = self.get_konfig_element('REST', 'postaje')
+        msg = 'Inicijalizacija REST url-a za podatke o postajama, url={0}'.format(self.postajeUrl)
+        logging.info(msg)
+        # tocke za umjeravanje
+        self.umjerneTocke = []
+        tocke = self.get_listu_tocaka_za_umjeravanje()
+        for tocka in tocke:
+            objekt = Tocka(cfg, tocka)
+            self.umjerneTocke.append(objekt)
+        msg = 'Postavljene tocke za umjeravanje {0}'.format([str(i) for i in self.umjerneTocke])
+        logging.info(msg)
+        # tocke za provjeru konvertera
+        self.konverterTocke = []
+        tocke = self.get_listu_tocaka_za_provjeru_konvertera()
+        for tocka in tocke:
+            objekt = Tocka(cfg, tocka)
+            self.konverterTocke.append(objekt)
+        msg = 'Postavljene tocke za konverter {0}'.format([str(i) for i in self.konverterTocke])
+        logging.info(msg)
+        logging.info('Kraj inicijalizacije konfiguracijskog objekta.')
 
     def get_konfig_element(self, section, option):
         """
@@ -46,157 +87,91 @@ class BaseKonfig(object):
             msg = 'Konfigu nedostaje [{0}]:{1}'.format(section, option)
             raise AttributeError(msg)
 
-
-class MainKonfig(BaseKonfig):
-    """
-    Konfig objekt sa glavnim postavkama aplikacije
-    """
-    def __init__(self, cfg):
-        requiredSections = ['LISTE',
-                            'SO2',
-                            'CO',
-                            'NOX',
-                            'O3',
-                            'T700',
-                            'ASGU-370',
-                            'T701',
-                            'T702',
-                            'REST']
-        BaseKonfig.__init__(self, cfg, requiredSections)
-
     def get_listu_komponenti(self):
         """
-        HELPER, Metoda vraca listu svih komponenti za umjeravanje
+        Metoda vraca listu svih komponenti za umjeravanje
         """
         value = self.get_konfig_element('LISTE', 'komponente')
-        return value.split(sep=',')
+        lista = value.split(sep=',')
+        lista = [i.strip() for i in lista]
+        return lista
 
     def get_listu_dilucija(self):
         """
-        HELPER, Metoda vraca listu svih dilucija
+        Metoda vraca listu svih dilucijskih jedinica.
         """
         value = self.get_konfig_element('LISTE', 'dilucije')
-        return value.split(sep=',')
+        lista = value.split(sep=',')
+        lista = [i.strip() for i in lista]
+        return lista
 
     def get_listu_cistiZrak(self):
         """
-        HELPER, Metoda vraca listu svih generatora cistog zraka
+        Metoda vraca listu svih generatora cistog zraka.
         """
         value = self.get_konfig_element('LISTE', 'cisti_zrak')
-        return value.split(sep=',')
+        lista = value.split(sep=',')
+        lista = [i.strip() for i in lista]
+        return lista
 
+    def get_listu_uredjaja(self):
+        """
+        Metoda vraca listu svih uredjaja.
+        """
+        value = self.get_konfig_element('LISTE', 'uredjaji')
+        lista = value.split(sep=',')
+        lista = [i.strip() for i in lista]
+        return lista
 
-class UKonfig(BaseKonfig):
-    """
-    konfig objekt sa 'varijabilnim' podacima za umjeravanje
-    """
-    def __init__(self, cfg):
-        requiredSections = ['TOCKA1',
-                            'TOCKA2',
-                            'TOCKA3',
-                            'TOCKA4',
-                            'TOCKA5',
-                            'MJERENJE',
-                            'KONVERTER',
-                            'KTOCKA1',
-                            'KTOCKA2',
-                            'KTOCKA3',
-                            'KTOCKA4',
-                            'KTOCKA5',
-                            'KTOCKA6']
-        BaseKonfig.__init__(self, cfg, requiredSections)
+    def get_listu_komponenti_uredjaja(self, uredjaj):
+        """
+        Metoda vraca listu svih komponenti za uredjaj.
+        """
+        value = self.get_konfig_element('UREDJAJI', uredjaj)
+        lista = value.split(sep=',')
+        lista = [i.strip() for i in lista]
+        return lista
 
-        raspon = self.get_konfig_element('MJERENJE', 'opseg')
-        self.set_raspon(raspon)
-        cCRM = self.get_konfig_element('MJERENJE', 'koncentracijaCRM')
-        self.set_cCRM(cCRM)
-        sCRM = self.get_konfig_element('MJERENJE', 'sljedivostCRM')
-        self.set_sCRM(sCRM)
-        testLinearnost = self.cfg.getboolean('MJERENJE', 'provjeraLinearnosti')
-        self.set_testLinearnosti(testLinearnost)
-        komponenta = self.get_konfig_element('MJERENJE', 'komponenta')
-        self.set_komponenta(komponenta)
-        dilucija = self.get_konfig_element('MJERENJE', 'dilucija')
-        self.set_dilucija(dilucija)
-        cistiZrak = self.get_konfig_element('MJERENJE', 'cistiZrak')
-        self.set_cistiZrak(cistiZrak)
-        # tocke umjeravanja
-        self.tocka1 = Tocka(cfg, 'TOCKA1')
-        self.tocka2 = Tocka(cfg, 'TOCKA2')
-        self.tocka3 = Tocka(cfg, 'TOCKA3')
-        self.tocka4 = Tocka(cfg, 'TOCKA4')
-        self.tocka5 = Tocka(cfg, 'TOCKA5')
-        logging.debug('postavljanje postavki tocaka za umjeravanje')
-        self.tocke = [self.tocka1,
-                      self.tocka2,
-                      self.tocka3,
-                      self.tocka4,
-                      self.tocka5]
-        # tocke provjere konvertera
-        #TODO! nije nuzno da konfig ima membere ispod ako nije NOX
-        logging.debug('postavljanje postavki tocaka za provjeru konvertera')
-        self.Ktocka1 = Tocka(cfg, 'KTOCKA1')
-        self.Ktocka2 = Tocka(cfg, 'KTOCKA2')
-        self.Ktocka3 = Tocka(cfg, 'KTOCKA3')
-        self.Ktocka4 = Tocka(cfg, 'KTOCKA4')
-        self.Ktocka5 = Tocka(cfg, 'KTOCKA5')
-        self.Ktocka6 = Tocka(cfg, 'KTOCKA6')
-        self.Ktocke = [self.Ktocka1,
-                       self.Ktocka2,
-                       self.Ktocka3,
-                       self.Ktocka4,
-                       self.Ktocka5,
-                       self.Ktocka6]
-        self.cNOX50 = self.get_konfig_element('KONVERTER', 'cNOX50')
-        self.cNOX95 = self.get_konfig_element('KONVERTER', 'cNOX95')
-        logging.debug('kraj inicijalizacije AppKonfiga')
+    def get_listu_tocaka_za_umjeravanje(self):
+        """
+        Metoda vraca listu svih tocaka za umjeravanje (lista naziva sectiona)
+        """
+        value = self.get_konfig_element('LISTE', 'tocke')
+        lista = value.split(sep=',')
+        lista = [i.strip() for i in lista]
+        return lista
 
-    def set_raspon(self, value):
-        """setter raspona mjerenja"""
-        self.raspon = float(value)
-        msg = 'raspon mjerenja postavljen, raspon={0}'.format(str(self.raspon))
-        logging.debug(msg)
+    def get_listu_tocaka_za_provjeru_konvertera(self):
+        """
+        Metoda vraca listu svih tocaka za provjeru konvertera (lista naziva
+        sectiona u konfiguracijskom fileu).
+        """
+        value = self.get_konfig_element('LISTE', 'konverter_tocke')
+        lista = value.split(sep=',')
+        lista = [i.strip() for i in lista]
+        return lista
 
-    def set_cCRM(self, value):
-        """setter koncentracija Certificiranog Referentnog Materijala"""
-        self.cCRM = float(value)
-        msg = 'koncentracija CRM postavljea, cCRM={0}'.format(str(self.cCRM))
-        logging.debug(msg)
-
-    def set_sCRM(self, value):
-        """setter sljedivosti Certificiranog Referentnog Materijala"""
-        self.sCRM = float(value)
-        msg = 'sljedivost CRM postavljea, sCRM={0}'.format(str(self.sCRM))
-        logging.debug(msg)
-
-    def set_testLinearnosti(self, value):
-        """setter za provjeru linearnosti (boolean value)"""
-        self.testLinearnosti = value
-        msg = 'provjera linearnosti, test={0}'.format(str(value))
-        logging.debug(msg)
-
-    def set_komponenta(self, value):
-        """setter za komponentu"""
-        self.izabranaKomponenta = value
-        msg = 'komponenta postavljena, komponenta={0}'.format(str(value))
-        logging.debug(msg)
-
-    def set_dilucija(self, value):
-        """setter za diluciju"""
-        self.izabranaDilucija = value
-        msg = 'dilucija postavljena, dilucija={0}'.format(str(value))
-        logging.debug(msg)
-
-    def set_cistiZrak(self, value):
-        """setter za cisti zrak"""
-        self.izabraniCistiZrak = value
-        msg = 'cisti zrak postavljen, cisti zrak={0}'.format(str(value))
-        logging.debug(msg)
+    def set_mjerenje(self, section):
+        """
+        Postavljanje izbora mjerenja.
+        """
+        if self.cfg.has_section(section):
+            self.mjerenje = str(section)
+            msg = 'Postavljeno novo mjerenje , self.mjerenje={0}'.format(self.mjerenje)
+            logging.info(msg)
+            self.opseg = self.get_konfig_element(self.mjerenje, 'opseg')
+            msg = 'Postavljen novi opseg , self.opseg={0}'.format(self.opseg)
+            logging.info(msg)
+        else:
+            msg = 'Konfiguracijski objekt nema trazeni section, section={0}'.format(section)
+            raise AttributeError(msg)
 
 
 class Tocka(object):
     """
-    Podaci o tocki, definiranje slajsa frejma koji predstavlja tocku
+    Podaci o tocki za umjeravanje ili kontrolu konvertera.
+    - definiranje slajsa frejma koji predstavlja tocku (min, max, broj zanemarenih)
+    -definiranje cref faktora
     """
     def __init__(self, cfg, section):
         OPTIONS = ('startIndeks',
