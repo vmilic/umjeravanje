@@ -61,17 +61,15 @@ class WorkingFrameModel(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.DisplayRole:
             return round(float(self.dataFrejm.iloc[row, col]), 2)
         if role == QtCore.Qt.BackgroundColorRole:
-            # obojaj pozadinu reda ovisno o kojoj tocki pripada
-            if self.cfg.tocka1.index_is_member(row):
-                return QtGui.QBrush(QtGui.QColor(0, 150, 220, 80))
-            elif self.cfg.tocka2.index_is_member(row):
-                return QtGui.QBrush(QtGui.QColor(0, 25, 220, 80))
-            elif self.cfg.tocka3.index_is_member(row):
-                return QtGui.QBrush(QtGui.QColor(0, 150, 220, 80))
-            elif self.cfg.tocka4.index_is_member(row):
-                return QtGui.QBrush(QtGui.QColor(0, 25, 220, 80))
-            elif self.cfg.tocka5.index_is_member(row):
-                return QtGui.QBrush(QtGui.QColor(0, 150, 220, 80))
+            tocke = self.cfg.umjerneTocke
+            tockeColor1 = [i for i in tocke if tocke.index(i)%2 == 0]
+            tockeColor2 = [i for i in tocke if tocke.index(i)%2 != 0]
+            for tocka in tockeColor1:
+                if tocka.index_is_member(row):
+                    return QtGui.QBrush(QtGui.QColor(0, 150, 220, 80))
+            for tocka in tockeColor2:
+                if tocka.index_is_member(row):
+                    return QtGui.QBrush(QtGui.QColor(0, 25, 220, 80))
 
     def headerData(self, section, orientation, role):
         """

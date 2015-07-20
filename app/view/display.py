@@ -32,7 +32,6 @@ class GlavniProzor(BASE, FORM):
         # members
         self.kalkulator = None
         self.konfiguracija = None
-        self.config = None
         self.duljinaSlajsa = None
         self.uredjaji = {}
         self.postaje = {}
@@ -82,9 +81,13 @@ class GlavniProzor(BASE, FORM):
         # dodaj grafove u layout
         self.grafLayout.addWidget(self.crefCanvas)
         self.grafLayout.addWidget(self.mjerenjaCanvas)
-        # kalkulatori
+        # kalkulator za efikasnost konvertera
         self.konverterKalkulator = calc.ProvjeraKonvertera(self.konfiguracija)
+        # kalkulator umjeravanja
         self.kalkulator = calc.RacunUmjeravanja(self.konfiguracija)
+        self.kalkulator.set_dilucija(self.comboBoxDilucija.currentText())
+        self.kalkulator.set_cistiZrak(self.comboBoxCistiZrak.currentText())
+        # definiranje kontrolnih signala
         self.setup_signal_connections()
         logging.debug('Kraj inicijalizacije GlavniProzor')
 
@@ -95,20 +98,14 @@ class GlavniProzor(BASE, FORM):
         self.action_Exit.triggered.connect(self.close)
         self.action_Read_data.triggered.connect(self.read_data)
         self.comboBoxMjerenje.currentIndexChanged.connect(self.promjena_mjerenja)
-        self.checkBoxLinearnost.toggled.connect(self.testni)
-#        self.action_Read_config.triggered.connect(self.read_config)
-#        self.rawDataView.clicked.connect(self.select_pocetak_umjeravanja)
-#        self.tableViewKonverterRaw.clicked.connect(self.select_pocetak_konvertera)
-#        self.comboBoxKomponenta.currentIndexChanged.connect(self.recalculate)
-#        self.comboBoxDilucija.currentIndexChanged.connect(self.recalculate)
-#        self.comboBoxCistiZrak.currentIndexChanged.connect(self.recalculate)
-#        self.checkBoxProvjeraLinearnosti.toggled.connect(self.recalculate)
-#        self.doubleSpinBoxRasponMjerenja.valueChanged.connect(self.recalculate)
-#        self.doubleSpinBoxKoncentracijaCRM.valueChanged.connect(self.recalculate)
-#        self.doubleSpinBoxSljedivostCRM.valueChanged.connect(self.recalculate)
-#        self.comboBoxStupac.currentIndexChanged.connect(self.recalculate)
-#        self.comboBoxNOXstupac.currentIndexChanged.connect(self.recalculate_konverter)
-#        self.comboBoxNOstupac.currentIndexChanged.connect(self.recalculate_konverter)
+        self.checkBoxLinearnost.toggled.connect(self.promjena_provjere_linearnosti)
+        self.rawDataView.clicked.connect(self.select_pocetak_umjeravanja)
+        self.comboBoxMjerenje.currentIndexChanged.connect(self.recalculate)
+        self.comboBoxDilucija.currentIndexChanged.connect(self.recalculate)
+        self.comboBoxCistiZrak.currentIndexChanged.connect(self.recalculate)
+        self.doubleSpinBoxOpseg.valueChanged.connect(self.recalculate)
+        self.doubleSpinBoxKoncentracijaCRM.valueChanged.connect(self.recalculate)
+        self.doubleSpinBoxSljedivostCRM.valueChanged.connect(self.recalculate)
 
     def closeEvent(self, event):
         """
@@ -144,6 +141,7 @@ class GlavniProzor(BASE, FORM):
             frejm = self.fileWizard.get_frejm()
             lokacija = self.fileWizard.get_postaja()
             uredjaj = self.fileWizard.get_uredjaj()
+            self.kalkulator.set_uredjaj(self.uredjaji[uredjaj]) #setter uredjaja u kalkulator
             path = str(self.fileWizard.get_path_do_filea())
             # postavi info o ucitanom fileu
             self.labelFilePath.setText(path)
@@ -152,7 +150,7 @@ class GlavniProzor(BASE, FORM):
             msg = 'updateani gui elementi, Ucitani file={0} , Postaja={1} , Uredjaj={2}'.format(path, lokacija, uredjaj)
             logging.info(msg)
             # clear tablice i grafove
-            self.clear_tablice_nakon_ucitavanja_datoteke()
+            self.clear_tablice_prije_ucitavanja_datoteke()
             self.clear_grafove()
             self.postavi_sirove_podatke(frejm)
             # postavljanje ostalih podataka za uredjaj
@@ -163,7 +161,7 @@ class GlavniProzor(BASE, FORM):
             self.comboBoxMjerenje.addItems(list(komponente))
             self.promjena_mjerenja(0) #ulazni parametar 0 postoji samo kao placeholder
 
-    def clear_tablice_nakon_ucitavanja_datoteke(self):
+    def clear_tablice_prije_ucitavanja_datoteke(self):
         """
         Nakon ucitavanja novog filea potrebno je 'resetirati' tablice da bi
         se izbjegle potencijalne zabune.
@@ -179,6 +177,8 @@ class GlavniProzor(BASE, FORM):
         self.resultDataFrame = pd.DataFrame()
         self.konverterResultFrame = pd.DataFrame()
         logging.debug('Prazni frejmovi postavljeni u membere sa frejmovima.')
+        #clear odredjenih membera kalkulatora! data
+        self.kalkulator.set_data(pd.DataFrame())
         # update vezanih modela
         self.rawDataModel.set_frejm(self.rawDataFrame)
         self.avgDataModel.set_frejm(self.avgDataFrame)
@@ -230,9 +230,10 @@ class GlavniProzor(BASE, FORM):
 
     def promjena_mjerenja(self, x):
         """
-        Promjena komponente mjerenja u gui-u
+        Promjena komponente mjerenja u gui-u.
         """
         komp = str(self.comboBoxMjerenje.currentText())
+        # pokusaj pronalaska opsega mjerenja
         try:
             self.konfiguracija.set_mjerenje(komp)
         except AttributeError:
@@ -240,12 +241,207 @@ class GlavniProzor(BASE, FORM):
             logging.error(msg)
             self.konfiguracija.opseg = 0
         self.doubleSpinBoxOpseg.setValue(float(self.konfiguracija.opseg))
-        self.doubleSpinBoxKoncentracijaCRM.setValue(self.konfiguracija.koncentracijaCRM)
-        self.doubleSpinBoxSljedivostCRM.setValue(self.konfiguracija.sljedivostCRM)
 
-    def testni(self, x):
-        #TODO! remove later
-        print(x)
+    def select_pocetak_umjeravanja(self, x):
+        """
+        Izbor pocetka podataka za umjeravanje
+        - rade se 3 minutno agregirane vrijednosti
+        - postavljaju se u model
+        """
+        if self.konfiguracija is not None:
+            # multiple type dispatching (int & QModelIndex)
+            if isinstance(x, int):
+                red = x
+            else:
+                red = x.row()
+            msg = 'Izabrani pocetak umjeravanja, red={0}, index={1}'.format(str(red), str(self.rawDataFrame.index[red]))
+            logging.info(msg)
+            self.rawDataRow = red
+            # broj podataka potrebih za racunanje (ovisi o configu, tj.tockama)
+            self.duljinaSlajsa = self.get_duljina_slajsa()
+            # provjeri da li ima dovoljno podataka u rawDataFrame za umjeravanje
+            lenRawData = len(self.rawDataFrame)
+            upperBound = red + self.duljinaSlajsa
+            if upperBound > lenRawData:
+                msg = 'Nema dovoljno sirovih podataka od izabrane tocke.\nZa umjeravanje je potrebno {0} podataka. Postoji samo {1} podataka.'
+                msg = msg.format(str(self.duljinaSlajsa), str(lenRawData - red))
+                QtGui.QMessageBox.information(self, 'Nedovoljan broj podataka', msg)
+                logging.debug(msg)
+                return
+            # selection highlight modela sirovih podataka (obojaj izabrane)
+            logging.debug('bojanje podataka koji se koriste za umjeravanje')
+            self.rawDataModel.set_slajs_len(red, self.duljinaSlajsa)
+            self.rawDataView.update()
+            # dohvati trazeni slajs
+            slajs = self.rawDataFrame.iloc[red:upperBound, :]
+            # resample na 3 minutne
+            self.avgDataFrame = self.resample_frejm(slajs)
+            # update avgDataModel
+            self.avgDataModel.set_frejm(self.avgDataFrame)
+            self.avgDataView.setModel(self.avgDataModel)
+            # update view
+            self.avgDataView.horizontalHeader().setResizeMode(self.STRETCH)
+            self.avgDataView.update()
+            # predaj agregirani frejm kalkulatoru
+            self.kalkulator.set_data(self.avgDataFrame)
+            # predaj listu tocaka kalkulatoru i bool provjere linearnosti
+            provjeraLinearnosti = self.checkBoxLinearnost.isChecked()
+            if provjeraLinearnosti:
+                tocke = self.konfiguracija.umjerneTocke
+            else:
+                tocke = self.konfiguracija.umjerneTocke[:2]
+            self.kalkulator.set_tocke(tocke)
+            self.kalkulator.set_linearnost(provjeraLinearnosti)
+            self.recalculate()
+
+    def get_duljina_slajsa(self):
+        """
+        Dinamicko racunanje potrebne duljine slajsa sirovih podataka
+        za umjeravanje. Koliko podataka trebamo za napraviti 3 minutne
+        srednjake za sve potrebne tocke.
+
+        Pretpostavka da se tocke ne preklapaju
+        """
+        if self.checkBoxLinearnost.isChecked():
+            tocke = self.konfiguracija.umjerneTocke
+        else:
+            tocke = self.konfiguracija.umjerneTocke[:2]
+        duljina = 0
+        for tocka in tocke:
+            duljina += tocka.brojPodataka
+        msg = 'Ukupni broj potrebnih sirovih podataka za umjeravanje, N={0}'.format(duljina*3)
+        logging.debug(msg)
+        return duljina*3
+
+    def resample_frejm(self, slajs):
+        """
+        Resample slajsa pandas datafrejma na 3 minutne srednjake.
+        slajs : pandas dataframe sa podacima
+        """
+        msg = 'resample frejma na 3 minutne srednjake, ulazni_frejm=\n{0}'.format(str(slajs))
+        logging.debug(msg)
+        frejm = slajs.copy()
+        listaIndeksa = []
+        for i in range(0, len(frejm), 3):
+            for column in frejm.columns:
+                if i+2 <= len(frejm)-1:
+                    kat = frejm.loc[frejm.index[i]:frejm.index[i+2], column]
+                    srednjak = np.average(kat)
+                    frejm.loc[frejm.index[i], column] = srednjak
+                    if frejm.index[i] not in listaIndeksa:
+                        listaIndeksa.append(frejm.index[i])
+        frejm = frejm[frejm.index.isin(listaIndeksa)]
+        msg = 'resample frejma na 3 minutne srednjake, izlazni_frejm=\n{0}'.format(str(frejm))
+        logging.debug(msg)
+        return frejm
+
+    def promjena_provjere_linearnosti(self, x):
+        """
+        Promjena vrijednosti chekBox-a za provjeru linearnosti. Ulazni parametar
+        x je boolean. Postoji samo zbog signala kojeg emitira comboBox prilikom
+        promjene.
+
+        Metoda simulira izbor pocetka umjeravanja na sirovim podacima (koristi
+        vec izabranu tocku ili 0'ti index po defaultu). Metoda select_pocetak_umjeravanja
+        uzima u obzir stanje checkboxa, te pravilno updatea view.
+        """
+        if len(self.rawDataFrame) > 0:
+            self.select_pocetak_umjeravanja(self.rawDataRow)
+
+    def setup_kalkulator(self):
+        """
+        Funkcija postavlja priprema kalkulator za racunanje. Predaje mu konfig,
+        podatke i stupac s kojim se racuna.
+        """
+        logging.debug('Priprema kalkulatora za racunanje')
+        self.kalkulator.set_data(self.avgDataFrame)
+        linearnost = self.checkBoxLinearnost.isChecked()
+        if linearnost:
+            tocke = self.konfiguracija.umjerneTocke
+        else:
+            tocke = self.konfiguracija.umjerneTocke[:2]
+        self.kalkulator.set_tocke(tocke)
+        self.kalkulator.set_linearnost(linearnost)
+        self.kalkulator.set_stupac(self.comboBoxMjerenje.currentText())
+        self.kalkulator.set_opseg(float(self.doubleSpinBoxOpseg.value()))
+        self.kalkulator.set_cCRM(float(self.doubleSpinBoxKoncentracijaCRM.value()))
+        self.kalkulator.set_sCRM(float(self.doubleSpinBoxSljedivostCRM.value()))
+        self.kalkulator.set_dilucija(self.comboBoxDilucija.currentText())
+        self.kalkulator.set_cistiZrak(self.comboBoxCistiZrak.currentText())
+
+
+    def recalculate(self):
+        """
+        Pocetna metoda za racunanje i prikaz rezultata.
+        """
+        if len(self.avgDataFrame)*3 == self.duljinaSlajsa:
+            self.setup_kalkulator()
+            self.kalkulator.racunaj()
+            self.prikazi_rezultate()
+        else:
+            logging.info('Duljina slajsa ne odgovara za racunanje')
+
+    def prikazi_rezultate(self):
+        """
+        Metoda sluzi za prikaz rezultata kalkulatora
+        """
+        self.clear_result_labels()
+        # set result data to table view
+        self.resultDataFrame = self.kalkulator.rezultat
+        self.resultDataModel.set_frejm(self.resultDataFrame)
+        self.resultView.setModel(self.resultDataModel)
+        self.resultView.horizontalHeader().setResizeMode(self.STRETCH)
+        # set slope offset and other data
+        slope = self.kalkulator.slope
+        if slope is not None:
+            self.labelSlope.setText(str(round(slope, 3)))
+        offset = self.kalkulator.offset
+        if offset is not None:
+            self.labelOffset.setText(str(round(offset, 3)))
+        prilagodbaA = self.kalkulator.prilagodbaA
+        if prilagodbaA is not None:
+            self.labelA.setText(str(round(prilagodbaA, 3)))
+        prilagodbaB = self.kalkulator.prilagodbaB
+        if prilagodbaB is not None:
+            self.labelB.setText(str(round(prilagodbaB, 3)))
+        # set provjere parametara
+        self.labelPonovNula.setText(str(self.kalkulator.provjeri_ponovljivost_stdev_u_nuli()))
+        self.labelPonovC.setText((str(self.kalkulator.provjeri_ponovljivost_stdev_za_vrijednost())))
+        if self.checkBoxLinearnost.isChecked():
+            self.labelOdstNula.setText((str(self.kalkulator.provjeri_odstupanje_od_linearnosti_u_nuli())))
+            self.labelOdstMax.setText((str(self.kalkulator.provjeri_maksimalno_relativno_odstupanje_od_linearnosti())))
+        # grafovi
+        self.prikazi_grafove()
+
+    def clear_result_labels(self):
+        """
+        clear labele rezultata
+        """
+        self.labelSlope.setText('NaN')
+        self.labelOffset.setText('NaN')
+        self.labelA.setText('NaN')
+        self.labelB.setText('NaN')
+        self.labelPonovNula.setText('NaN')
+        self.labelPonovC.setText('NaN')
+        self.labelOdstNula.setText('NaN')
+        self.labelOdstMax.setText('NaN')
+        logging.debug("Labeli sa rezulattima su postavljeni na 'NaN'")
+
+    def prikazi_grafove(self):
+        """
+        Metoda za crtanje grafova
+        """
+        x = list(self.resultDataFrame.loc[:, 'cref'])
+        y = list(self.resultDataFrame.loc[:, 'c'])
+        self.crefCanvas.crtaj(x, y)
+        stupac = str(self.comboBoxMjerenje.currentText())
+        if stupac in self.avgDataFrame.columns:
+            x = list(self.avgDataFrame.index)
+            y = list(self.avgDataFrame.loc[:, stupac])
+            self.mjerenjaCanvas.crtaj(x, y)
+
+
+
 
 
 
@@ -261,14 +457,12 @@ class GlavniProzor(BASE, FORM):
 #        """
 #        self.rawDataFrame = frejm
 #        self.rawDataRow = None
-#        #TODO!
 #        pass
 #
 #    def update_frejma_konvertera(self, frejm):
 #        """
 #        puno toga...logging
 #        """
-#        #TODO!
 #        pass
 #
 #    def promjena_mjerenja(self):
@@ -331,7 +525,7 @@ class GlavniProzor(BASE, FORM):
 #                self.konverterRawRow = None
 #                self.konverterAvgFrame = pd.DataFrame()
 #                self.konverterAvgModel = None
-#                #TODO! treba smisliti bolju ideju za provjeru NOX frejma...
+#                #treba smisliti bolju ideju za provjeru NOX frejma...
 #                if len(self.rawDataFrame.columns) == 3:
 #                    self.konverterRawFrame = self.rawDataFrame.copy()
 #                else:
@@ -366,18 +560,6 @@ class GlavniProzor(BASE, FORM):
 #        self.tableViewKonverterRaw.horizontalHeader().setResizeMode(self.STRETCH)
 #        self.tableViewKonverterRaw.update()
 #
-#    def create_and_display_avg_model_data(self):
-#        """
-#        metoda postavlja frame u avgDataModel te updatea view.
-#        """
-#        if self.config is not None:
-#            # update avgDataModel
-#            self.avgDataModel = modeli.WorkingFrameModel(cfg=self.config)
-#            self.avgDataModel.set_frejm(self.avgDataFrame)
-#            self.avgDataView.setModel(self.avgDataModel)
-#            # update view
-#            self.avgDataView.horizontalHeader().setResizeMode(self.STRETCH)
-#            self.avgDataView.update()
 #
 #    def create_and_display_avg_konverter(self):
 #        """
@@ -392,41 +574,6 @@ class GlavniProzor(BASE, FORM):
 #            self.tableViewKonverterAvg.update()
 #
 #
-#    def select_pocetak_umjeravanja(self, x):
-#        """
-#        Izbor pocetka podataka za umjeravanje
-#        - rade se 3 minutno agregirane vrijednosti
-#        - postavljaju se u working model
-#        """
-#        if self.config is not None:
-#            # multiple type dispatching (int & QModelIndex)
-#            if isinstance(x, int):
-#                red = x
-#            else:
-#                red = x.row()
-#            self.rawDataRow = red
-#            # broj podataka potrebih za racunanje (ovisi o configu)
-#            self.duljinaSlajsa = self.get_duljina_slajsa()
-#            # provjeri da li ima dovoljno podataka u rawDataFrame za umjeravanje
-#            lenRawData = len(self.rawDataFrame)
-#            upperBound = red + self.duljinaSlajsa
-#            if upperBound > lenRawData:
-#                msg = 'Za umjeravanje je potrebno {0} podataka. Postoji samo {1} podataka od izabranog podatka'
-#                msg = msg.format(str(self.duljinaSlajsa), str(lenRawData - red))
-#                QtGui.QMessageBox.information(self, 'Nedovoljan broj podataka', msg)
-#                logging.debug(msg)
-#                return
-#            # selection highlight
-#            self.rawDataModel.set_slajs_len(red, self.duljinaSlajsa)
-#            self.rawDataView.update()
-#            # dohvati trazeni slajs
-#            slajs = self.rawDataFrame.iloc[red:upperBound, :]
-#            # resample na 3 minutne
-#            self.avgDataFrame = self.resample_frejm(slajs)
-#            # set frejm to model
-#            self.create_and_display_avg_model_data()
-#            #recalculate results
-#            self.recalculate()
 #
 #    def select_pocetak_konvertera(self, x):
 #        """
@@ -496,7 +643,7 @@ class GlavniProzor(BASE, FORM):
 #                #postavaljanje ostalih parametara
 #                self.konverterKalkulator.set_konfig(self.config)
 #                self.konverterKalkulator.set_data(self.konverterAvgFrame)
-#                #TODO! check and setup stupac
+#                #check and setup stupac
 #                self.konverterKalkulator.racunaj()
 #                self.prikazi_konverter_rezultate()
 #            else:
@@ -700,20 +847,6 @@ class GlavniProzor(BASE, FORM):
 #                            encoding="iso-8859-1")
 #        return frejm
 #
-#    def get_duljina_slajsa(self):
-#        """
-#        Dinamicko racunanje potrebne duljine slajsa sirovih podataka
-#        za umjeravanje. Koliko podataka trebamo za napraviti 3 minutne
-#        srednjake za sve potrebne tocke.
-#        """
-#        if self.checkBoxProvjeraLinearnosti.isChecked():
-#            tocke = self.config.tocke
-#        else:
-#            tocke = self.config.tocke[:2]
-#        duljina = 0
-#        for tocka in tocke:
-#            duljina += tocka.brojPodataka
-#        return duljina*3
 #
 #    def get_konverter_duljina_slajsa(self):
 #        """
@@ -727,23 +860,6 @@ class GlavniProzor(BASE, FORM):
 #            duljina += tocka.brojPodataka
 #        return duljina*3
 #
-#    def resample_frejm(self, slajs):
-#        """
-#        Resample slajsa pandas datafrejma na 3 minutne srednjake.
-#        slajs : pandas dataframe sa podacima
-#        """
-#        frejm = slajs.copy()
-#        listaIndeksa = []
-#        for i in range(0, len(frejm), 3):
-#            for column in frejm.columns:
-#                if i+2 <= len(frejm)-1:
-#                    kat = frejm.loc[frejm.index[i]:frejm.index[i+2], column]
-#                    srednjak = np.average(kat)
-#                    frejm.loc[frejm.index[i], column] = srednjak
-#                    if frejm.index[i] not in listaIndeksa:
-#                        listaIndeksa.append(frejm.index[i])
-#        frejm = frejm[frejm.index.isin(listaIndeksa)]
-#        return frejm
 #
 #    def closeEvent(self, event):
 #        """
