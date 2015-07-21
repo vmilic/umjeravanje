@@ -173,7 +173,14 @@
              </widget>
             </item>
             <item>
-             <widget class="QTableView" name="rawDataView"/>
+             <widget class="QTableView" name="rawDataView">
+              <property name="selectionMode">
+               <enum>QAbstractItemView::SingleSelection</enum>
+              </property>
+              <property name="selectionBehavior">
+               <enum>QAbstractItemView::SelectRows</enum>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
@@ -196,7 +203,11 @@
              </widget>
             </item>
             <item>
-             <widget class="QTableView" name="avgDataView"/>
+             <widget class="QTableView" name="avgDataView">
+              <property name="selectionBehavior">
+               <enum>QAbstractItemView::SelectItems</enum>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
@@ -338,7 +349,7 @@
                      <double>1000000.000000000000000</double>
                     </property>
                     <property name="singleStep">
-                     <double>50.000000000000000</double>
+                     <double>10.000000000000000</double>
                     </property>
                    </widget>
                   </item>
@@ -354,7 +365,7 @@
                      <double>1000000.000000000000000</double>
                     </property>
                     <property name="singleStep">
-                     <double>50.000000000000000</double>
+                     <double>1.000000000000000</double>
                     </property>
                    </widget>
                   </item>
@@ -364,7 +375,7 @@
                      <double>1000000.000000000000000</double>
                     </property>
                     <property name="singleStep">
-                     <double>50.000000000000000</double>
+                     <double>10.000000000000000</double>
                     </property>
                    </widget>
                   </item>
@@ -743,7 +754,14 @@
              </widget>
             </item>
             <item>
-             <widget class="QTableView" name="konverterRawDataView"/>
+             <widget class="QTableView" name="konverterRawDataView">
+              <property name="selectionMode">
+               <enum>QAbstractItemView::SingleSelection</enum>
+              </property>
+              <property name="selectionBehavior">
+               <enum>QAbstractItemView::SelectRows</enum>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>

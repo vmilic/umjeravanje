@@ -23,33 +23,8 @@ class MainKonfig(object):
         msg = 'Preuzeta instanca configparsera, self.cfg={0}'.format(cfg)
         logging.debug(msg)
         self.cfg = cfg
-        # bitni memberi za umjeravanje
-        self.mjerenje = None  # podatak sto se umjerava (header u config objektu NOX,SO2...)
-        msg = 'Inicjializacija mjerenja, self.mjerenje={0}'.format(str(self.mjerenje))
-        logging.debug(msg)
-        self.opseg = 0  # norma: opseg mjerenja ovisno o izabranom mjerenju
-        msg = 'Inicjializacija opsega mjerenja, self.opseg={0}'.format(str(self.opseg))
-        logging.debug(msg)
-        self.dilucija = None  # izabrana dilucijska jedinica (header u config objektu)
-        msg = 'Inicjializacija dilucijske jedinice, self.dilucija={0}'.format(str(self.dilucija))
-        logging.debug(msg)
-        self.cistiZrak = None  # izabrani generator cistog zraka (header u config objektu)
-        msg = 'Inicjializacija generatora cistog zraka, self.cistiZrak={0}'.format(str(self.cistiZrak))
-        logging.debug(msg)
         self.provjeraLinearnosti = False
         msg = 'Inicjializacija provjere linearnosti, self.provjeraLinearnosti={0}'.format(str(self.provjeraLinearnosti))
-        logging.debug(msg)
-        self.koncentracijaCRM = 0
-        msg = 'Inicjializacija koncenracije CRM-a, self.koncentracijaCRM={0}'.format(str(self.koncentracijaCRM))
-        logging.debug(msg)
-        self.sljedivostCRM = 0
-        msg = 'Inicjializacija sljedivosti CRM-a, self.sljedivostCRM={0}'.format(str(self.sljedivostCRM))
-        logging.debug(msg)
-        self.cNOX50 = 0
-        msg = 'Inicjializacija cNOX50, self.cNOX50={0}'.format(str(self.cNOX50))
-        logging.debug(msg)
-        self.cNOX95 = 0
-        msg = 'Inicjializacija cNOX95, self.cNOX95={0}'.format(str(self.cNOX95))
         logging.debug(msg)
         # REST podaci
         self.uredjajUrl = self.get_konfig_element('REST', 'uredjaj')
@@ -87,15 +62,6 @@ class MainKonfig(object):
             msg = 'Konfigu nedostaje [{0}]:{1}'.format(section, option)
             raise AttributeError(msg)
 
-    def get_listu_komponenti(self):
-        """
-        Metoda vraca listu svih komponenti za umjeravanje
-        """
-        value = self.get_konfig_element('LISTE', 'komponente')
-        lista = value.split(sep=',')
-        lista = [i.strip() for i in lista]
-        return lista
-
     def get_listu_dilucija(self):
         """
         Metoda vraca listu svih dilucijskih jedinica.
@@ -110,24 +76,6 @@ class MainKonfig(object):
         Metoda vraca listu svih generatora cistog zraka.
         """
         value = self.get_konfig_element('LISTE', 'cisti_zrak')
-        lista = value.split(sep=',')
-        lista = [i.strip() for i in lista]
-        return lista
-
-    def get_listu_uredjaja(self):
-        """
-        Metoda vraca listu svih uredjaja.
-        """
-        value = self.get_konfig_element('LISTE', 'uredjaji')
-        lista = value.split(sep=',')
-        lista = [i.strip() for i in lista]
-        return lista
-
-    def get_listu_komponenti_uredjaja(self, uredjaj):
-        """
-        Metoda vraca listu svih komponenti za uredjaj.
-        """
-        value = self.get_konfig_element('UREDJAJI', uredjaj)
         lista = value.split(sep=',')
         lista = [i.strip() for i in lista]
         return lista
@@ -150,22 +98,6 @@ class MainKonfig(object):
         lista = value.split(sep=',')
         lista = [i.strip() for i in lista]
         return lista
-
-    def set_mjerenje(self, section):
-        """
-        Postavljanje izbora mjerenja.
-        """
-        if self.cfg.has_section(section):
-            self.mjerenje = str(section)
-            msg = 'Postavljeno novo mjerenje , self.mjerenje={0}'.format(self.mjerenje)
-            logging.info(msg)
-            self.opseg = self.get_konfig_element(self.mjerenje, 'opseg')
-            msg = 'Postavljen novi opseg , self.opseg={0}'.format(self.opseg)
-            logging.info(msg)
-        else:
-            msg = 'Konfiguracijski objekt nema trazeni section, section={0}'.format(section)
-            raise AttributeError(msg)
-
 
 class Tocka(object):
     """

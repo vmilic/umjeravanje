@@ -97,7 +97,7 @@ class GlavniProzor(BASE, FORM):
         """
         self.action_Exit.triggered.connect(self.close)
         self.action_Read_data.triggered.connect(self.read_data)
-        self.comboBoxMjerenje.currentIndexChanged.connect(self.promjena_mjerenja)
+        self.comboBoxMjerenje.currentIndexChanged.connect(self.recalculate)
         self.checkBoxLinearnost.toggled.connect(self.promjena_provjere_linearnosti)
         self.rawDataView.clicked.connect(self.select_pocetak_umjeravanja)
         self.comboBoxMjerenje.currentIndexChanged.connect(self.recalculate)
@@ -142,6 +142,13 @@ class GlavniProzor(BASE, FORM):
             lokacija = self.fileWizard.get_postaja()
             uredjaj = self.fileWizard.get_uredjaj()
             self.kalkulator.set_uredjaj(self.uredjaji[uredjaj]) #setter uredjaja u kalkulator
+            try:
+                #ako uredjaj ima podatak o opsegu postavi opseg
+                opseg = float(self.uredjaji[uredjaj]['analitickaMetoda']['o']['max'])
+                self.doubleSpinBoxOpseg.setValue(opseg)
+            except LookupError:
+                #zanemari gresku (nepostojeci kljuc)
+                pass
             path = str(self.fileWizard.get_path_do_filea())
             # postavi info o ucitanom fileu
             self.labelFilePath.setText(path)
@@ -159,7 +166,7 @@ class GlavniProzor(BASE, FORM):
             komponente = set(self.uredjaji[uredjaj]['komponente'])
             komponente.remove('None')
             self.comboBoxMjerenje.addItems(list(komponente))
-            self.promjena_mjerenja(0) #ulazni parametar 0 postoji samo kao placeholder
+            self.recalculate()
 
     def clear_tablice_prije_ucitavanja_datoteke(self):
         """
@@ -227,20 +234,6 @@ class GlavniProzor(BASE, FORM):
             self.konverterRawModel.set_frejm(self.konverterRawFrame)
             self.konverterRawDataView.horizontalHeader().setResizeMode(self.STRETCH)
             self.konverterRawDataView.update()
-
-    def promjena_mjerenja(self, x):
-        """
-        Promjena komponente mjerenja u gui-u.
-        """
-        komp = str(self.comboBoxMjerenje.currentText())
-        # pokusaj pronalaska opsega mjerenja
-        try:
-            self.konfiguracija.set_mjerenje(komp)
-        except AttributeError:
-            msg = 'Opseg nije definiran za komponentu, komponenta={0}'.format(komp)
-            logging.error(msg)
-            self.konfiguracija.opseg = 0
-        self.doubleSpinBoxOpseg.setValue(float(self.konfiguracija.opseg))
 
     def select_pocetak_umjeravanja(self, x):
         """
@@ -431,14 +424,15 @@ class GlavniProzor(BASE, FORM):
         """
         Metoda za crtanje grafova
         """
-        x = list(self.resultDataFrame.loc[:, 'cref'])
-        y = list(self.resultDataFrame.loc[:, 'c'])
-        self.crefCanvas.crtaj(x, y)
-        stupac = str(self.comboBoxMjerenje.currentText())
-        if stupac in self.avgDataFrame.columns:
-            x = list(self.avgDataFrame.index)
-            y = list(self.avgDataFrame.loc[:, stupac])
-            self.mjerenjaCanvas.crtaj(x, y)
+        if len(self.resultDataFrame) > 0:
+            x = list(self.resultDataFrame.loc[:, 'cref'])
+            y = list(self.resultDataFrame.loc[:, 'c'])
+            self.crefCanvas.crtaj(x, y)
+            stupac = str(self.comboBoxMjerenje.currentText())
+            if stupac in self.avgDataFrame.columns:
+                x = list(self.avgDataFrame.index)
+                y = list(self.avgDataFrame.loc[:, stupac])
+                self.mjerenjaCanvas.crtaj(x, y)
 
 
 

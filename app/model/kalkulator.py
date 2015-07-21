@@ -117,7 +117,7 @@ class RacunUmjeravanja(object):
         Reset membera koji sadrze rezultate na defaultnu pocetnu vrijednost
         prije racunanja.
         """
-        self.rezultat = None
+        self.rezultat = pd.DataFrame()
         self.prilagodbaA = None
         self.prilagodbaB = None
         self.slope = None
@@ -147,8 +147,8 @@ class RacunUmjeravanja(object):
             assert(len(self.data) > 0), 'Frejm nema podataka (prazan)'
             assert(len(self.tocke) >= 2), 'Zadano je manje od dvije tocke za umjeravanje'
             assert(self.stupac in list(self.data.columns)), 'Frejm nema trazeni stupac. stupac={0}'.format(self.stupac)
-            assert(self.opseg is not None and self.opseg >= 0), 'Opseg nije dobro definiran'
-            assert(self.cCRM is not None and self.cCRM >= 0), 'Koncentracija CRM nije dobro definirana'
+            assert(self.opseg is not None and self.opseg > 0), 'Opseg nije dobro definiran'
+            assert(self.cCRM is not None and self.cCRM > 0), 'Koncentracija CRM nije dobro definirana'
             assert(self.sCRM is not None and self.sCRM >= 0), 'Sljedivost CRM nije dobro definirana'
             assert(self.dilucija is not None), 'Dilucijska jedinica nije izabrana'
             assert(self.cistiZrak is not None), 'Generator cistog zraka nije definiran'
@@ -323,91 +323,91 @@ class RacunUmjeravanja(object):
                 self.rezultat.loc[row, 'r'] = self._izracunaj_r(tocka)
             self.rezultat.loc[row, 'UR'] = self._izracunaj_UR(tocka)
 
-    #TODO! norme su zadane za mjerenje...tj.za svaki uredjaj...(neke)
     def provjeri_ponovljivost_stdev_u_nuli(self):
         """
         provjera ponovljivosti (sr) pri koncentraciji 0
         """
-#        zrak = str(self.cistiZrak)
-#        komponenta = str(self.stupac)
-        value = self.rezultat.loc['TOCKA2', 'sr']
-        try:
-#            normMin = round(float(self.uredjaj['analitickaMetoda']['Srz']['in']), 3)
-            norm = round(float(self.uredjaj['analitickaMetoda']['Srz']['max']), 3)
-        except (TypeError, AttributeError, LookupError) as err1:
-            logging.debug(str(err1), exc_info=True)
-            return 'Uredjaj nema poststavke za ponovljivost stdev u nuli'
-        #norm = round(2 * float(self.konfig.get_konfig_element(zrak, komponenta)), 3)
-        if value < norm:
-            msg = 'vrijednost={0} , dopusteno odstupanje={1}, Dobro'.format(str(value), str(norm))
-            return msg
+        if len(self.rezultat) > 0:
+            try:
+                value = self.rezultat.loc['TOCKA2', 'sr']
+                normMin = round(float(self.uredjaj['analitickaMetoda']['Srz']['min']), 3)
+                norm = round(float(self.uredjaj['analitickaMetoda']['Srz']['max']), 3)
+            except (TypeError, AttributeError, LookupError) as err1:
+                logging.debug(str(err1), exc_info=True)
+                return 'Uredjaj nema poststavke za ponovljivost stdev u nuli'
+            if value < norm and value >= normMin:
+                msg = 'vrijednost={0} , dopusteno odstupanje={1}, Dobro'.format(str(value), str(norm))
+                return msg
+            else:
+                msg = 'vrijednost={0} , dopusteno odstupanje={1}, Lose'.format(str(value), str(norm))
+                return msg
         else:
-            msg = 'vrijednost={0} , dopusteno odstupanje={1}, Lose'.format(str(value), str(norm))
-            return msg
+            return 'NaN'
 
     def provjeri_ponovljivost_stdev_za_vrijednost(self):
         """
         provjera ponovljivosti za zadanu koncentraciju c
         """
-#        komponenta = str(self.stupac)
-        value = self.rezultat.loc['TOCKA1', 'sr']
-        try:
-#            normMin = round(float(self.uredjaj['analitickaMetoda']['Srs']['min']), 3)
-            norm = round(float(self.uredjaj['analitickaMetoda']['Srs']['max']), 3)
-        except (TypeError, AttributeError, LookupError) as err1:
-            logging.debug(str(err1), exc_info=True)
-            return 'Uredjaj nema poststavke za ponovljivost stdev za span'
-#        cref = self.rezultat.loc['TOCKA1', 'cref']
-#        e1 = float(self.konfig.get_konfig_element(komponenta, 'rz'))
-#        norm = round(0.01 * (e1) * cref, 3)
-        if value < norm:
-            msg = 'vrijednost={0} , dopusteno odstupanje={1}, Dobro'.format(str(value), str(norm))
-            return msg
+        if len(self.rezultat) > 0:
+            try:
+                value = self.rezultat.loc['TOCKA1', 'sr']
+                normMin = round(float(self.uredjaj['analitickaMetoda']['Srs']['min']), 3)
+                norm = round(float(self.uredjaj['analitickaMetoda']['Srs']['max']), 3)
+            except (TypeError, AttributeError, LookupError) as err1:
+                logging.debug(str(err1), exc_info=True)
+                return 'Uredjaj nema poststavke za ponovljivost stdev za span'
+            if value < norm  and value >= normMin:
+                msg = 'vrijednost={0} , dopusteno odstupanje={1}, Dobro'.format(str(value), str(norm))
+                return msg
+            else:
+                msg = 'vrijednost={0} , dopusteno odstupanje={1}, Lose'.format(str(value), str(norm))
+                return msg
         else:
-            msg = 'vrijednost={0} , dopusteno odstupanje={1}, Lose'.format(str(value), str(norm))
-            return msg
+            return 'NaN'
 
     def provjeri_odstupanje_od_linearnosti_u_nuli(self):
         """
         provjera odstupanja od linearnosti za koncentraciju 0
         """
-        value = self.rezultat.loc['TOCKA2', 'r']
-#        komponenta = str(self.stupac)
-        try:
-#            normMin = round(float(self.uredjaj['analitickaMetoda']['rz']['min']), 3)
-            norm = round(float(self.uredjaj['analitickaMetoda']['rz']['max']), 3)
-        except (TypeError, AttributeError, LookupError) as err1:
-            logging.debug(str(err1), exc_info=True)
-            return 'Uredjaj nema poststavke za odstupanje od linearnosti u nuli'
-#        norm = round(float(self.konfig.get_konfig_element(komponenta, 'rz')), 3)
-        if value <= norm:
-            msg = 'vrijednost={0} , dopusteno odstupanje={1}, Dobro'.format(str(value), str(norm))
-            return msg
+        if len(self.rezultat) > 0:
+            try:
+                value = self.rezultat.loc['TOCKA2', 'r']
+                normMin = round(float(self.uredjaj['analitickaMetoda']['rz']['min']), 3)
+                norm = round(float(self.uredjaj['analitickaMetoda']['rz']['max']), 3)
+            except (TypeError, AttributeError, LookupError) as err1:
+                logging.debug(str(err1), exc_info=True)
+                return 'Uredjaj nema poststavke za odstupanje od linearnosti u nuli'
+            if value <= norm and value >= normMin:
+                msg = 'vrijednost={0} , dopusteno odstupanje={1}, Dobro'.format(str(value), str(norm))
+                return msg
+            else:
+                msg = 'vrijednost={0} , dopusteno odstupanje={1}, Lose'.format(str(value), str(norm))
+                return msg
         else:
-            msg = 'vrijednost={0} , dopusteno odstupanje={1}, Lose'.format(str(value), str(norm))
-            return msg
+            return 'NaN'
 
     def provjeri_maksimalno_relativno_odstupanje_od_linearnosti(self):
         """
         max relativno odstupanje od linearnosti
         """
-        r = list(self.rezultat.loc['TOCKA3':'TOCKA5', 'r'])
-        najveciR = max(r)
-        value = 100 * (najveciR)
-#        komponenta = str(self.stupac)
-        try:
-#            normMin = round(float(self.uredjaj['analitickaMetoda']['rmax']['min']), 3)
-            norm = round(float(self.uredjaj['analitickaMetoda']['rmax']['max']), 3)
-        except (TypeError, AttributeError, LookupError) as err1:
-            logging.debug(str(err1), exc_info=True)
-            return 'Uredjaj nema poststavke za maksimalno odstupanje od linearnosti'
-#        norm = round(float(self.konfig.get_konfig_element(komponenta, 'rmax')), 3)
-        if value <= norm:
-            msg = 'vrijednost={0} , dopusteno odstupanje={1}, Dobro'.format(str(value), str(norm))
-            return msg
+        if len(self.rezultat) > 0:
+            try:
+                r = list(self.rezultat.loc['TOCKA3':'TOCKA5', 'r'])
+                najveciR = max(r)
+                value = 100 * (najveciR)
+                normMin = round(float(self.uredjaj['analitickaMetoda']['rmax']['min']), 3)
+                norm = round(float(self.uredjaj['analitickaMetoda']['rmax']['max']), 3)
+            except (TypeError, AttributeError, LookupError) as err1:
+                logging.debug(str(err1), exc_info=True)
+                return 'Uredjaj nema poststavke za maksimalno odstupanje od linearnosti'
+            if value <= norm and value >= normMin:
+                msg = 'vrijednost={0} , dopusteno odstupanje={1}, Dobro'.format(str(value), str(norm))
+                return msg
+            else:
+                msg = 'vrijednost={0} , dopusteno odstupanje={1}, Lose'.format(str(value), str(norm))
+                return msg
         else:
-            msg = 'vrijednost={0} , dopusteno odstupanje={1}, Lose'.format(str(value), str(norm))
-            return msg
+            return 'NaN'
 
 
 ################################################################################
@@ -447,7 +447,7 @@ class ProvjeraKonvertera(object):
         Reset membera koji sadrze rezultate na defaultnu pocetnu vrijednost
         prije racunanja.
         """
-        self.rezultat = None
+        self.rezultat = pd.DataFrame()
         self.ec1 = None
         self.ec2 = None
         self.ec3 = None
