@@ -194,7 +194,6 @@ class RacunUmjeravanja(object):
         """
         Racunanje slope i offset
         """
-        #TODO! pametniji nacin bez imenovanja tocaka...
         x = list(self.rezultat.loc['TOCKA2':'TOCKA5', 'cref'])
         y = list(self.rezultat.loc['TOCKA2':'TOCKA5', 'c'])
         line = np.polyfit(x, y, 1)
@@ -206,7 +205,6 @@ class RacunUmjeravanja(object):
         """
         Racunanje koeficijenata funkcije prilagodbe
         """
-        #TODO! pametniji nacin bez imenovanja tocke...
         cref1 = self.rezultat.loc['TOCKA1', 'cref']
         c1 = self.rezultat.loc['TOCKA1', 'c']
         c2 = self.rezultat.loc['TOCKA2', 'c']
@@ -218,7 +216,6 @@ class RacunUmjeravanja(object):
         """
         racunanje r za zadanu tocku.
         """
-        #TODO! pametniji nacin bez imenovanja tocke...
         if str(tocka) == 'TOCKA1':
             return np.NaN
         elif str(tocka) == 'TOCKA2':
@@ -410,28 +407,18 @@ class RacunUmjeravanja(object):
             return 'NaN'
 
 
-################################################################################
-################################################################################
 class ProvjeraKonvertera(object):
     """
     kalkulator za provjeru konvertera
     """
-    #TODO! redesign sve :)
     def __init__(self, cfg):
         logging.debug('start inicijalizacije ProvjeraKonvertera')
-        self.generalConfig = cfg
-        self.konfig = None
-        self.data = None
-        self.stupacNO = 1
-        self.stupacNOX = 0
-        self.reset_results()  # reset membera sa rezultatima na None
-        logging.debug('kraj inicijalizacije ProvjeraKonvertera')
-
-    def set_konfig(self, cfg):
-        """setter konfiga za racunanje"""
         self.konfig = cfg
-        msg = 'konfig postavljen, config={0}'.format(str(type(cfg)))
-        logging.debug(msg)
+        self.data = pd.DataFrame(columns=['NOx', 'NO2', 'NO'])
+        self.opseg = 0
+        self.tocke = self.konfig.konverterTocke
+        self.reset_results()
+        logging.debug('kraj inicijalizacije ProvjeraKonvertera')
 
     def set_data(self, frejm):
         """
@@ -441,6 +428,12 @@ class ProvjeraKonvertera(object):
         msg = 'frejm sa podacima postavljen. frejm={0}'.format(str(type(frejm)))
         logging.debug(msg)
         logging.debug(str(frejm))
+
+    def set_opseg(self, x):
+        """Setter opsega mjerenja za provjeru konvertera"""
+        self.opseg = float(x)
+        msg = 'Postavljen novi opseg za provjeru konvertera, opseg={0}'.format(self.opseg)
+        logging.info(msg)
 
     def reset_results(self):
         """
@@ -454,27 +447,34 @@ class ProvjeraKonvertera(object):
         self.ec = None
         logging.debug('All result members reset to None')
 
-    def set_stupac_NO(self, ind):
-        """ setter stupca frejma, NO"""
-        self.stupacNO = ind
-
-    def set_stupac_NOX(self, ind):
-        """ setter stupca frejma, NOx"""
-        self.stupacNOX = ind
+    def provjeri_parametre_prije_racunanja(self):
+        """
+        Funkcija provjerava ispravnost parametara za provjeru konvertera.
+        Funkcija vraca True ako sve valja, False inace.
+        """
+        try:
+            assert(self.konfig is not None), 'Konfig objekt nije dobro zadan'
+            assert(isinstance(self.data, pd.core.frame.DataFrame)), 'Frejm nije pandas dataframe.'
+            assert(len(self.data) > 0), 'Frejm nema podataka (prazan)'
+            assert('NOx' in self.data.columns), 'Frejmu nedostaje stupac NOx'
+            assert('NO' in self.data.columns), 'Frejmu nedostaje stupac NO'
+            assert('NO2' in self.data.columns), 'Frejmu nedostaje stupac NO2'
+            assert(self.uredjaj is not None), 'Nije zadan uredjaj'
+            assert(len(self.tocke) != 6), 'Za provjeru konvertera nuzno je tocno 6 tocaka. zadano ih je {0}'.format(len(self.tocke))
+            assert(self.opseg > 0), 'Opseg nije dobro zadan'
+            return True
+        except (AssertionError, AttributeError, TypeError) as e:
+            msg = ".".join(['Parametri za racunanje nisu ispravni',str(e)])
+            logging.debug(msg, exc_info=True)
+            return False
 
     def racunaj(self):
         """
         racunanje provjere konvertera
         """
-        if isinstance(self.data, pd.core.frame.DataFrame):
-            testFrejm = len(self.data) > 0
-        else:
-            testFrejm = False
-        testKonfig = True
-        if testFrejm and testKonfig:
+        if self.provjeri_parametre_prije_racunanja:
             self.reset_results()
-            tocke = self.konfig.Ktocke
-            self.get_provjera_konvertera_za_listu_tocaka(tocke)
+            self.get_provjera_konvertera_za_listu_tocaka(self.tocke)
 
     def get_provjera_konvertera_za_listu_tocaka(self, tocke):
         """
@@ -504,7 +504,8 @@ class ProvjeraKonvertera(object):
         """
         if str(tocka) == 'KTOCKA3':
             return 0
-        value = self.konfig.raspon / 2
+        value = self.opseg / 2
+        value = round(value, 3)
         return value
 
     def _izracunaj_crNO2(self, tocka):
@@ -512,9 +513,20 @@ class ProvjeraKonvertera(object):
         popunjavanje tablice sa ref vrijedsnotima koncentracije NO2
         """
         if str(tocka) == 'KTOCKA2':
+            try:
+                val = self.konfig.get_konfig_element('KONVERTER_META', 'cNOX50')
+                return val
+            except AttributeError:
+                logging.error('Konfigu nedostaje cNOX50, koristim default 200', exc_info=True)
+                return 200
             return self.konfig.cNOX50
         elif str(tocka) == 'KTOCKA5':
-            return self.konfig.cNOX95
+            try:
+                val = self.konfig.get_konfig_element('KONVERTER_META', 'cNOX95')
+                return val
+            except AttributeError:
+                logging.error('Konfigu nedostaje cNOX95, koristim default 180', exc_info=True)
+                return 180
         else:
             return 0
 
@@ -524,6 +536,8 @@ class ProvjeraKonvertera(object):
         Tocka je jedna od definiranih u konfig objektu
         stupac je integer redni broj stupca s kojim racunamo
         """
+        columns = list(self.data.columns)
+        stupac = columns.index(stupac)
         start = tocka.startIndeks
         end = tocka.endIndeks
         zanemari = tocka.brojZanemarenih
@@ -533,15 +547,15 @@ class ProvjeraKonvertera(object):
         """
         funkcija racuna cNO za zadanu tocku (average stabilnih vrijednosti)
         """
-        podaci = list(self.dohvati_slajs_tocke(tocka, self.stupacNO))
-        return np.average(podaci)
+        podaci = list(self.dohvati_slajs_tocke(tocka, 'NO'))
+        return round(np.average(podaci), 3)
 
     def _izracunaj_cNOX(self, tocka):
         """
         funkcija racuna cNOX za zadanu tocku (average stabilnih vrijednosti)
         """
-        podaci = list(self.dohvati_slajs_tocke(tocka, self.stupacNOX))
-        return np.average(podaci)
+        podaci = list(self.dohvati_slajs_tocke(tocka, 'NOx'))
+        return round(np.average(podaci), 3)
 
     def _izracunaj_ec1(self):
         """funckija racuna ec1"""
@@ -549,6 +563,7 @@ class ProvjeraKonvertera(object):
         denominator = self.rezultat.loc['KTOCKA4', 'c, NO'] - self.rezultat.loc['KTOCKA5', 'c, NO']
         try:
             value = numerator / denominator
+            value = round(value, 3)
         except ZeroDivisionError:
             value = 'NaN'
         finally:
@@ -560,6 +575,7 @@ class ProvjeraKonvertera(object):
         denominator = self.rezultat.loc['KTOCKA1', 'c, NO'] - self.rezultat.loc['KTOCKA2', 'c, NO']
         try:
             value = numerator / denominator
+            value = round(value, 3)
         except ZeroDivisionError:
             value = 'NaN'
         finally:
@@ -571,6 +587,7 @@ class ProvjeraKonvertera(object):
         denominator = self.rezultat.loc['KTOCKA5', 'c, NO'] - self.rezultat.loc['KTOCKA6', 'c, NO']
         try:
             value = numerator / denominator
+            value = round(value, 3)
         except ZeroDivisionError:
             value = 'NaN'
         finally:
