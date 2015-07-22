@@ -173,7 +173,14 @@
              </widget>
             </item>
             <item>
-             <widget class="QTableView" name="rawDataView"/>
+             <widget class="QTableView" name="rawDataView">
+              <property name="selectionMode">
+               <enum>QAbstractItemView::SingleSelection</enum>
+              </property>
+              <property name="selectionBehavior">
+               <enum>QAbstractItemView::SelectRows</enum>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
@@ -196,7 +203,11 @@
              </widget>
             </item>
             <item>
-             <widget class="QTableView" name="avgDataView"/>
+             <widget class="QTableView" name="avgDataView">
+              <property name="selectionBehavior">
+               <enum>QAbstractItemView::SelectItems</enum>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
@@ -338,7 +349,7 @@
                      <double>1000000.000000000000000</double>
                     </property>
                     <property name="singleStep">
-                     <double>50.000000000000000</double>
+                     <double>10.000000000000000</double>
                     </property>
                    </widget>
                   </item>
@@ -354,7 +365,7 @@
                      <double>1000000.000000000000000</double>
                     </property>
                     <property name="singleStep">
-                     <double>50.000000000000000</double>
+                     <double>1.000000000000000</double>
                     </property>
                    </widget>
                   </item>
@@ -364,7 +375,7 @@
                      <double>1000000.000000000000000</double>
                     </property>
                     <property name="singleStep">
-                     <double>50.000000000000000</double>
+                     <double>10.000000000000000</double>
                     </property>
                    </widget>
                   </item>
@@ -501,7 +512,7 @@
                      </widget>
                     </item>
                     <item row="0" column="1">
-                     <widget class="QLabel" name="label_13">
+                     <widget class="QLabel" name="labelSlope">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
                         <horstretch>0</horstretch>
@@ -514,7 +525,7 @@
                      </widget>
                     </item>
                     <item row="1" column="1">
-                     <widget class="QLabel" name="label_14">
+                     <widget class="QLabel" name="labelOffset">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
                         <horstretch>0</horstretch>
@@ -562,7 +573,7 @@
                      </widget>
                     </item>
                     <item row="0" column="1">
-                     <widget class="QLabel" name="label_20">
+                     <widget class="QLabel" name="labelA">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
                         <horstretch>0</horstretch>
@@ -575,7 +586,7 @@
                      </widget>
                     </item>
                     <item row="1" column="1">
-                     <widget class="QLabel" name="label_22">
+                     <widget class="QLabel" name="labelB">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
                         <horstretch>0</horstretch>
@@ -627,7 +638,7 @@
                    </widget>
                   </item>
                   <item row="0" column="1">
-                   <widget class="QLabel" name="label_29">
+                   <widget class="QLabel" name="labelPonovNula">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -640,7 +651,7 @@
                    </widget>
                   </item>
                   <item row="1" column="1">
-                   <widget class="QLabel" name="label_31">
+                   <widget class="QLabel" name="labelPonovC">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -653,7 +664,7 @@
                    </widget>
                   </item>
                   <item row="2" column="1">
-                   <widget class="QLabel" name="label_32">
+                   <widget class="QLabel" name="labelOdstNula">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -666,7 +677,7 @@
                    </widget>
                   </item>
                   <item row="3" column="1">
-                   <widget class="QLabel" name="label_33">
+                   <widget class="QLabel" name="labelOdstMax">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -743,7 +754,14 @@
              </widget>
             </item>
             <item>
-             <widget class="QTableView" name="konverterRawDataView"/>
+             <widget class="QTableView" name="konverterRawDataView">
+              <property name="selectionMode">
+               <enum>QAbstractItemView::SingleSelection</enum>
+              </property>
+              <property name="selectionBehavior">
+               <enum>QAbstractItemView::SelectRows</enum>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
