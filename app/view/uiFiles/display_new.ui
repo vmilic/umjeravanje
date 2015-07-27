@@ -236,8 +236,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>1114</width>
-             <height>697</height>
+             <width>604</width>
+             <height>695</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -942,6 +942,7 @@
      <string>&amp;File</string>
     </property>
     <addaction name="action_Read_data"/>
+    <addaction name="action_Setup_tocke_umjeravanja"/>
     <addaction name="separator"/>
     <addaction name="action_Exit"/>
    </widget>
@@ -959,6 +960,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="action_Read_data"/>
+   <addaction name="action_Setup_tocke_umjeravanja"/>
   </widget>
   <action name="action_Exit">
    <property name="text">
@@ -968,6 +970,14 @@
   <action name="action_Read_data">
    <property name="text">
     <string>&amp;Read data</string>
+   </property>
+  </action>
+  <action name="action_Setup_tocke_umjeravanja">
+   <property name="text">
+    <string>&amp;Setup tocke umjeravanja</string>
+   </property>
+   <property name="toolTip">
+    <string>Wizard za podesavanje tocaka umjeravanja</string>
    </property>
   </action>
  </widget>

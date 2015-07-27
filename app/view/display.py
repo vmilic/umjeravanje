@@ -14,7 +14,7 @@ import app.model.kalkulator as calc
 import app.model.pomocne_funkcije as helperi
 import app.view.canvas as canvas
 import app.view.read_file_wizard as datareader
-
+import app.view.setup_tocke_wizard as wizardTocke
 
 BASE, FORM = uic.loadUiType('./app/view/uiFiles/display_new.ui')
 
@@ -98,6 +98,7 @@ class GlavniProzor(BASE, FORM):
         """
         self.action_Exit.triggered.connect(self.close)
         self.action_Read_data.triggered.connect(self.read_data)
+        self.action_Setup_tocke_umjeravanja.triggered.connect(self.setup_tocke_umjeravanja)
         self.comboBoxMjerenje.currentIndexChanged.connect(self.recalculate)
         self.checkBoxLinearnost.toggled.connect(self.promjena_provjere_linearnosti)
         self.rawDataView.clicked.connect(self.select_pocetak_umjeravanja)
@@ -211,9 +212,8 @@ class GlavniProzor(BASE, FORM):
         self.labelEc3.setText('NaN')
         self.labelEc.setText('NaN')
         logging.debug('Labeli u Konverter tabu postavljeni na NaN')
-        #TODO!
-
-
+        #clear ostalih labela
+        self.clear_result_labels()
 
     def clear_grafove(self):
         """
@@ -254,7 +254,6 @@ class GlavniProzor(BASE, FORM):
         """
         self.recalculate()
         self.konverter_recalculate()
-        #TODO!
 
     def select_pocetak_umjeravanja(self, x):
         """
@@ -263,7 +262,6 @@ class GlavniProzor(BASE, FORM):
         - postavljaju se u model
         """
         if self.konfiguracija is not None:
-            # multiple type dispatching (int & QModelIndex)
             if isinstance(x, int):
                 red = x
             else:
@@ -299,13 +297,6 @@ class GlavniProzor(BASE, FORM):
             # predaj agregirani frejm kalkulatoru
             self.kalkulator.set_data(self.avgDataFrame)
             # predaj listu tocaka kalkulatoru i bool provjere linearnosti
-            provjeraLinearnosti = self.checkBoxLinearnost.isChecked()
-            if provjeraLinearnosti:
-                tocke = self.konfiguracija.umjerneTocke
-            else:
-                tocke = self.konfiguracija.umjerneTocke[:2]
-            self.kalkulator.set_tocke(tocke)
-            self.kalkulator.set_linearnost(provjeraLinearnosti)
             self.recalculate()
 
     def get_duljina_slajsa(self):
@@ -319,10 +310,15 @@ class GlavniProzor(BASE, FORM):
         if self.checkBoxLinearnost.isChecked():
             tocke = self.konfiguracija.umjerneTocke
         else:
-            tocke = self.konfiguracija.umjerneTocke[:2]
-        duljina = 0
+            tocke = [self.konfiguracija.zeroTocka, self.konfiguracija.spanTocka]
+        start = tocke[0].startIndeks
+        kraj = tocke[0].endIndeks
         for tocka in tocke:
-            duljina += tocka.brojPodataka
+            if tocka.startIndeks < start:
+                start = tocka.startIndeks
+            if tocka.endIndeks > kraj:
+                kraj = tocka.endIndeks
+        duljina = kraj - start
         msg = 'Ukupni broj potrebnih sirovih podataka za umjeravanje, N={0}'.format(duljina*3)
         logging.debug(msg)
         return duljina*3
@@ -373,8 +369,10 @@ class GlavniProzor(BASE, FORM):
         if linearnost:
             tocke = self.konfiguracija.umjerneTocke
         else:
-            tocke = self.konfiguracija.umjerneTocke[:2]
+            tocke = [self.konfiguracija.zeroTocka, self.konfiguracija.spanTocka]
         self.kalkulator.set_tocke(tocke)
+        self.kalkulator.set_zero(self.konfiguracija.zeroTocka)
+        self.kalkulator.set_span(self.konfiguracija.spanTocka)
         self.kalkulator.set_linearnost(linearnost)
         self.kalkulator.set_stupac(self.comboBoxMjerenje.currentText())
         self.kalkulator.set_opseg(float(self.doubleSpinBoxOpseg.value()))
@@ -382,7 +380,6 @@ class GlavniProzor(BASE, FORM):
         self.kalkulator.set_sCRM(float(self.doubleSpinBoxSljedivostCRM.value()))
         self.kalkulator.set_dilucija(self.comboBoxDilucija.currentText())
         self.kalkulator.set_cistiZrak(self.comboBoxCistiZrak.currentText())
-
 
     def recalculate(self):
         """
@@ -505,7 +502,7 @@ class GlavniProzor(BASE, FORM):
         tocke = self.konfiguracija.konverterTocke
         duljina = 0
         for tocka in tocke:
-            duljina += tocka.brojPodataka
+            duljina += tocka.get_brojPodataka()
         msg = 'Ukupni broj potrebnih sirovih podataka za provjeru konvertera, N={0}'.format(duljina*3)
         logging.debug(msg)
         return duljina*3
@@ -522,12 +519,13 @@ class GlavniProzor(BASE, FORM):
         """
         Pocetna metoda za racunanje i prikaz rezultata provjere konvertera.
         """
-        if len(self.konverterAvgFrame)*3 == self.konverterDuljinaSlajsa:
-            self.setup_konverter_kalkulator()
-            self.konverterKalkulator.racunaj()
-            self.prikazi_konverter_rezultate()
-        else:
-            logging.info('Duljina slajsa ne odgovara za racunanje konvertera')
+        if self.comboBoxMjerenje.currentText() in ['NOx', 'NO', 'NO2']:
+            if len(self.konverterAvgFrame)*3 == self.konverterDuljinaSlajsa:
+                self.setup_konverter_kalkulator()
+                self.konverterKalkulator.racunaj()
+                self.prikazi_konverter_rezultate()
+            else:
+                logging.info('Duljina slajsa ne odgovara za racunanje konvertera')
 
     def prikazi_konverter_rezultate(self):
         """
@@ -543,3 +541,16 @@ class GlavniProzor(BASE, FORM):
         self.labelEc2.setText(self.konverterKalkulator.ec2)
         self.labelEc3.setText(self.konverterKalkulator.ec3)
         self.labelEc.setText(self.konverterKalkulator.ec)
+
+    def setup_tocke_umjeravanja(self):
+        """
+        Pokretanje wizarda za izbor tocaka za umjeravanje
+        """
+        self.tockeWizard = wizardTocke.CarobnjakZaDefiniranjeTocaka(parent=self)
+        prihvacen = self.tockeWizard.exec_()
+        if prihvacen:
+            tocke, zero, span = self.tockeWizard.get_tocke()
+            self.konfiguracija.umjerneTocke = tocke
+            self.konfiguracija.zeroTocka = zero
+            self.konfiguracija.spanTocka = span
+            self.promjena_provjere_linearnosti(0) # 0 je placeholder
