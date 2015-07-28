@@ -12,6 +12,8 @@ import pandas as pd
 class RacunUmjeravanja(object):
     """
     Klasa za racunanje parametara umjeravanja.
+
+    #TODO!: nemoj direktno pozivati nazive tocaka
     """
     def __init__(self, cfg):
         logging.debug('start inicijalizacije RacunUmjeravanja')
@@ -26,8 +28,8 @@ class RacunUmjeravanja(object):
         self.dilucija = None  # izabrana dilucijska jedinica
         self.cistiZrak = None  # izabran generator cistog zraka
         self.konfig = cfg  # konfig objekt sa podacima o tockama, postavkama...
-        #self.generalConfig = cfg
-        #self.konfig = None
+        self.zero = self.konfig.zeroTocka  # instanca Tocka, zero
+        self.span = self.konfig.spanTocka  # instanca Tocka, span
         self.reset_results()
         logging.debug('kraj inicijalizacije RacunUmjeravanja')
 
@@ -62,6 +64,22 @@ class RacunUmjeravanja(object):
         self.tocke = lista
         lst = [str(i) for i in lista]
         msg = 'Postavljene tocke za umjeravanje. tocke={0}'.format(lst)
+        logging.info(msg)
+
+    def set_zero(self, tocka):
+        """
+        Setter za instancu zero tocke
+        """
+        self.zero = tocka
+        msg = 'Postavljen izbor zero tocke za umjeravanje. zero={0}'.format(str(self.zero))
+        logging.info(msg)
+
+    def set_span(self, tocka):
+        """
+        Setter za instancu span tocke
+        """
+        self.span = tocka
+        msg = 'Postavljen izbor span tocke za umjeravanje. span={0}'.format(str(self.span))
         logging.info(msg)
 
     def set_linearnost(self, x):
@@ -171,8 +189,12 @@ class RacunUmjeravanja(object):
         """
         Racunanje cref, za datu tocku umjeravanja.
         """
-        value = tocka.crefFaktor * self.opseg
-        return round(value, 3)
+        try:
+            value = tocka.crefFaktor * self.opseg
+            return round(value, 3)
+        except Exception as err:
+            logging.error(str(err), exc_info=True)
+            return np.NaN
 
     def _izracunaj_c(self, tocka):
         """
@@ -180,103 +202,157 @@ class RacunUmjeravanja(object):
         stupac je integer vrijednost indeksa stupca u ulaznom pandas
         datafrejmu.
         """
-        podaci = list(self.dohvati_slajs_tocke(tocka, self.stupac))
-        return round(np.average(podaci), 3)
+        try:
+            podaci = list(self.dohvati_slajs_tocke(tocka, self.stupac))
+            return round(np.average(podaci), 3)
+        except Exception as err:
+            logging.error(str(err), exc_info=True)
+            return np.NaN
 
     def _izracunaj_sr(self, tocka):
         """
         Racunanje stdev za tocku,
         """
-        podaci = list(self.dohvati_slajs_tocke(tocka, self.stupac))
-        return round(np.std(podaci, ddof=1), 3)
+        try:
+            podaci = list(self.dohvati_slajs_tocke(tocka, self.stupac))
+            return round(np.std(podaci, ddof=1), 3)
+        except Exception as err:
+            logging.error(str(err), exc_info=True)
+            return np.NaN
 
     def _izracunaj_regresijske_koef(self):
         """
-        Racunanje slope i offset
+        Racunanje slope i offset, samo ako je ukljucena opcija za provjeru linearnosti
         """
-        x = list(self.rezultat.loc['TOCKA2':'TOCKA5', 'cref'])
-        y = list(self.rezultat.loc['TOCKA2':'TOCKA5', 'c'])
-        line = np.polyfit(x, y, 1)
-        slope = round(line[0], 3)
-        offset = round(line[1], 3)
-        return slope, offset
+        #TODO! zasto su zanemarene SPAN vrijednosti u racunici?
+        try:
+            if self.linearnost:
+                ind = self.tocke.index(self.span)  # indeks span tocke
+                x = list(self.rezultat.loc[:, 'cref'])
+                y = list(self.rezultat.loc[:, 'c'])
+                # makinemo span vrijednosti iz racunanja koeficijanta linearnosti????
+                x.pop(ind)
+                y.pop(ind)
+                line = np.polyfit(x, y, 1)
+                slope = round(line[0], 3)
+                offset = round(line[1], 3)
+                return slope, offset
+            else:
+                return np.NaN, np.NaN
+        except Exception as err:
+            logging.error(str(err), exc_info=True)
+            return np.NaN, np.NaN
 
     def _izracunaj_prilagodbu(self):
         """
         Racunanje koeficijenata funkcije prilagodbe
         """
-        cref1 = self.rezultat.loc['TOCKA1', 'cref']
-        c1 = self.rezultat.loc['TOCKA1', 'c']
-        c2 = self.rezultat.loc['TOCKA2', 'c']
-        A = round(cref1/(c1-c2), 3)
-        B = round(c1 / A, 3)
-        return A, B
+        try:
+            s = str(self.span)
+            z = str(self.zero)
+            cref1 = self.rezultat.loc[s, 'cref']
+            c1 = self.rezultat.loc[s, 'c']
+            c2 = self.rezultat.loc[z, 'c']
+            A = round(cref1/(c1-c2), 3)
+            B = round(c1 / A, 3)
+            return A, B
+        except Exception as err:
+            logging.error(str(err), exc_info=True)
+            return np.NaN, np.NaN
 
     def _izracunaj_r(self, tocka):
         """
         racunanje r za zadanu tocku.
         """
-        if str(tocka) == 'TOCKA1':
+        #TODO! zasto kompikacija sa racunanjem r?
+        try:
+            if self.linearnost:
+                if tocka == self.span:
+                    return np.NaN
+                elif tocka == self.zero:
+                    c = self._izracunaj_c(tocka)
+                    cref = self._izracunaj_cref(tocka)
+                    return round(abs(c - (cref * self.slope + self.offset)),3)
+                else:
+                    c = self._izracunaj_c(tocka)
+                    cref = self._izracunaj_cref(tocka)
+                    return round(abs(c - (cref * self.slope + self.offset)) / cref,3)
+            else:
+                return np.NaN
+        except Exception as err:
+            logging.error(str(err), exc_info=True)
             return np.NaN
-        elif str(tocka) == 'TOCKA2':
-            c = self._izracunaj_c(tocka)
-            cref = self._izracunaj_cref(tocka)
-            return round(abs(c - (cref * self.slope + self.offset)),3)
-        else:
-            c = self._izracunaj_c(tocka)
-            cref = self._izracunaj_cref(tocka)
-            return round(abs(c - (cref * self.slope + self.offset)) / cref,3)
 
     def _izracunaj_ufz(self, tocka):
         """pomocna funkcija za racunanje U"""
-        cref = self._izracunaj_cref(tocka)
-        value = (cref * (self.cCRM - cref))/(self.cCRM)
-        d = str(self.dilucija)
         try:
+            cref = self._izracunaj_cref(tocka)
+            value = (cref * (self.cCRM - cref))/(self.cCRM)
+            d = str(self.dilucija)
             U = float(self.konfig.get_konfig_element(d, 'MFC_NUL_PLIN_U'))
             return round(value * U, 3)
-        except AttributeError as err:
+        except Exception as err:
             logging.error(str(err), exc_info=True)
             return np.NaN
 
     def _izracunaj_ufm(self, tocka):
         """pomocna funkcija za racunanje U"""
-        cref = self._izracunaj_cref(tocka)
-        value = (cref * (self.cCRM - cref))/(self.cCRM)
-        d = str(self.dilucija)
         try:
+            cref = self._izracunaj_cref(tocka)
+            value = (cref * (self.cCRM - cref))/(self.cCRM)
+            d = str(self.dilucija)
             U = float(self.konfig.get_konfig_element(d, 'MFC_KAL_PLIN_U'))
             return round(value * U, 3)
-        except AttributeError as err:
+        except Exception as err:
             logging.error(str(err), exc_info=True)
             return np.NaN
 
     def _izracunaj_ucr(self, tocka):
         """pomocna funkcija za racunanje U"""
-        sljedivost = self.sCRM
-        cref = self._izracunaj_cref(tocka)
-        return round(sljedivost*cref/200, 3)
+        try:
+            sljedivost = self.sCRM
+            cref = self._izracunaj_cref(tocka)
+            return round(sljedivost*cref/200, 3)
+        except Exception as err:
+            logging.error(str(err), exc_info=True)
+            return np.NaN
 
     def _izracunaj_ucz(self, tocka):
         """pomocna funkcija za racunanje U"""
-        zrak = str(self.cistiZrak)
-        komponenta = str(self.stupac)
-        e1 = self.cCRM - self._izracunaj_cref(tocka)
-        e2 = 2 * float(self.konfig.get_konfig_element(zrak, komponenta))
-        e3 = self.cCRM
-        value = e1 * e2 / e3 / np.sqrt(3)
-        return round(value, 3)
+        try:
+            zrak = str(self.cistiZrak)
+            komponenta = str(self.stupac)
+            e1 = self.cCRM - self._izracunaj_cref(tocka)
+            e2 = 2 * float(self.konfig.get_konfig_element(zrak, komponenta))
+            e3 = self.cCRM
+            value = e1 * e2 / e3 / np.sqrt(3)
+            return round(value, 3)
+        except Exception as err:
+            logging.error(str(err), exc_info=True)
+            return np.NaN
 
     def _izracunaj_UR(self, tocka):
         """
         Racunanje UR
         """
-        ufz = self._izracunaj_ufz(tocka)
-        ufm = self._izracunaj_ufm(tocka)
-        ucr = self._izracunaj_ucr(tocka)
-        ucz = self._izracunaj_ucz(tocka)
-        value = 2 * np.sqrt(ufz**2+ufm**2+ucr**2+ucz**2+(2*ucz)**2)
-        return round(value, 3)
+        try:
+            ufz = self._izracunaj_ufz(tocka)
+            ufm = self._izracunaj_ufm(tocka)
+            ucr = self._izracunaj_ucr(tocka)
+            ucz = self._izracunaj_ucz(tocka)
+            if np.isnan(ufz):
+                return 'NaN'
+            if np.isnan(ufm):
+                return 'NaN'
+            if np.isnan(ucr):
+                return 'NaN'
+            if np.isnan(ucz):
+                return 'NaN'
+            value = 2 * np.sqrt(ufz**2+ufm**2+ucr**2+ucz**2+(2*ucz)**2)
+            return round(value, 3)
+        except Exception as err:
+            logging.error(str(err), exc_info=True)
+            return np.NaN
 
     def racunaj_vrijednosti_umjeravanja_za_listu_tocaka(self, tocke):
         """
@@ -309,15 +385,14 @@ class RacunUmjeravanja(object):
             self.rezultat.loc[row, 'cref'] = self._izracunaj_cref(tocka)
             self.rezultat.loc[row, 'c'] = self._izracunaj_c(tocka)
             self.rezultat.loc[row, 'sr'] = self._izracunaj_sr(tocka)
+
         # racun za slope i offset
-        if self.linearnost is True:
-            self.slope, self.offset = self._izracunaj_regresijske_koef()
+        self.slope, self.offset = self._izracunaj_regresijske_koef()
         # racun koeficijenata funkcije prilagodbe
         self.prilagodbaA, self.prilagodbaB = self._izracunaj_prilagodbu()
         for tocka in tocke:
             row = str(tocka)
-            if self.linearnost is True:
-                self.rezultat.loc[row, 'r'] = self._izracunaj_r(tocka)
+            self.rezultat.loc[row, 'r'] = self._izracunaj_r(tocka)
             self.rezultat.loc[row, 'UR'] = self._izracunaj_UR(tocka)
 
     def provjeri_ponovljivost_stdev_u_nuli(self):
@@ -326,7 +401,7 @@ class RacunUmjeravanja(object):
         """
         if len(self.rezultat) > 0:
             try:
-                value = self.rezultat.loc['TOCKA2', 'sr']
+                value = self.rezultat.loc[str(self.zero), 'sr']
                 normMin = round(float(self.uredjaj['analitickaMetoda']['Srz']['min']), 3)
                 norm = round(float(self.uredjaj['analitickaMetoda']['Srz']['max']), 3)
             except (TypeError, AttributeError, LookupError) as err1:
@@ -347,7 +422,7 @@ class RacunUmjeravanja(object):
         """
         if len(self.rezultat) > 0:
             try:
-                value = self.rezultat.loc['TOCKA1', 'sr']
+                value = self.rezultat.loc[str(self.span), 'sr']
                 normMin = round(float(self.uredjaj['analitickaMetoda']['Srs']['min']), 3)
                 norm = round(float(self.uredjaj['analitickaMetoda']['Srs']['max']), 3)
             except (TypeError, AttributeError, LookupError) as err1:
@@ -368,7 +443,7 @@ class RacunUmjeravanja(object):
         """
         if len(self.rezultat) > 0:
             try:
-                value = self.rezultat.loc['TOCKA2', 'r']
+                value = self.rezultat.loc[str(self.zero), 'r']
                 normMin = round(float(self.uredjaj['analitickaMetoda']['rz']['min']), 3)
                 norm = round(float(self.uredjaj['analitickaMetoda']['rz']['max']), 3)
             except (TypeError, AttributeError, LookupError) as err1:
@@ -387,9 +462,15 @@ class RacunUmjeravanja(object):
         """
         max relativno odstupanje od linearnosti
         """
-        if len(self.rezultat) > 0:
+        #TODO! zasto su zanemarene ZERO i SPAN tocke
+        if len(self.rezultat) > 0 and self.linearnost:
             try:
-                r = list(self.rezultat.loc['TOCKA3':'TOCKA5', 'r'])
+                r = list(self.rezultat.loc[:, 'r'])
+                #ignore zero i span
+                indZero = self.tocke.index(self.zero)
+                indSpan = self.tocke.index(self.span)
+                r[indZero] = 0.0
+                r[indSpan] = 0.0
                 najveciR = max(r)
                 value = 100 * (najveciR)
                 normMin = round(float(self.uredjaj['analitickaMetoda']['rmax']['min']), 3)
@@ -405,8 +486,8 @@ class RacunUmjeravanja(object):
                 return msg
         else:
             return 'NaN'
-
-
+################################################################################
+################################################################################
 class ProvjeraKonvertera(object):
     """
     kalkulator za provjeru konvertera
