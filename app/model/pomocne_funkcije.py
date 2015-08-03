@@ -102,8 +102,19 @@ def get_uredjaj_info(url, serial):
                 naziv = metoda.find('./ispitneVelicine/naziv').text
                 oznaka = metoda.find('./ispitneVelicine/oznaka').text
                 mjernaJedinica = metoda.find('./mjerneJediniceId/oznaka').text
-                minGranica = metoda.find('min').text
-                maxGranica = metoda.find('max').text
+                try:
+                    minGranica = metoda.find('min').text
+                except Exception:
+                    msg = 'Za uredjaj {0} nije definirana min granica za {1}. Koristim default 0'.format(serial, naziv)
+                    minGranica = 0.0
+                    logging.error(msg, exc_info=True)
+                try:
+                    maxGranica = metoda.find('max').text
+                except Exception:
+                    msg = 'Za uredjaj {0} nije definirana max granica za {1}. Koristim default 400'.format(serial, naziv)
+                    maxGranica = 400.0
+                    logging.error(msg, exc_info=True)
+
                 tmp1[oznaka] = {
                     'naziv': naziv,
                     'oznaka': oznaka,
@@ -201,7 +212,12 @@ def pripremi_mape_postaja_i_uredjaja(url1, url2):
     for serial in listaUredjaja:
         uredjaj = get_uredjaj_info(url1, serial)
         sviUredjaji[serial] = uredjaj
-        lokacija = uredjaj['lokacija']
+        try:
+            lokacija = uredjaj['lokacija']
+        except Exception:
+            msg = 'Nedostaje kljuc "lokacija", uredjaj={0}'.format(str(uredjaj))
+            logging.error(msg, exc_info=True)
+            continue
         if lokacija in svePostaje:
             svePostaje[lokacija].append(serial)
         else:
