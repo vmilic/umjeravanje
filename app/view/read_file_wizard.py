@@ -10,7 +10,6 @@ import pandas as pd
 from PyQt4 import QtGui, QtCore
 import app.model.pomocne_funkcije as helperi
 
-#TODO! logging and exctracting information about chosen stuff...
 class CarobnjakZaCitanjeFilea(QtGui.QWizard):
     """
     Wizard dijalog klasa za ucitavanje fileova za umjeravanje
@@ -286,7 +285,6 @@ class Page2Wizarda(QtGui.QWizardPage):
         logging.debug(msg)
 
 
-#TODO! logging
 class Page3Wizarda(QtGui.QWizardPage):
     def __init__(self, parent = None):
         """
@@ -350,10 +348,11 @@ class Page3Wizarda(QtGui.QWizardPage):
         Funkcija se pokrece prilikom inicijalizacije stranice
         """
         self.mjerenja = self.wizard().komponente
+
         self.path = self.field('filepath')
         self.uredjaj = self.field('uredjaj')
 
-        txt = " ".join(['Izaberi uredjaj', self.uredjaj])
+        txt = " ".join(['Izaberi komponente', self.uredjaj])
         self.setSubTitle(txt)
         try:
             self.df = self.read_csv_file(self.path)

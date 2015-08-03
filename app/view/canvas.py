@@ -5,7 +5,10 @@ Created on Thu Apr  9 12:27:25 2015
 @author: DHMZ-Milic
 
 """
+import numpy as np
+import datetime
 from PyQt4 import QtGui
+import matplotlib
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigCanvas
 from matplotlib.figure import Figure
 
@@ -62,6 +65,61 @@ class Kanvas(FigCanvas):
         delta = (maksimum - minimum) / 20
         minimum = minimum - delta
         maksimum = maksimum + delta
-        # TODO! extend granica grafa za neki x....
         self.axes.set_xlim((minimum, maksimum))
         self.draw()
+
+
+class KanvasMjerenja(Kanvas):
+    def __init__(self, meta=None, parent=None, width=3, height=3, dpi=100):
+        Kanvas.__init__(self, meta=meta, parent=parent, width=width, height=height, dpi=dpi)
+
+    def crtaj(self, frejm, tocke):
+        """
+        naredba za plot
+        """
+        self.clear_graf()
+        for tocka in tocke:
+            x, y = self.get_tocke_za_crtanje(frejm, tocka)
+            r, g, b, a = tocka.boja.getRgb()
+            boja = (r/255, g/255, b/255)
+            alpha = a/255
+#            boja = 'b'
+#            alpha = 0.5
+            self.axes.scatter(x,
+                              y,
+                              marker='o',
+                              s=10,
+                              color=boja,
+                              alpha=alpha)
+        xmin, xmax = self.axes.get_xlim()
+        xmin = matplotlib.dates.num2date(xmin)
+        xmax = matplotlib.dates.num2date(xmax)
+        delta = datetime.timedelta(minutes=10)
+        xmin = xmin - delta
+        xmax = xmax + delta
+        self.axes.set_xlim((xmin, xmax))
+        allXLabels = self.axes.get_xticklabels(which='both') #dohvati sve labele
+        for label in allXLabels:
+            label.set_rotation(20)
+            label.set_fontsize(8)
+        self.draw()
+
+    def get_tocke_za_crtanje(self, frejm, tocka):
+        """
+        metoda za zadani frejm podataka i tocku vaca dvije liste (X kooridinate,
+        Y kooridinate) sa podacima koje treba crtati
+        """
+        low = min(tocka.indeksi)
+        high = max(tocka.indeksi)
+        slajs = frejm.iloc[low:high+1]
+        y = []
+        x = []
+        for i in range(0, len(slajs), 3):
+            s = slajs[i:i+3]
+            if len(s) == 3:
+                valueX = slajs.index[i]
+                valueY = np.average(s)
+                x.append(valueX)
+                y.append(valueY)
+        return x, y
+
