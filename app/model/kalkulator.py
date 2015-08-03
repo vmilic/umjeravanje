@@ -12,14 +12,12 @@ import pandas as pd
 class RacunUmjeravanja(object):
     """
     Klasa za racunanje parametara umjeravanja.
-
-    #TODO!: nemoj direktno pozivati nazive tocaka
     """
     def __init__(self, cfg):
         logging.debug('start inicijalizacije RacunUmjeravanja')
+        self.konfig = cfg  # konfig objekt sa podacima o tockama, postavkama...
         self.uredjaj = {}  # mapa sa podacima o uredjaju
         self.data = None  # pandas datafrejm sa usrednjenim podacima za racunanje
-        self.tocke = []  # lista tocaka za umjeravanje (objekti u konfigu)
         self.linearnost = False  # provjera linearnosti boolean
         self.stupac = 0  #stupac frejma STRING
         self.opseg = 0  #opseg mjerenja
@@ -27,9 +25,6 @@ class RacunUmjeravanja(object):
         self.sCRM = 0  # sljedivost CRM-a
         self.dilucija = None  # izabrana dilucijska jedinica
         self.cistiZrak = None  # izabran generator cistog zraka
-        self.konfig = cfg  # konfig objekt sa podacima o tockama, postavkama...
-        self.zero = self.konfig.zeroTocka  # instanca Tocka, zero
-        self.span = self.konfig.spanTocka  # instanca Tocka, span
         self.reset_results()
         logging.debug('kraj inicijalizacije RacunUmjeravanja')
 
@@ -43,7 +38,7 @@ class RacunUmjeravanja(object):
 
     def set_data(self, frejm):
         """
-        Setter pandas datafrejma podataka za racunanje.
+        Setter pandas datafrejma podataka za racunanje (nisu 3 minutni srednjaci).
         """
         self.data = frejm
         logging.info('Postavljen frejm sa sirovim podacima.')
@@ -55,31 +50,6 @@ class RacunUmjeravanja(object):
         """
         self.stupac = x
         msg = 'Postavljan stupac za racunanje, stupac={0}'.format(x)
-        logging.info(msg)
-
-    def set_tocke(self, lista):
-        """
-        Setter liste tocaka umjeravanja. (tocke su objekti definirani u konfigu)
-        """
-        self.tocke = lista
-        lst = [str(i) for i in lista]
-        msg = 'Postavljene tocke za umjeravanje. tocke={0}'.format(lst)
-        logging.info(msg)
-
-    def set_zero(self, tocka):
-        """
-        Setter za instancu zero tocke
-        """
-        self.zero = tocka
-        msg = 'Postavljen izbor zero tocke za umjeravanje. zero={0}'.format(str(self.zero))
-        logging.info(msg)
-
-    def set_span(self, tocka):
-        """
-        Setter za instancu span tocke
-        """
-        self.span = tocka
-        msg = 'Postavljen izbor span tocke za umjeravanje. span={0}'.format(str(self.span))
         logging.info(msg)
 
     def set_linearnost(self, x):
@@ -150,10 +120,16 @@ class RacunUmjeravanja(object):
         """
         cols = list(self.data.columns)
         ind = cols.index(self.stupac)
-        start = tocka.startIndeks
-        end = tocka.endIndeks
-        zanemari = tocka.brojZanemarenih
-        return self.data.iloc[start+zanemari:end, ind]
+        start = min(tocka.indeksi)
+        end = max(tocka.indeksi)
+        siroviSlajs = self.data.iloc[start:end+1, ind]
+        agregiraniSlajs = []
+        for i in range(0, len(siroviSlajs), 3):
+            s = siroviSlajs[i:i+3]
+            if len(s) == 3:
+                value = np.average(s)
+                agregiraniSlajs.append(value)
+        return agregiraniSlajs
 
     def provjeri_ispravnost_parametara(self):
         """
@@ -163,11 +139,14 @@ class RacunUmjeravanja(object):
         try:
             assert(isinstance(self.data, pd.core.frame.DataFrame)), 'Frejm nije pandas dataframe.'
             assert(len(self.data) > 0), 'Frejm nema podataka (prazan)'
-            assert(len(self.tocke) >= 2), 'Zadano je manje od dvije tocke za umjeravanje'
+            assert(len(self.konfig.umjerneTocke) >= 2), 'Zadano je manje od dvije tocke za umjeravanje'
             assert(self.stupac in list(self.data.columns)), 'Frejm nema trazeni stupac. stupac={0}'.format(self.stupac)
             assert(self.opseg is not None and self.opseg > 0), 'Opseg nije dobro definiran'
             assert(self.cCRM is not None and self.cCRM > 0), 'Koncentracija CRM nije dobro definirana'
             assert(self.sCRM is not None and self.sCRM >= 0), 'Sljedivost CRM nije dobro definirana'
+            cf = [float(tocka.crefFaktor) for tocka in self.konfig.umjerneTocke]
+            assert(0.0 in cf), 'Nedostaje ZERO tocka'
+            assert(sum(cf) != 0.0), 'Nedostaje SPAN tocka'
             assert(self.dilucija is not None), 'Dilucijska jedinica nije izabrana'
             assert(self.cistiZrak is not None), 'Generator cistog zraka nije definiran'
             return True
@@ -183,7 +162,12 @@ class RacunUmjeravanja(object):
         """
         if self.provjeri_ispravnost_parametara():
             self.reset_results()
-            self.racunaj_vrijednosti_umjeravanja_za_listu_tocaka(self.tocke)
+            if self.linearnost:
+                self.racunaj_vrijednosti_umjeravanja_za_listu_tocaka(self.konfig.umjerneTocke)
+            else:
+                zero, span = self.pronadji_zero_span()
+                tocke = [self.konfig.umjerneTocke[span], self.konfig.umjerneTocke[zero]]
+                self.racunaj_vrijednosti_umjeravanja_za_listu_tocaka(tocke)
 
     def _izracunaj_cref(self, tocka):
         """
@@ -224,15 +208,10 @@ class RacunUmjeravanja(object):
         """
         Racunanje slope i offset, samo ako je ukljucena opcija za provjeru linearnosti
         """
-        #TODO! zasto su zanemarene SPAN vrijednosti u racunici?
         try:
             if self.linearnost:
-                ind = self.tocke.index(self.span)  # indeks span tocke
                 x = list(self.rezultat.loc[:, 'cref'])
                 y = list(self.rezultat.loc[:, 'c'])
-                # makinemo span vrijednosti iz racunanja koeficijanta linearnosti????
-                x.pop(ind)
-                y.pop(ind)
                 line = np.polyfit(x, y, 1)
                 slope = round(line[0], 3)
                 offset = round(line[1], 3)
@@ -248,8 +227,9 @@ class RacunUmjeravanja(object):
         Racunanje koeficijenata funkcije prilagodbe
         """
         try:
-            s = str(self.span)
-            z = str(self.zero)
+            zero, span = self.pronadji_zero_span()
+            s = str(self.konfig.umjerneTocke[span])
+            z = str(self.konfig.umjerneTocke[zero])
             cref1 = self.rezultat.loc[s, 'cref']
             c1 = self.rezultat.loc[s, 'c']
             c2 = self.rezultat.loc[z, 'c']
@@ -264,12 +244,11 @@ class RacunUmjeravanja(object):
         """
         racunanje r za zadanu tocku.
         """
-        #TODO! zasto kompikacija sa racunanjem r?
         try:
             if self.linearnost:
-                if tocka == self.span:
-                    return np.NaN
-                elif tocka == self.zero:
+                zero, span = self.pronadji_zero_span()
+                z = self.konfig.umjerneTocke[zero]
+                if tocka == z:
                     c = self._izracunaj_c(tocka)
                     cref = self._izracunaj_cref(tocka)
                     return round(abs(c - (cref * self.slope + self.offset)),3)
@@ -401,7 +380,8 @@ class RacunUmjeravanja(object):
         """
         if len(self.rezultat) > 0:
             try:
-                value = self.rezultat.loc[str(self.zero), 'sr']
+                zero, span = self.pronadji_zero_span()
+                value = self.rezultat.loc[str(self.konfig.umjerneTocke[zero]), 'sr']
                 normMin = round(float(self.uredjaj['analitickaMetoda']['Srz']['min']), 3)
                 norm = round(float(self.uredjaj['analitickaMetoda']['Srz']['max']), 3)
             except (TypeError, AttributeError, LookupError) as err1:
@@ -422,7 +402,8 @@ class RacunUmjeravanja(object):
         """
         if len(self.rezultat) > 0:
             try:
-                value = self.rezultat.loc[str(self.span), 'sr']
+                zero, span = self.pronadji_zero_span()
+                value = self.rezultat.loc[str(self.konfig.umjerneTocke[span]), 'sr']
                 normMin = round(float(self.uredjaj['analitickaMetoda']['Srs']['min']), 3)
                 norm = round(float(self.uredjaj['analitickaMetoda']['Srs']['max']), 3)
             except (TypeError, AttributeError, LookupError) as err1:
@@ -441,9 +422,10 @@ class RacunUmjeravanja(object):
         """
         provjera odstupanja od linearnosti za koncentraciju 0
         """
-        if len(self.rezultat) > 0:
+        if len(self.rezultat) > 0 and self.linearnost:
             try:
-                value = self.rezultat.loc[str(self.zero), 'r']
+                zero, span = self.pronadji_zero_span()
+                value = self.rezultat.loc[str(self.konfig.umjerneTocke[zero]), 'r']
                 normMin = round(float(self.uredjaj['analitickaMetoda']['rz']['min']), 3)
                 norm = round(float(self.uredjaj['analitickaMetoda']['rz']['max']), 3)
             except (TypeError, AttributeError, LookupError) as err1:
@@ -462,15 +444,12 @@ class RacunUmjeravanja(object):
         """
         max relativno odstupanje od linearnosti
         """
-        #TODO! zasto su zanemarene ZERO i SPAN tocke
         if len(self.rezultat) > 0 and self.linearnost:
             try:
                 r = list(self.rezultat.loc[:, 'r'])
                 #ignore zero i span
-                indZero = self.tocke.index(self.zero)
-                indSpan = self.tocke.index(self.span)
+                indZero, indSpan = self.pronadji_zero_span()
                 r[indZero] = 0.0
-                r[indSpan] = 0.0
                 najveciR = max(r)
                 value = 100 * (najveciR)
                 normMin = round(float(self.uredjaj['analitickaMetoda']['rmax']['min']), 3)
@@ -486,8 +465,25 @@ class RacunUmjeravanja(object):
                 return msg
         else:
             return 'NaN'
-################################################################################
-################################################################################
+
+    def pronadji_zero_span(self):
+        """
+        Metoda pronalazi indekse za zero i span.
+
+        Zero je prva tocka koja ima crefFaktor jednak 0.0
+        Span je prva tocka sa crefFaktorom 0.8, a ako niti jedna tocka nema
+        taj crefFaktor, onda se uzima ona sa najvecim crefFaktorom
+        """
+        cf = [float(tocka.crefFaktor) for tocka in self.konfig.umjerneTocke]
+        zero = cf.index(0.0)
+        if 0.8 in cf:
+            span = cf.index(0.8)
+        else:
+            span = cf.index(max(cf))
+        return zero, span
+
+
+
 class ProvjeraKonvertera(object):
     """
     kalkulator za provjeru konvertera
@@ -496,8 +492,9 @@ class ProvjeraKonvertera(object):
         logging.debug('start inicijalizacije ProvjeraKonvertera')
         self.konfig = cfg
         self.data = pd.DataFrame(columns=['NOx', 'NO2', 'NO'])
-        self.opseg = 0
-        self.tocke = self.konfig.konverterTocke
+        self.opseg = 0.0
+        self.cnox50 = 0.0
+        self.cnox95 = 0.0
         self.reset_results()
         logging.debug('kraj inicijalizacije ProvjeraKonvertera')
 
@@ -507,7 +504,7 @@ class ProvjeraKonvertera(object):
         """
         self.data = frejm
         msg = 'frejm sa podacima postavljen. frejm={0}'.format(str(type(frejm)))
-        logging.debug(msg)
+        logging.info(msg)
         logging.debug(str(frejm))
 
     def set_opseg(self, x):
@@ -516,17 +513,29 @@ class ProvjeraKonvertera(object):
         msg = 'Postavljen novi opseg za provjeru konvertera, opseg={0}'.format(self.opseg)
         logging.info(msg)
 
+    def set_cnox50(self, x):
+        """Setter cnox50 za provjeru konvertera"""
+        self.cnox50 = float(x)
+        msg = 'Postavljen cNOx50 za provjeru konvertera, value={0}'.format(self.cnox50)
+        logging.info(msg)
+
+    def set_cnox95(self, x):
+        """Setter cnox50 za provjeru konvertera"""
+        self.cnox95 = float(x)
+        msg = 'Postavljen cNOx95 za provjeru konvertera, value={0}'.format(self.cnox95)
+        logging.info(msg)
+
     def reset_results(self):
         """
         Reset membera koji sadrze rezultate na defaultnu pocetnu vrijednost
         prije racunanja.
         """
         self.rezultat = pd.DataFrame()
-        self.ec1 = None
-        self.ec2 = None
-        self.ec3 = None
-        self.ec = None
-        logging.debug('All result members reset to None')
+        self.ec1 = 'n/a'
+        self.ec2 = 'n/a'
+        self.ec3 = 'n/a'
+        self.ec = 'n/a'
+        logging.debug('All result members reset to "n/a"')
 
     def provjeri_parametre_prije_racunanja(self):
         """
@@ -540,9 +549,10 @@ class ProvjeraKonvertera(object):
             assert('NOx' in self.data.columns), 'Frejmu nedostaje stupac NOx'
             assert('NO' in self.data.columns), 'Frejmu nedostaje stupac NO'
             assert('NO2' in self.data.columns), 'Frejmu nedostaje stupac NO2'
-            assert(self.uredjaj is not None), 'Nije zadan uredjaj'
-            assert(len(self.tocke) != 6), 'Za provjeru konvertera nuzno je tocno 6 tocaka. zadano ih je {0}'.format(len(self.tocke))
+            assert(len(self.konfig.konverterTocke) != 6), 'Za provjeru konvertera nuzno je tocno 6 tocaka. zadano ih je {0}'.format(len(self.konfig.konverterTocke))
             assert(self.opseg > 0), 'Opseg nije dobro zadan'
+            assert(self.cnox50 > 0), 'cNOx50 nije dobro zadan'
+            assert(self.cnox95 > 0), 'cNOx95 nije dobro zadan'
             return True
         except (AssertionError, AttributeError, TypeError) as e:
             msg = ".".join(['Parametri za racunanje nisu ispravni',str(e)])
@@ -555,7 +565,7 @@ class ProvjeraKonvertera(object):
         """
         if self.provjeri_parametre_prije_racunanja:
             self.reset_results()
-            self.get_provjera_konvertera_za_listu_tocaka(self.tocke)
+            self.get_provjera_konvertera_za_listu_tocaka(self.konfig.konverterTocke)
 
     def get_provjera_konvertera_za_listu_tocaka(self, tocke):
         """
@@ -583,31 +593,25 @@ class ProvjeraKonvertera(object):
         """
         popunjavanje tablice sa ref vrijednostima koncentracije NOX
         """
-        if str(tocka) == 'KTOCKA3':
+        imena = [str(dot) for dot in self.konfig.konverterTocke]
+        ind = imena.index(str(tocka))
+        if ind == 2:
             return 0
-        value = self.opseg / 2
-        value = round(value, 3)
-        return value
+        else:
+            value = self.opseg / 2
+            value = round(value, 3)
+            return value
 
     def _izracunaj_crNO2(self, tocka):
         """
         popunjavanje tablice sa ref vrijedsnotima koncentracije NO2
         """
-        if str(tocka) == 'KTOCKA2':
-            try:
-                val = self.konfig.get_konfig_element('KONVERTER_META', 'cNOX50')
-                return val
-            except AttributeError:
-                logging.error('Konfigu nedostaje cNOX50, koristim default 200', exc_info=True)
-                return 200
-            return self.konfig.cNOX50
-        elif str(tocka) == 'KTOCKA5':
-            try:
-                val = self.konfig.get_konfig_element('KONVERTER_META', 'cNOX95')
-                return val
-            except AttributeError:
-                logging.error('Konfigu nedostaje cNOX95, koristim default 180', exc_info=True)
-                return 180
+        imena = [str(dot) for dot in self.konfig.konverterTocke]
+        ind = imena.index(str(tocka))
+        if ind == 1:
+            return round(float(self.cnox50), 3)
+        elif ind == 4:
+            return round(float(self.cnox95), 3)
         else:
             return 0
 
@@ -618,61 +622,72 @@ class ProvjeraKonvertera(object):
         stupac je integer redni broj stupca s kojim racunamo
         """
         columns = list(self.data.columns)
-        stupac = columns.index(stupac)
-        start = tocka.startIndeks
-        end = tocka.endIndeks
-        zanemari = tocka.brojZanemarenih
-        return self.data.iloc[start+zanemari:end, stupac]
+        ind = columns.index(stupac)
+        start = min(tocka.indeksi)
+        end = max(tocka.indeksi)
+        siroviSlajs = self.data.iloc[start:end+1, ind]
+        agregiraniSlajs = []
+        for i in range(0, len(siroviSlajs), 3):
+            s = siroviSlajs[i:i+3]
+            if len(s) == 3:
+                value = np.average(s)
+                agregiraniSlajs.append(value)
+        return agregiraniSlajs
 
     def _izracunaj_cNO(self, tocka):
         """
         funkcija racuna cNO za zadanu tocku (average stabilnih vrijednosti)
         """
-        podaci = list(self.dohvati_slajs_tocke(tocka, 'NO'))
-        return round(np.average(podaci), 3)
+        try:
+            podaci = list(self.dohvati_slajs_tocke(tocka, 'NO'))
+            return round(np.average(podaci), 3)
+        except Exception as err:
+            logging.error(str(err), exc_info=True)
+            return np.NaN
 
     def _izracunaj_cNOX(self, tocka):
         """
         funkcija racuna cNOX za zadanu tocku (average stabilnih vrijednosti)
         """
-        podaci = list(self.dohvati_slajs_tocke(tocka, 'NOx'))
-        return round(np.average(podaci), 3)
+        try:
+            podaci = list(self.dohvati_slajs_tocke(tocka, 'NOx'))
+            return round(np.average(podaci), 3)
+        except Exception as err:
+            logging.error(str(err), exc_info=True)
+            return np.NaN
 
     def _izracunaj_ec1(self):
         """funckija racuna ec1"""
-        numerator = 1 -(self.rezultat.loc['KTOCKA4', 'c, NOx'] - self.rezultat.loc['KTOCKA5', 'c, NOx'])
-        denominator = self.rezultat.loc['KTOCKA4', 'c, NO'] - self.rezultat.loc['KTOCKA5', 'c, NO']
+        numerator = 1 -(self.rezultat.iloc[3, 3] - self.rezultat.iloc[4, 3])
+        denominator = self.rezultat.iloc[3, 2] - self.rezultat.iloc[4, 2]
         try:
             value = numerator / denominator
-            value = round(value, 3)
-        except ZeroDivisionError:
-            value = 'NaN'
-        finally:
+            value = round(float(value), 3)
             self.ec1 = str(value)
+        except ZeroDivisionError:
+            self.ec1 = 'n/a'
 
     def _izracunaj_ec2(self):
         """funckija racuna ec2"""
-        numerator = 1 -(self.rezultat.loc['KTOCKA1', 'c, NOx'] - self.rezultat.loc['KTOCKA2', 'c, NOx'])
-        denominator = self.rezultat.loc['KTOCKA1', 'c, NO'] - self.rezultat.loc['KTOCKA2', 'c, NO']
+        numerator = 1 -(self.rezultat.iloc[0, 3] - self.rezultat.iloc[1, 3])
+        denominator = self.rezultat.iloc[0, 2] - self.rezultat.iloc[1, 2]
         try:
             value = numerator / denominator
-            value = round(value, 3)
-        except ZeroDivisionError:
-            value = 'NaN'
-        finally:
+            value = round(float(value), 3)
             self.ec2 = str(value)
+        except ZeroDivisionError:
+            self.ec2 = 'n/a'
 
     def _izracunaj_ec3(self):
         """funckija racuna ec3"""
-        numerator = 1 -(self.rezultat.loc['KTOCKA5', 'c, NOx'] - self.rezultat.loc['KTOCKA6', 'c, NOx'])
-        denominator = self.rezultat.loc['KTOCKA5', 'c, NO'] - self.rezultat.loc['KTOCKA6', 'c, NO']
+        numerator = 1 -(self.rezultat.iloc[4, 3] - self.rezultat.iloc[5, 3])
+        denominator = self.rezultat.iloc[4, 2] - self.rezultat.iloc[5, 2]
         try:
             value = numerator / denominator
-            value = round(value, 3)
-        except ZeroDivisionError:
-            value = 'NaN'
-        finally:
+            value = round(float(value), 3)
             self.ec3 = str(value)
+        except ZeroDivisionError:
+            self.ec3 = 'n/a'
 
     def _izracunaj_ec(self):
         """ funkcija vraca najmanji od svih ec-ova"""

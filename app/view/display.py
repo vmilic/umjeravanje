@@ -6,71 +6,139 @@ Created on Mon May 18 12:02:42 2015
 """
 import logging
 import pandas as pd
-import numpy as np
-from PyQt4 import QtGui, uic
-import app.model.frejm_model as modeli
-import app.model.konfig_klase as konfiguracija
-import app.model.kalkulator as calc
+from PyQt4 import QtGui, QtCore, uic
+import app.model.konfig_klase as konfig
 import app.model.pomocne_funkcije as helperi
-import app.view.canvas as canvas
+import app.model.frejm_model as modeli
+import app.model.kalkulator as calc
 import app.view.read_file_wizard as datareader
-import app.view.setup_tocke_wizard as wizardTocke
+import app.view.canvas as canvas
 
-BASE, FORM = uic.loadUiType('./app/view/uiFiles/display_new.ui')
+#TODO! logging i converter tab, refactor
+class ColorDelegate(QtGui.QItemDelegate):
+    """
+    Delegat klasa za tockeView, stupac 6 (promjena boje preko dijaloga)
+    """
+    def __init__(self, tocke=None, parent=None):
+        QtGui.QItemDelegate.__init__(self, parent)
+        self.tocke = tocke
+
+    def createEditor(self, parent, option, index):
+        """
+        Direktni poziv dijaloga i ako se vrati ok boja, direktni setter podataka
+        """
+        if index.isValid():
+            red = index.row()
+            oldColor = self.tocke[red].boja.rgba()
+            newColor, test = QtGui.QColorDialog.getRgba(oldColor)
+            if test:
+                color = QtGui.QColor().fromRgba(newColor)
+                self.tocke[red].boja = color
+                #signaliziraj za refresh viewova
+                self.emit(QtCore.SIGNAL('promjena_boje_tocke'))
 
 
+BASE, FORM = uic.loadUiType('./app/view/uiFiles/display.ui')
 class GlavniProzor(BASE, FORM):
     """
     Gui element glavnog prozora
     """
     def __init__(self, cfg=None, parent=None):
-        logging.debug('Pocetak inicijalizacije GlavniProzor')
         super(BASE, self).__init__(parent)
         self.setupUi(self)
-        # konstante
         self.STRETCH = QtGui.QHeaderView.Stretch
-        # members
-        self.kalkulator = None
-        self.konfiguracija = None
-        self.duljinaSlajsa = 0
-        self.konverterDuljinaSlajsa = 0
         self.uredjaji = {}
         self.postaje = {}
         try:
-            self.konfiguracija = konfiguracija.MainKonfig(cfg)
+            self.konfiguracija = konfig.MainKonfig(cfg)
             self.postaje, self.uredjaji = helperi.pripremi_mape_postaja_i_uredjaja(
                 self.konfiguracija.uredjajUrl,
                 self.konfiguracija.postajeUrl)
-            self.comboBoxDilucija.addItems(self.konfiguracija.get_listu_dilucija())
-            self.comboBoxCistiZrak.addItems(self.konfiguracija.get_listu_cistiZrak())
         except (TypeError, AttributeError):
             msg = 'Konfig aplikacije ne moze naci trazeni element.'
             logging.error(msg, exc_info=True)
             raise SystemExit('Konfiguracijski file nije ispravan.')
-        # frejmovi
-        self.rawDataRow = 0
-        self.konverterRawRow = 0
-        self.rawDataFrame = pd.DataFrame()
-        self.avgDataFrame = pd.DataFrame()
-        self.resultDataFrame = pd.DataFrame()
-        self.konverterRawFrame = pd.DataFrame()
-        self.konverterAvgFrame = pd.DataFrame()
-        self.konverterResultFrame = pd.DataFrame
-        # modeli
-        self.rawDataModel = modeli.SiroviFrameModel()
-        self.avgDataModel = modeli.WorkingFrameModel(cfg=self.konfiguracija)
-        self.resultDataModel = modeli.RezultatModel()
-        self.konverterRawModel = modeli.SiroviFrameModel()
-        self.konverterAvgModel = modeli.KonverterAvgFrameModel(cfg=self.konfiguracija)
-        self.konverterResultModel = modeli.RezultatModel()
-        # povezivanje model --> view
-        self.rawDataView.setModel(self.rawDataModel)
-        self.avgDataView.setModel(self.avgDataModel)
-        self.resultView.setModel(self.resultDataModel)
-        self.konverterRawDataView.setModel(self.konverterRawModel)
-        self.konverterAvgDataView.setModel(self.konverterAvgModel)
-        self.konverterResultView.setModel(self.konverterResultModel)
-        # inicijalizacija i postavljanje kanvasa za grafove.
+
+        # inicijalni setup membera
+        self.comboDilucija.addItems(self.konfiguracija.get_listu_dilucija())
+        self.comboZrak.addItems(self.konfiguracija.get_listu_cistiZrak())
+        self.checkLinearnost.setChecked(self.konfiguracija.provjeraLinearnosti)
+
+
+        #definiranje modela sirovih podataka
+        self.siroviPodaci = pd.DataFrame()
+        self.siroviPodaciModel = modeli.SiroviFrameModel()
+        self.siroviPodaciView.setModel(self.siroviPodaciModel)
+
+        #definiranje modela tocaka
+        self.modelTocaka = modeli.TockeModel()
+        self.modelTocaka.set_tocke(self.konfiguracija.umjerneTocke)
+        self.tockeView.setModel(self.modelTocaka)
+        self.tockeView.horizontalHeader().setResizeMode(self.STRETCH)
+        self.tockeView.update()
+
+        #prati koja je tocka zadnje selektirana
+        self.redTockeZaEdit = None
+
+        #color delegat za tablicu
+        self.delegatZaBoju = ColorDelegate(tocke=self.konfiguracija.umjerneTocke)
+        self.konverterDelegatZaBoju = ColorDelegate(tocke=self.konfiguracija.konverterTocke)
+        #set delegat na svoje mjesto
+        self.tockeView.setItemDelegateForColumn(6, self.delegatZaBoju)
+        self.konverterTockeView.setItemDelegateForColumn(5, self.konverterDelegatZaBoju)
+
+
+        #definiranje kalkulatora
+        self.kalkulator = calc.RacunUmjeravanja(cfg=self.konfiguracija)
+
+        # rezultat umjeravanja
+        self.rezultatUmjeravanja = pd.DataFrame(columns=['cref', 'c', 'sr', 'r', 'UR'])
+        self.rezultatModel = modeli.RezultatModel()
+        self.rezultatModel.set_frejm(self.rezultatUmjeravanja)
+        self.rezultatView.setModel(self.rezultatModel)
+        self.rezultatView.horizontalHeader().setResizeMode(self.STRETCH)
+        self.rezultatView.update()
+
+        #definiranje modela tocaka za provjeru konvertera
+        self.modelTocakaKonverter = modeli.KonverterTockeModel()
+        self.modelTocakaKonverter.set_tocke(self.konfiguracija.konverterTocke)
+        self.konverterTockeView.setModel(self.modelTocakaKonverter)
+        self.konverterTockeView.horizontalHeader().setResizeMode(self.STRETCH)
+        self.konverterTockeView.update()
+
+        #definiranje modela podataka za provjeru konvertera
+        self.konverterPodaci = pd.DataFrame()
+        self.konverterPodaciModel = modeli.KonverterFrameModel()
+        self.konverterPodaciView.setModel(self.konverterPodaciModel)
+
+        #setup postavki za racunanje konvertera
+        self.konverterOpseg.setValue(400.0)
+        try:
+            c50 = float(self.konfiguracija.get_konfig_element('KONVERTER_META','cNOX50'))
+            c95 = float(self.konfiguracija.get_konfig_element('KONVERTER_META','cNOX95'))
+            self.cnox50SpinBox.setValue(c50)
+            self.cnox95SpinBox.setValue(c95)
+        except Exception as err:
+            logging.error(str(err), exc_info=True)
+            self.cnox50SpinBox.setValue(200.0)
+            self.cnox95SpinBox.setValue(180.0)
+
+        #kalkulator za provjeru konvertera
+        self.konverterKalkulator = calc.ProvjeraKonvertera(cfg=self.konfiguracija)
+
+        # rezultat provjere konvertera
+        self.konverterRezultat = pd.DataFrame(columns=['c, R, NOx', 'c, R, NO2', 'c, NO', 'c, NOx'])
+        self.konverterRezultatModel = modeli.RezultatModel()
+        self.konverterRezultatModel.set_frejm(self.rezultatUmjeravanja)
+        self.konverterRezultatView.setModel(self.konverterRezultatModel)
+        self.konverterRezultatView.horizontalHeader().setResizeMode(self.STRETCH)
+        self.konverterRezultatView.update()
+
+        self.inicijalizacija_grafova()
+        self.setup_signal_connections()
+
+    def inicijalizacija_grafova(self):
+        """inicijalizacija i postavljanje kanvasa za grafove u layout."""
         meta1 = {'xlabel':'referentna koncentracija, cref',
                  'ylabel':'koncentracija, c',
                  'title':'Cref / koncentracija graf'}
@@ -78,74 +146,73 @@ class GlavniProzor(BASE, FORM):
                  'ylabel':'koncentracija, c',
                  'title':'Individualna mjerenja'}
         self.crefCanvas = canvas.Kanvas(meta=meta1)
-        self.mjerenjaCanvas = canvas.Kanvas(meta=meta2)
-        # dodaj grafove u layout
-        self.grafLayout.addWidget(self.crefCanvas)
-        self.grafLayout.addWidget(self.mjerenjaCanvas)
-        # kalkulator za efikasnost konvertera
-        self.konverterKalkulator = calc.ProvjeraKonvertera(self.konfiguracija)
-        # kalkulator umjeravanja
-        self.kalkulator = calc.RacunUmjeravanja(self.konfiguracija)
-        self.kalkulator.set_dilucija(self.comboBoxDilucija.currentText())
-        self.kalkulator.set_cistiZrak(self.comboBoxCistiZrak.currentText())
-        # definiranje kontrolnih signala
-        self.setup_signal_connections()
-        logging.debug('Kraj inicijalizacije GlavniProzor')
+        self.mjerenjaCanvas = canvas.KanvasMjerenja(meta=meta2)
+        self.grafoviGroupBox.layout().addWidget(self.crefCanvas)
+        self.grafoviGroupBox.layout().addWidget(self.mjerenjaCanvas)
 
     def setup_signal_connections(self):
         """
         connect actione i widgete za callbackovima
         """
         self.action_Exit.triggered.connect(self.close)
-        self.action_Read_data.triggered.connect(self.read_data)
-        self.action_Setup_tocke_umjeravanja.triggered.connect(self.setup_tocke_umjeravanja)
-        self.comboBoxMjerenje.currentIndexChanged.connect(self.recalculate)
-        self.checkBoxLinearnost.toggled.connect(self.promjena_provjere_linearnosti)
-        self.rawDataView.clicked.connect(self.select_pocetak_umjeravanja)
-        self.comboBoxMjerenje.currentIndexChanged.connect(self.recalculate)
-        self.comboBoxDilucija.currentIndexChanged.connect(self.recalculate)
-        self.comboBoxCistiZrak.currentIndexChanged.connect(self.recalculate)
-        self.doubleSpinBoxOpseg.valueChanged.connect(self.promjena_opsega)
+        self.action_ucitaj_podatke.triggered.connect(self.read_data)
+        self.siroviPodaciView.clicked.connect(self.odaberi_start_umjeravanja)
+        self.tockeView.clicked.connect(self.odaberi_edit_tocku)
+
+        self.gumbDodajTocku.clicked.connect(self.dodaj_umjernu_tocku)
+        self.gumbBrisiTocku.clicked.connect(self.makni_umjernu_tocku)
+        self.gumbEditTocku.clicked.connect(self.edit_tocke)
+
+        self.comboMjerenje.currentIndexChanged.connect(self.recalculate)
+        self.comboDilucija.currentIndexChanged.connect(self.recalculate)
+        self.comboZrak.currentIndexChanged.connect(self.recalculate)
+        self.checkLinearnost.toggled.connect(self.recalculate)
+        self.doubleSpinBoxOpseg.valueChanged.connect(self.recalculate)
         self.doubleSpinBoxKoncentracijaCRM.valueChanged.connect(self.recalculate)
         self.doubleSpinBoxSljedivostCRM.valueChanged.connect(self.recalculate)
-        #konverter
-        self.konverterRawDataView.clicked.connect(self.select_pocetak_provjere_konvertera)
 
-    def closeEvent(self, event):
-        """
-        Overloadani signal za gasenje aplikacije. Dodatna potvrda za izlaz.
-        """
-        msg = 'Da li ste sigurni da zelite ugasiti aplikaciju?'
-        reply = QtGui.QMessageBox.question(self,
-                                           'Potvrdi izlaz:',
-                                           msg,
-                                           QtGui.QMessageBox.Yes,
-                                           QtGui.QMessageBox.No)
-        if reply == QtGui.QMessageBox.Yes:
-            event.accept()
-        else:
-            event.ignore()
+        self.konverterPodaciView.clicked.connect(self.odaberi_start_provjere_konvertera)
+        self.konverterOpseg.valueChanged.connect(self.recalculate_konverter)
+        self.cnox50SpinBox.valueChanged.connect(self.recalculate_konverter)
+        self.cnox95SpinBox.valueChanged.connect(self.recalculate_konverter)
+
+        self.connect(self.delegatZaBoju,
+                     QtCore.SIGNAL('promjena_boje_tocke'),
+                     self.refresh_views)
+
+        self.connect(self.siroviPodaciModel,
+                     QtCore.SIGNAL('promjena_vrijednosti_tocke'),
+                     self.refresh_views)
+
+        self.connect(self.konverterPodaciModel,
+                     QtCore.SIGNAL('promjena_vrijednosti_konverter_tocke'),
+                     self.refresh_views)
 
     def read_data(self):
         """
-        Metoda radi 2 bitne stvari:
-        1.Ucitava sirove podatke uz pomoc wizarda.
-            -izbor lokacija filea
-            -izbor uredjaja
-            -izbor naziva stupaca ucitanih podataka
-        2.Postavlja ucitane podatke u model i prikazuje ih u za to predvidjenom
-        grafickom widgetu.
+        ucitavanje sirovih podataka preko wizarda
         """
         self.fileWizard = datareader.CarobnjakZaCitanjeFilea(uredjaji=self.uredjaji,
                                                              postaje=self.postaje,
                                                              parent=self)
         prihvacen = self.fileWizard.exec_()
         if prihvacen:
-            logging.info('Wizard je uspjesno ucitao podatke iz datoteke')
             frejm = self.fileWizard.get_frejm()
             lokacija = self.fileWizard.get_postaja()
             uredjaj = self.fileWizard.get_uredjaj()
-            self.kalkulator.set_uredjaj(self.uredjaji[uredjaj]) #setter uredjaja u kalkulator
+            path = str(self.fileWizard.get_path_do_filea())
+            # postavi info o ucitanom fileu
+            self.labelDatoteka.setText(path)
+            self.labelPostaja.setText(lokacija)
+            self.labelUredjaj.setText(uredjaj)
+            self.postavi_sirove_podatke(frejm)
+            self.comboMjerenje.clear()
+            komponente = set(self.uredjaji[uredjaj]['komponente'])
+            komponente.remove('None')
+            self.comboMjerenje.addItems(list(komponente))
+            if 'NOx' in komponente:
+                ind = self.comboMjerenje.findText('NOx')
+                self.comboMjerenje.setCurrentIndex(ind)
             try:
                 #ako uredjaj ima podatak o opsegu postavi opseg
                 opseg = float(self.uredjaji[uredjaj]['analitickaMetoda']['o']['max'])
@@ -153,256 +220,222 @@ class GlavniProzor(BASE, FORM):
             except LookupError:
                 #zanemari gresku (nepostojeci kljuc)
                 pass
-            path = str(self.fileWizard.get_path_do_filea())
-            # postavi info o ucitanom fileu
-            self.labelFilePath.setText(path)
-            self.labelPostaja.setText(lokacija)
-            self.labelUredjaj.setText(uredjaj)
-            msg = 'updateani gui elementi, Ucitani file={0} , Postaja={1} , Uredjaj={2}'.format(path, lokacija, uredjaj)
-            logging.info(msg)
-            # clear tablice i grafove
-            self.clear_tablice_prije_ucitavanja_datoteke()
-            self.clear_grafove()
-            self.postavi_sirove_podatke(frejm)
-            # postavljanje ostalih podataka za uredjaj
-            self.checkBoxLinearnost.setChecked(self.konfiguracija.provjeraLinearnosti)
-            self.comboBoxMjerenje.clear()
-            komponente = set(self.uredjaji[uredjaj]['komponente'])
-            komponente.remove('None')
-            self.comboBoxMjerenje.addItems(list(komponente))
             self.recalculate()
 
-    def clear_tablice_prije_ucitavanja_datoteke(self):
-        """
-        Nakon ucitavanja novog filea potrebno je 'resetirati' tablice da bi
-        se izbjegle potencijalne zabune.
-        -memberi koji drze frejmove sa podacima se postavljaju na prazne frejmove
-        -update modela za prikaz sa novim frejmovima
-        -update view
-        """
-        # reinicijalizacija frejmova sa podacima
-        self.rawDataFrame = pd.DataFrame()
-        self.avgDataFrame = pd.DataFrame()
-        self.konverterRawFrame = pd.DataFrame()
-        self.konverterAvgFrame = pd.DataFrame()
-        self.resultDataFrame = pd.DataFrame()
-        self.konverterResultFrame = pd.DataFrame()
-        logging.debug('Prazni frejmovi postavljeni u membere sa frejmovima.')
-        #clear odredjenih membera kalkulatora! data
-        self.kalkulator.set_data(pd.DataFrame())
-        # update vezanih modela
-        self.rawDataModel.set_frejm(self.rawDataFrame)
-        self.avgDataModel.set_frejm(self.avgDataFrame)
-        self.resultDataModel.set_frejm(self.resultDataFrame)
-        self.konverterRawModel.set_frejm(self.konverterRawFrame)
-        self.konverterAvgModel.set_frejm(self.konverterAvgFrame)
-        self.konverterResultModel.set_frejm(self.konverterResultFrame)
-        logging.debug('Update modela za frejmove gotov')
-        # update view pojedinacnih modela
-        self.rawDataView.update()
-        self.avgDataView.update()
-        self.resultView.update()
-        self.konverterRawDataView.update()
-        self.konverterAvgDataView.update()
-        self.konverterResultView.update()
-        logging.debug('Sve QTableView instance su updateane.')
-        # clear konverter labele
-        self.labelEc1.setText('NaN')
-        self.labelEc2.setText('NaN')
-        self.labelEc3.setText('NaN')
-        self.labelEc.setText('NaN')
-        logging.debug('Labeli u Konverter tabu postavljeni na NaN')
-        #clear ostalih labela
-        self.clear_result_labels()
-
-    def clear_grafove(self):
-        """
-        clear grafova nakon ucitavanja novog filea, izbjegavanje potencijalih
-        zabuna
-        """
-        self.crefCanvas.clear_graf()
-        self.mjerenjaCanvas.clear_graf()
-        logging.debug('Grafovi su ocisceni')
 
     def postavi_sirove_podatke(self, frejm):
         """
         Metoda postavlja pandas datafrejm (ulazni parametar) u member,
-        predaje ga modelu i konacno se updatea view.
+        predaje ga modelu i updatea view sa ucitanim podacima.
         """
-        msg = 'Frejm sa sirovim podacima prihvacen, frejm.head()={0}'.format(frejm.head())
-        logging.debug(msg)
-        logging.info('Popunjavanje tablice sa "sirovim" podacima')
-        self.rawDataFrame = frejm
-        self.rawDataModel.set_frejm(self.rawDataFrame)
-        self.rawDataView.horizontalHeader().setResizeMode(self.STRETCH)
-        self.rawDataView.update()
-        # provjera za konverter... samo NOx
-        stupciFrejma = set(list(frejm.columns))
-        stupciZaKonverter = set(['NOx', 'NO2', 'NO'])
-        if stupciZaKonverter.issubset(stupciFrejma):
-            logging.info('Popunjavanje tablice sa "sirovim" podacima za provjeru konvertera')
-            # konverter setup
-            self.konverterRawFrame = frejm
-            self.konverterRawModel.set_frejm(self.konverterRawFrame)
-            self.konverterRawDataView.horizontalHeader().setResizeMode(self.STRETCH)
-            self.konverterRawDataView.update()
-
-    def promjena_opsega(self, x):
-        """
-        Promjena vrijednosti opsega mjerenja. Ponovno izracunaj umjeravanje i
-        provjeru konvertera.
-        """
-        self.recalculate()
-        self.konverter_recalculate()
-
-    def select_pocetak_umjeravanja(self, x):
-        """
-        Izbor pocetka podataka za umjeravanje
-        - rade se 3 minutno agregirane vrijednosti
-        - postavljaju se u model
-        """
-        if self.konfiguracija is not None:
-            if isinstance(x, int):
-                red = x
-            else:
-                red = x.row()
-            msg = 'Izabrani pocetak umjeravanja, red={0}, index={1}'.format(str(red), str(self.rawDataFrame.index[red]))
-            logging.info(msg)
-            self.rawDataRow = red
-            # broj podataka potrebih za racunanje (ovisi o configu, tj.tockama)
-            self.duljinaSlajsa = self.get_duljina_slajsa()
-            # provjeri da li ima dovoljno podataka u rawDataFrame za umjeravanje
-            lenRawData = len(self.rawDataFrame)
-            upperBound = red + self.duljinaSlajsa
-            if upperBound > lenRawData:
-                msg = 'Nema dovoljno sirovih podataka od izabrane tocke.\nZa umjeravanje je potrebno {0} podataka. Postoji samo {1} podataka.'
-                msg = msg.format(str(self.duljinaSlajsa), str(lenRawData - red))
-                QtGui.QMessageBox.information(self, 'Nedovoljan broj podataka', msg)
-                logging.debug(msg)
-                return
-            # selection highlight modela sirovih podataka (obojaj izabrane)
-            logging.debug('bojanje podataka koji se koriste za umjeravanje')
-            self.rawDataModel.set_slajs_len(red, self.duljinaSlajsa)
-            self.rawDataView.update()
-            # dohvati trazeni slajs
-            slajs = self.rawDataFrame.iloc[red:upperBound, :]
-            # resample na 3 minutne
-            self.avgDataFrame = self.resample_frejm(slajs)
-            # update avgDataModel
-            self.avgDataModel.set_frejm(self.avgDataFrame)
-            self.avgDataView.setModel(self.avgDataModel)
-            # update view
-            self.avgDataView.horizontalHeader().setResizeMode(self.STRETCH)
-            self.avgDataView.update()
-            # predaj agregirani frejm kalkulatoru
-            self.kalkulator.set_data(self.avgDataFrame)
-            # predaj listu tocaka kalkulatoru i bool provjere linearnosti
-            self.recalculate()
-
-    def get_duljina_slajsa(self):
-        """
-        Dinamicko racunanje potrebne duljine slajsa sirovih podataka
-        za umjeravanje. Koliko podataka trebamo za napraviti 3 minutne
-        srednjake za sve potrebne tocke.
-
-        Pretpostavka da se tocke ne preklapaju
-        """
-        if self.checkBoxLinearnost.isChecked():
-            tocke = self.konfiguracija.umjerneTocke
+        self.siroviPodaci = frejm
+        self.siroviPodaciModel.set_frejm(self.siroviPodaci)
+        self.siroviPodaciModel.set_tocke(self.konfiguracija.umjerneTocke)
+        self.modelTocaka.set_frejm(self.siroviPodaci)
+        self.siroviPodaciView.horizontalHeader().setResizeMode(self.STRETCH)
+        self.siroviPodaciView.update()
+        self.tockeView.update()
+        #postavljanje podataka za provjeru konvertera samo ako je NOX
+        testSet = set(['NOx', 'NO', 'NO2'])
+        dataSet = set(self.siroviPodaci.columns)
+        if testSet.issubset(dataSet):
+            self.konverterPodaci = self.siroviPodaci
+            self.konverterPodaciModel.set_frejm(self.konverterPodaci)
+            self.konverterPodaciModel.set_tocke(self.konfiguracija.konverterTocke)
+            self.modelTocakaKonverter.set_frejm(self.konverterPodaci)
+            self.konverterPodaciView.horizontalHeader().setResizeMode(self.STRETCH)
+            self.konverterPodaciView.update()
+            self.konverterTockeView.update()
         else:
-            tocke = [self.konfiguracija.zeroTocka, self.konfiguracija.spanTocka]
-        start = tocke[0].startIndeks
-        kraj = tocke[0].endIndeks
-        for tocka in tocke:
-            if tocka.startIndeks < start:
-                start = tocka.startIndeks
-            if tocka.endIndeks > kraj:
-                kraj = tocka.endIndeks
-        duljina = kraj - start
-        msg = 'Ukupni broj potrebnih sirovih podataka za umjeravanje, N={0}'.format(duljina*3)
-        logging.debug(msg)
-        return duljina*3
+            self.konverterPodaci = pd.DataFrame()
+            self.konverterPodaciModel.set_frejm(self.konverterPodaci)
+            self.konverterPodaciModel.set_tocke(self.konfiguracija.konverterTocke)
+            self.modelTocakaKonverter.set_frejm(self.konverterPodaci)
+            self.konverterPodaciView.horizontalHeader().setResizeMode(self.STRETCH)
+            self.konverterPodaciView.update()
+            self.konverterTockeView.update()
 
-    def resample_frejm(self, slajs):
+    def odaberi_start_umjeravanja(self, x):
         """
-        Resample slajsa pandas datafrejma na 3 minutne srednjake.
-        slajs : pandas dataframe sa podacima
+        Metoda sluzi za odabir pocetnog indeksa (ljevi klik na tablicu sa sirovim
+        podacima)
         """
-        msg = 'resample frejma na 3 minutne srednjake, ulazni_frejm=\n{0}'.format(str(slajs))
-        logging.debug(msg)
-        frejm = slajs.copy()
-        listaIndeksa = []
-        for i in range(0, len(frejm), 3):
-            for column in frejm.columns:
-                if i+2 <= len(frejm)-1:
-                    kat = frejm.loc[frejm.index[i]:frejm.index[i+2], column]
-                    srednjak = np.average(kat)
-                    frejm.loc[frejm.index[i], column] = srednjak
-                    if frejm.index[i] not in listaIndeksa:
-                        listaIndeksa.append(frejm.index[i])
-        frejm = frejm[frejm.index.isin(listaIndeksa)]
-        msg = 'resample frejma na 3 minutne srednjake, izlazni_frejm=\n{0}'.format(str(frejm))
-        logging.debug(msg)
-        return frejm
+        self.siroviPodaciView.clearSelection()
+        self.siroviPodaciModel.set_start(x)
+        self.recalculate()
 
-    def promjena_provjere_linearnosti(self, x):
+    def odaberi_start_provjere_konvertera(self, x):
         """
-        Promjena vrijednosti chekBox-a za provjeru linearnosti. Ulazni parametar
-        x je boolean. Postoji samo zbog signala kojeg emitira comboBox prilikom
-        promjene.
+        Metoda sluzi za odabir pocetnog indeksa provjere konvertera.
+        """
+        self.konverterPodaciView.clearSelection()
+        self.konverterPodaciModel.set_start(x)
+        self.recalculate_konverter()
 
-        Metoda simulira izbor pocetka umjeravanja na sirovim podacima (koristi
-        vec izabranu tocku ili 0'ti index po defaultu). Metoda select_pocetak_umjeravanja
-        uzima u obzir stanje checkboxa, te pravilno updatea view.
+    def odaberi_edit_tocku(self, x):
         """
-        if len(self.rawDataFrame) > 0:
-            self.select_pocetak_umjeravanja(self.rawDataRow)
+        izbor tocke za editiranje
+        """
+        red = x.row()
+        try:
+            naziv = str(self.konfiguracija.umjerneTocke[red])
+            nazivEdit = 'Promjeni interval tocke: ' + naziv
+            nazivRemove = 'Izbrisi tocku: ' + naziv
+            self.gumbEditTocku.setText(nazivEdit)
+            self.gumbBrisiTocku.setText(nazivRemove)
+            self.redTockeZaEdit = red
+        except Exception as err:
+            logging.error(str(err), exc_info=True)
+            self.gumbEditTocku.setText('Promjeni interval tocke: ')
+            self.gumbBrisiTocku.setText('Izbrisi tocku: ')
+            self.redTockeZaEdit = None
+
+    def edit_tocke(self, x):
+        """
+        Metoda sluzi kao switch izmedju dva nacina rada siroviPodaciView.
+        1. izbor pocetka umjeravanja
+        2. izbor intervala (start end) izabrane tocke.
+        """
+        if self.gumbEditTocku.isChecked():
+            self.gumbDodajTocku.setEnabled(False)
+            self.gumbBrisiTocku.setEnabled(False)
+            self.siroviPodaciView.clicked.disconnect()
+            self.siroviPodaciView.clicked.connect(self.odaberi_novi_interval_izabrane_tocke)
+        else:
+            self.gumbDodajTocku.setEnabled(True)
+            self.gumbBrisiTocku.setEnabled(True)
+            self.siroviPodaciView.clicked.disconnect()
+            self.siroviPodaciView.clicked.connect(self.odaberi_start_umjeravanja)
+
+    def odaberi_novi_interval_izabrane_tocke(self, x):
+        """izbor novih granica tocke
+
+        1. provjeri da li je izabrana neka tocka i dohvati njene podatke (lokaciju)
+        2. selection changed...
+        """
+        if self.redTockeZaEdit is not None:
+            indeksi = self.siroviPodaciView.selectedIndexes()
+            redovi = set(sorted([i.row() for i in indeksi]))
+            #indeksi drugih tocaka
+            temp = list(range(len(self.konfiguracija.umjerneTocke)))
+            temp.remove(self.redTockeZaEdit)
+            testPreklapanja = [self.konfiguracija.umjerneTocke[i].test_indeksi_tocke_se_preklapaju(redovi) for i in temp]
+            if True in testPreklapanja:
+                return None
+            minimalni = min(redovi)
+            if len(redovi) >= 15 and minimalni >= self.siroviPodaciModel.startIndeks:
+                self.konfiguracija.umjerneTocke[self.redTockeZaEdit].indeksi = redovi
+                self.recalculate()
+
+    def refresh_views(self):
+        """
+        force refresh modela i view-ova nakon promjene podataka
+        """
+        # umjeravanje
+        self.siroviPodaciModel.layoutChanged.emit()
+        self.modelTocaka.layoutChanged.emit()
+        self.rezultatModel.layoutChanged.emit()
+        self.siroviPodaciView.update()
+        self.tockeView.update()
+        self.rezultatView.update()
+        # konverter
+        self.konverterPodaciModel.layoutChanged.emit()
+        self.modelTocakaKonverter.layoutChanged.emit()
+        self.konverterRezultatModel.layoutChanged.emit()
+        self.konverterPodaciView.update()
+        self.konverterTockeView.update()
+        self.konverterRezultatView.update()
+
+    def dodaj_umjernu_tocku(self):
+        """
+        dodavanje nove umjerne tocke na popis
+        """
+        if len(self.konfiguracija.umjerneTocke) == 0:
+            #ne postoje tocke umjeravanja...napravi novu
+            tocka = konfig.Tocka(ime='TOCKA1', start=15, end=45, cref=0.8)
+            self.konfiguracija.umjerneTocke.append(tocka)
+        else:
+            #pronadji max indeks izmedju svih tocaka
+            maxIndeks = max([max(tocka.indeksi) for tocka in self.konfiguracija.umjerneTocke])
+            ime = "".join(['TOCKA',str(len(self.konfiguracija.umjerneTocke)+1)])
+            start = maxIndeks + 15
+            end = maxIndeks + 30
+            tocka = konfig.Tocka(ime=ime, start=start, end=end, cref=0.0)
+            self.konfiguracija.umjerneTocke.append(tocka)
+        self.recalculate()
+
+    def makni_umjernu_tocku(self, x):
+        """
+        Brisanje izabrane tocke...
+        """
+        if self.redTockeZaEdit is not None:
+            try:
+                self.konfiguracija.umjerneTocke.pop(self.redTockeZaEdit)
+                self.gumbEditTocku.setText('Promjeni interval tocke: ')
+                self.gumbBrisiTocku.setText('Izbrisi tocku: ')
+                self.redTockeZaEdit = None
+                self.recalculate()
+            except Exception as err:
+                logging.error(str(err), exc_info=True)
 
     def setup_kalkulator(self):
         """
         Funkcija postavlja priprema kalkulator za racunanje. Predaje mu konfig,
         podatke i stupac s kojim se racuna.
         """
-        logging.debug('Priprema kalkulatora za racunanje')
-        self.kalkulator.set_data(self.avgDataFrame)
-        linearnost = self.checkBoxLinearnost.isChecked()
-        if linearnost:
-            tocke = self.konfiguracija.umjerneTocke
-        else:
-            tocke = [self.konfiguracija.zeroTocka, self.konfiguracija.spanTocka]
-        self.kalkulator.set_tocke(tocke)
-        self.kalkulator.set_zero(self.konfiguracija.zeroTocka)
-        self.kalkulator.set_span(self.konfiguracija.spanTocka)
-        self.kalkulator.set_linearnost(linearnost)
-        self.kalkulator.set_stupac(self.comboBoxMjerenje.currentText())
+        self.kalkulator.set_uredjaj(self.uredjaji[str(self.labelUredjaj.text())])
+        self.kalkulator.set_linearnost(self.checkLinearnost.isChecked())
+        self.kalkulator.set_data(self.siroviPodaci)
+        self.kalkulator.set_stupac(self.comboMjerenje.currentText())
+        self.kalkulator.set_dilucija(self.comboDilucija.currentText())
+        self.kalkulator.set_cistiZrak(self.comboZrak.currentText())
         self.kalkulator.set_opseg(float(self.doubleSpinBoxOpseg.value()))
         self.kalkulator.set_cCRM(float(self.doubleSpinBoxKoncentracijaCRM.value()))
         self.kalkulator.set_sCRM(float(self.doubleSpinBoxSljedivostCRM.value()))
-        self.kalkulator.set_dilucija(self.comboBoxDilucija.currentText())
-        self.kalkulator.set_cistiZrak(self.comboBoxCistiZrak.currentText())
+
+    def setup_konverter_kalkulator(self):
+        """
+        Funkcija priprema kalkulator za racunjanje provjere konvertera.
+        """
+        self.konverterKalkulator.set_data(self.konverterPodaci)
+        self.konverterKalkulator.set_opseg(self.konverterOpseg.value())
+        self.konverterKalkulator.set_cnox50(self.cnox50SpinBox.value())
+        self.konverterKalkulator.set_cnox95(self.cnox95SpinBox.value())
 
     def recalculate(self):
         """
         Pocetna metoda za racunanje i prikaz rezultata umjeravanja.
         """
-        if len(self.avgDataFrame)*3 == self.duljinaSlajsa:
-            self.setup_kalkulator()
-            self.kalkulator.racunaj()
-            self.prikazi_rezultate()
-        else:
-            logging.info('Duljina slajsa ne odgovara za racunanje')
+        #clear labele
+        self.clear_result_labels()
+        #clear grafove
+        self.crefCanvas.clear_graf()
+        self.mjerenjaCanvas.clear_graf()
+        self.setup_kalkulator()
+        self.kalkulator.racunaj()
+        self.prikazi_rezultate()
+        self.prikazi_grafove()
+        self.refresh_views()
+
+    def recalculate_konverter(self):
+        """
+        Poceta metoda za racunanje i prikaz rezultata provjere konvertera
+        """
+        self.clear_konverter_result_labels()
+        self.setup_konverter_kalkulator()
+        self.konverterKalkulator.racunaj()
+        self.prikazi_rezultate_konvertera()
+        self.refresh_views()
+
 
     def prikazi_rezultate(self):
         """
         Metoda sluzi za prikaz rezultata kalkulatora umjeravanja
         """
-        self.clear_result_labels()
         # set result data to table view
-        self.resultDataFrame = self.kalkulator.rezultat
-        self.resultDataModel.set_frejm(self.resultDataFrame)
-        self.resultView.setModel(self.resultDataModel)
-        self.resultView.horizontalHeader().setResizeMode(self.STRETCH)
-        # set slope offset and other data
+        self.rezultatUmjeravanja = self.kalkulator.rezultat
+        self.rezultatModel.set_frejm(self.rezultatUmjeravanja)
+        #slope offset i funkcija prilagodbe
         slope = self.kalkulator.slope
         if slope is not None:
             self.labelSlope.setText(str(round(slope, 3)))
@@ -418,139 +451,82 @@ class GlavniProzor(BASE, FORM):
         # set provjere parametara
         self.labelPonovNula.setText(str(self.kalkulator.provjeri_ponovljivost_stdev_u_nuli()))
         self.labelPonovC.setText((str(self.kalkulator.provjeri_ponovljivost_stdev_za_vrijednost())))
-        if self.checkBoxLinearnost.isChecked():
+        if self.checkLinearnost.isChecked():
             self.labelOdstNula.setText((str(self.kalkulator.provjeri_odstupanje_od_linearnosti_u_nuli())))
             self.labelOdstMax.setText((str(self.kalkulator.provjeri_maksimalno_relativno_odstupanje_od_linearnosti())))
-        # grafovi
-        self.prikazi_grafove()
+
+    def prikazi_rezultate_konvertera(self):
+        # set result data to table view
+        self.konverterRezultat = self.konverterKalkulator.rezultat
+        self.konverterRezultatModel.set_frejm(self.konverterRezultat)
+        # postavi labele
+        self.labelEc1.setText(str(self.konverterKalkulator.ec1))
+        self.labelEc2.setText(str(self.konverterKalkulator.ec2))
+        self.labelEc3.setText(str(self.konverterKalkulator.ec3))
+        self.labelEc.setText(str(self.konverterKalkulator.ec))
 
     def clear_result_labels(self):
         """
         clear labele rezultata
         """
-        self.labelSlope.setText('NaN')
-        self.labelOffset.setText('NaN')
-        self.labelA.setText('NaN')
-        self.labelB.setText('NaN')
-        self.labelPonovNula.setText('NaN')
-        self.labelPonovC.setText('NaN')
-        self.labelOdstNula.setText('NaN')
-        self.labelOdstMax.setText('NaN')
-        logging.debug("Labeli sa rezulattima su postavljeni na 'NaN'")
+        self.labelSlope.setText('n/a')
+        self.labelOffset.setText('n/a')
+        self.labelA.setText('n/a')
+        self.labelB.setText('n/a')
+        self.labelPonovNula.setText('n/a')
+        self.labelPonovC.setText('n/a')
+        self.labelOdstNula.setText('n/a')
+        self.labelOdstMax.setText('n/a')
+
+    def clear_konverter_result_labels(self):
+        """
+        clear labele rezultata za provjeru konvertera
+        """
+        self.labelEc1.setText('n/a')
+        self.labelEc2.setText('n/a')
+        self.labelEc3.setText('n/a')
+        self.labelEc.setText('n/a')
 
     def prikazi_grafove(self):
         """
         Metoda za crtanje grafova
         """
-        if len(self.resultDataFrame) > 0:
-            x = list(self.resultDataFrame.loc[:, 'cref'])
-            y = list(self.resultDataFrame.loc[:, 'c'])
+        if len(self.rezultatUmjeravanja) > 0:
+
+            x = list(self.rezultatUmjeravanja.loc[:, 'cref'])
+            y = list(self.rezultatUmjeravanja.loc[:, 'c'])
             self.crefCanvas.crtaj(x, y)
-            stupac = str(self.comboBoxMjerenje.currentText())
-            if stupac in self.avgDataFrame.columns:
-                x = list(self.avgDataFrame.index)
-                y = list(self.avgDataFrame.loc[:, stupac])
-                self.mjerenjaCanvas.crtaj(x, y)
+            """
+            1. sklepaj strukturu (tocke, frejm)
+            2. metoda crtaj mora sklepati intervale tocaka x, y
+            3. metoda crtaj mora prilagoditi boju tocke na grafu
+            """
+            stupac = str(self.comboMjerenje.currentText())
+            if stupac in self.siroviPodaci.columns:
+                frejm = self.siroviPodaci.loc[:,stupac]
+                if self.checkLinearnost.isChecked():
+                    self.mjerenjaCanvas.crtaj(frejm, self.konfiguracija.umjerneTocke)
+                else:
+                    zs = self.get_zero_span_tocke()
+                    self.mjerenjaCanvas.crtaj(frejm, zs)
 
-    def select_pocetak_provjere_konvertera(self, x):
+    def get_zero_span_tocke(self):
         """
-        Izbor pocetne tocke za provjeru konvertera
+        Metoda pronalazi indekse za zero i span.
+
+        Zero je prva tocka koja ima crefFaktor jednak 0.0
+        Span je prva tocka sa crefFaktorom 0.8, a ako niti jedna tocka nema
+        taj crefFaktor, onda se uzima ona sa najvecim crefFaktorom
         """
-        if self.konfiguracija is not None:
-            # multiple type dispatching (int & QModelIndex)
-            if isinstance(x, int):
-                red = x
+        if len(self.konfiguracija.umjerneTocke) >= 2:
+            cf = [float(tocka.crefFaktor) for tocka in self.konfiguracija.umjerneTocke]
+            zero = cf.index(0.0)
+            if 0.8 in cf:
+                span = cf.index(0.8)
             else:
-                red = x.row()
-            msg = 'Izabrani pocetak provjere konvertera, red={0}, index={1}'.format(str(red), str(self.konverterRawFrame.index[red]))
-            logging.info(msg)
-            # broj podataka potrebih za racunanje (ovisi o configu, tj.tockama)
-            self.konverterDuljinaSlajsa = self.get_konverter_duljina_slajsa()
-            # provjeri da li ima dovoljno podataka u rawDataFrame za umjeravanje
-            lenRawData = len(self.konverterRawFrame)
-            upperBound = red + self.konverterDuljinaSlajsa
-            if upperBound > lenRawData:
-                msg = 'Nema dovoljno sirovih podataka od izabrane tocke.\nZa provjeru konvertera je potrebno {0} podataka. Postoji samo {1} podataka.'
-                msg = msg.format(str(self.konverterDuljinaSlajsa), str(lenRawData - red))
-                QtGui.QMessageBox.information(self, 'Nedovoljan broj podataka', msg)
-                logging.debug(msg)
-                return
-            # selection highlight modela sirovih podataka (obojaj izabrane)
-            logging.debug('bojanje podataka koji se koriste za umjeravanje')
-            self.konverterRawModel.set_slajs_len(red, self.konverterDuljinaSlajsa)
-            self.konverterRawDataView.update()
-            # dohvati trazeni slajs
-            slajs = self.konverterRawFrame.iloc[red:upperBound, :]
-            # resample na 3 minutne
-            self.konverterAvgFrame = self.resample_frejm(slajs)
-            # update avgDataModel
-            self.konverterAvgModel.set_frejm(self.konverterAvgFrame)
-            self.konverterAvgDataView.setModel(self.konverterAvgModel)
-            # update view
-            self.konverterAvgDataView.horizontalHeader().setResizeMode(self.STRETCH)
-            self.konverterAvgDataView.update()
-            # setup kalkulator objekt
-            self.setup_konverter_kalkulator()
-            self.konverter_recalculate()
-
-    def get_konverter_duljina_slajsa(self):
-        """
-        Dinamicko racunanje potrebne duljine slajsa sirovih podataka
-        za provjeru konvertera. Pretpostavke da se tocke ne preklapaju i
-        da se radi 3 mintni srednjaci
-        """
-        tocke = self.konfiguracija.konverterTocke
-        duljina = 0
-        for tocka in tocke:
-            duljina += tocka.get_brojPodataka()
-        msg = 'Ukupni broj potrebnih sirovih podataka za provjeru konvertera, N={0}'.format(duljina*3)
-        logging.debug(msg)
-        return duljina*3
-
-    def setup_konverter_kalkulator(self):
-        """
-        Funkcija postavlja priprema konverter kalkulator za racunanje.
-        """
-        logging.debug('Priprema konverter kalkulatora za racunanje')
-        self.konverterKalkulator.set_data(self.konverterAvgFrame)
-        self.konverterKalkulator.set_opseg(float(self.doubleSpinBoxOpseg.value()))
-
-    def konverter_recalculate(self):
-        """
-        Pocetna metoda za racunanje i prikaz rezultata provjere konvertera.
-        """
-        if self.comboBoxMjerenje.currentText() in ['NOx', 'NO', 'NO2']:
-            if len(self.konverterAvgFrame)*3 == self.konverterDuljinaSlajsa:
-                self.setup_konverter_kalkulator()
-                self.konverterKalkulator.racunaj()
-                self.prikazi_konverter_rezultate()
-            else:
-                logging.info('Duljina slajsa ne odgovara za racunanje konvertera')
-
-    def prikazi_konverter_rezultate(self):
-        """
-        Metoda sluzi za prikaz rezultata kalkulatora provjere konvertera
-        """
-        # set result data to table view
-        self.konverterResultFrame = self.konverterKalkulator.rezultat
-        self.konverterResultModel.set_frejm(self.konverterResultFrame)
-        self.konverterResultView.setModel(self.konverterResultModel)
-        self.konverterResultView.horizontalHeader().setResizeMode(self.STRETCH)
-        #label setting
-        self.labelEc1.setText(self.konverterKalkulator.ec1)
-        self.labelEc2.setText(self.konverterKalkulator.ec2)
-        self.labelEc3.setText(self.konverterKalkulator.ec3)
-        self.labelEc.setText(self.konverterKalkulator.ec)
-
-    def setup_tocke_umjeravanja(self):
-        """
-        Pokretanje wizarda za izbor tocaka za umjeravanje
-        """
-        self.tockeWizard = wizardTocke.CarobnjakZaDefiniranjeTocaka(parent=self)
-        prihvacen = self.tockeWizard.exec_()
-        if prihvacen:
-            tocke, zero, span = self.tockeWizard.get_tocke()
-            self.konfiguracija.umjerneTocke = tocke
-            self.konfiguracija.zeroTocka = zero
-            self.konfiguracija.spanTocka = span
-            self.promjena_provjere_linearnosti(0) # 0 je placeholder
+                span = cf.index(max(cf))
+            out = [self.konfiguracija.umjerneTocke[zero],
+                   self.konfiguracija.umjerneTocke[span]]
+            return out
+        else:
+            return []
