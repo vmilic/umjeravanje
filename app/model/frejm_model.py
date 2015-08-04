@@ -8,6 +8,29 @@ import pandas as pd
 from PyQt4 import QtCore, QtGui
 
 
+class ColorDelegate(QtGui.QItemDelegate):
+    """
+    Delegat klasa za tockeView, stupac 6 (promjena boje preko dijaloga)
+    """
+    def __init__(self, tocke=None, parent=None):
+        QtGui.QItemDelegate.__init__(self, parent)
+        self.tocke = tocke
+
+    def createEditor(self, parent, option, index):
+        """
+        Direktni poziv dijaloga i ako se vrati ok boja, direktni setter podataka
+        """
+        if index.isValid():
+            red = index.row()
+            oldColor = self.tocke[red].boja.rgba()
+            newColor, test = QtGui.QColorDialog.getRgba(oldColor)
+            if test:
+                color = QtGui.QColor().fromRgba(newColor)
+                self.tocke[red].boja = color
+                #signaliziraj za refresh viewova
+                self.emit(QtCore.SIGNAL('promjena_boje_tocke'))
+
+
 class SiroviFrameModel(QtCore.QAbstractTableModel):
     """
     Model sa sirovim podacima za umjeravanje
@@ -34,7 +57,10 @@ class SiroviFrameModel(QtCore.QAbstractTableModel):
 
     def set_start(self, indeks):
         """Setter pocetka umjeravanja, integer"""
-        n = int(indeks.row()) #redni broj indeksa
+        if isinstance(indeks, QtCore.QModelIndex):
+            n = int(indeks.row()) #redni broj indeksa
+        else:
+            n = indeks
         delta = n - self.startIndeks #odmak od prijasnjeg starta
         for tocka in self.tocke:
             value = set([ind + delta for ind in list(tocka.indeksi)])
@@ -239,7 +265,7 @@ class RezultatModel(QtCore.QAbstractTableModel):
     """
     Model tablica za rezultate umjeeravanja
     """
-    def __init__(self, frejm=None, parent=None):
+    def __init__(self, frejm=None, tocke=None, parent=None):
         """
         Initialize with pandas dataframe
         """
@@ -248,12 +274,20 @@ class RezultatModel(QtCore.QAbstractTableModel):
             self.dataFrejm = pd.DataFrame()
         else:
             self.dataFrejm = frejm
+        self.tocke = tocke
 
     def set_frejm(self, frejm):
         """
         seter za podatke
         """
         self.dataFrejm = frejm
+        self.layoutChanged.emit()
+
+    def set_tocke(self, tocke):
+        """
+        setter za tocke
+        """
+        self.tocke = tocke
         self.layoutChanged.emit()
 
     def rowCount(self, parent=QtCore.QModelIndex()):
@@ -275,7 +309,11 @@ class RezultatModel(QtCore.QAbstractTableModel):
         Flags each item in table as enabled and selectable
         """
         if index.isValid():
-            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+            col = index.column()
+            if col == 6:
+                return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable
+            else:
+                return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
     def data(self, index, role):
         """
@@ -286,12 +324,22 @@ class RezultatModel(QtCore.QAbstractTableModel):
             return None
         row = index.row()
         col = index.column()
-        if role == QtCore.Qt.DisplayRole:
+        if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             value = self.dataFrejm.iloc[row, col]
             if type(value) != str:
                 return round(float(value), 2)
             else:
                 return value
+        if role == QtCore.Qt.BackgroundColorRole:
+            return self.tocke[row].boja
+
+    def setData(self, index, value, role=QtCore.Qt.EditRole):
+        """
+        Metoda zaduzena za postavljanje novih vrijednosti u model(editable).
+        """
+        if not index.isValid():
+            return False
+        return False
 
     def headerData(self, section, orientation, role):
         """

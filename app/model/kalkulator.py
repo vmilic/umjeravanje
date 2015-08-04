@@ -193,6 +193,14 @@ class RacunUmjeravanja(object):
             logging.error(str(err), exc_info=True)
             return np.NaN
 
+    def _izracunaj_delta(self, tocka):
+        try:
+            value = self.rezultat.loc[str(tocka), 'c'] - self.rezultat.loc[str(tocka), 'cref']
+            return round(value, 3)
+        except Exception as err:
+            logging.error(str(err), exc_info=True)
+            return np.NaN
+
     def _izracunaj_sr(self, tocka):
         """
         Racunanje stdev za tocku,
@@ -255,7 +263,7 @@ class RacunUmjeravanja(object):
                 else:
                     c = self._izracunaj_c(tocka)
                     cref = self._izracunaj_cref(tocka)
-                    return round(abs(c - (cref * self.slope + self.offset)) / cref,3)
+                    return round((abs(c - (cref * self.slope + self.offset)) / cref)*100,3)
             else:
                 return np.NaN
         except Exception as err:
@@ -352,9 +360,11 @@ class RacunUmjeravanja(object):
         indeks = [str(tocka) for tocka in tocke]
         columns = ['cref',
                    'c',
+                   'delta',
                    'sr',
                    'r',
-                   'UR']
+                   'UR',
+                   'Boja']
         # stvaranje output frejma za tablicu
         self.rezultat = pd.DataFrame(columns=columns, index=indeks)
         for tocka in tocke:
@@ -363,6 +373,7 @@ class RacunUmjeravanja(object):
             row = str(tocka)
             self.rezultat.loc[row, 'cref'] = self._izracunaj_cref(tocka)
             self.rezultat.loc[row, 'c'] = self._izracunaj_c(tocka)
+            self.rezultat.loc[row, 'delta'] = self._izracunaj_delta(tocka)
             self.rezultat.loc[row, 'sr'] = self._izracunaj_sr(tocka)
 
         # racun za slope i offset
@@ -373,6 +384,7 @@ class RacunUmjeravanja(object):
             row = str(tocka)
             self.rezultat.loc[row, 'r'] = self._izracunaj_r(tocka)
             self.rezultat.loc[row, 'UR'] = self._izracunaj_UR(tocka)
+            self.rezultat.loc[row, 'Boja'] = ''
 
     def provjeri_ponovljivost_stdev_u_nuli(self):
         """
@@ -450,8 +462,7 @@ class RacunUmjeravanja(object):
                 #ignore zero i span
                 indZero, indSpan = self.pronadji_zero_span()
                 r[indZero] = 0.0
-                najveciR = max(r)
-                value = 100 * (najveciR)
+                value = max(r)
                 normMin = round(float(self.uredjaj['analitickaMetoda']['rmax']['min']), 3)
                 norm = round(float(self.uredjaj['analitickaMetoda']['rmax']['max']), 3)
             except (TypeError, AttributeError, LookupError) as err1:
