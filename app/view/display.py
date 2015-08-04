@@ -5,6 +5,7 @@ Created on Mon May 18 12:02:42 2015
 @author: DHMZ-Milic
 """
 import logging
+import copy
 import pandas as pd
 from PyQt4 import QtGui, QtCore, uic
 import app.model.konfig_klase as konfig
@@ -13,29 +14,9 @@ import app.model.frejm_model as modeli
 import app.model.kalkulator as calc
 import app.view.read_file_wizard as datareader
 import app.view.canvas as canvas
+import app.view.dijalog_edit_tocke as editTocke
 
 #TODO! logging i converter tab, refactor
-class ColorDelegate(QtGui.QItemDelegate):
-    """
-    Delegat klasa za tockeView, stupac 6 (promjena boje preko dijaloga)
-    """
-    def __init__(self, tocke=None, parent=None):
-        QtGui.QItemDelegate.__init__(self, parent)
-        self.tocke = tocke
-
-    def createEditor(self, parent, option, index):
-        """
-        Direktni poziv dijaloga i ako se vrati ok boja, direktni setter podataka
-        """
-        if index.isValid():
-            red = index.row()
-            oldColor = self.tocke[red].boja.rgba()
-            newColor, test = QtGui.QColorDialog.getRgba(oldColor)
-            if test:
-                color = QtGui.QColor().fromRgba(newColor)
-                self.tocke[red].boja = color
-                #signaliziraj za refresh viewova
-                self.emit(QtCore.SIGNAL('promjena_boje_tocke'))
 
 
 BASE, FORM = uic.loadUiType('./app/view/uiFiles/display.ui')
@@ -46,7 +27,6 @@ class GlavniProzor(BASE, FORM):
     def __init__(self, cfg=None, parent=None):
         super(BASE, self).__init__(parent)
         self.setupUi(self)
-        self.STRETCH = QtGui.QHeaderView.Stretch
         self.uredjaji = {}
         self.postaje = {}
         try:
@@ -64,28 +44,25 @@ class GlavniProzor(BASE, FORM):
         self.comboZrak.addItems(self.konfiguracija.get_listu_cistiZrak())
         self.checkLinearnost.setChecked(self.konfiguracija.provjeraLinearnosti)
 
+        self.rezultatView.horizontalHeader().setStretchLastSection(True)
+        self.konverterTockeView.horizontalHeader().setStretchLastSection(True)
+        self.konverterRezultatView.horizontalHeader().setStretchLastSection(True)
+        self.siroviPodaciView.horizontalHeader().setStretchLastSection(True)
+        self.konverterPodaciView.horizontalHeader().setStretchLastSection(True)
+        #self.tockeView.horizontalHeader().setStretchLastSection(True)
 
         #definiranje modela sirovih podataka
         self.siroviPodaci = pd.DataFrame()
         self.siroviPodaciModel = modeli.SiroviFrameModel()
         self.siroviPodaciView.setModel(self.siroviPodaciModel)
 
-        #definiranje modela tocaka
-        self.modelTocaka = modeli.TockeModel()
-        self.modelTocaka.set_tocke(self.konfiguracija.umjerneTocke)
-        self.tockeView.setModel(self.modelTocaka)
-        self.tockeView.horizontalHeader().setResizeMode(self.STRETCH)
-        self.tockeView.update()
-
-        #prati koja je tocka zadnje selektirana
-        self.redTockeZaEdit = None
 
         #color delegat za tablicu
-        self.delegatZaBoju = ColorDelegate(tocke=self.konfiguracija.umjerneTocke)
-        self.konverterDelegatZaBoju = ColorDelegate(tocke=self.konfiguracija.konverterTocke)
+        self.konverterDelegatZaBoju = modeli.ColorDelegate(tocke=self.konfiguracija.konverterTocke)
+        self.rezultatDelegatZaBoju = modeli.ColorDelegate(tocke=self.konfiguracija.umjerneTocke)
         #set delegat na svoje mjesto
-        self.tockeView.setItemDelegateForColumn(6, self.delegatZaBoju)
         self.konverterTockeView.setItemDelegateForColumn(5, self.konverterDelegatZaBoju)
+        self.rezultatView.setItemDelegateForColumn(6, self.rezultatDelegatZaBoju)
 
 
         #definiranje kalkulatora
@@ -93,17 +70,15 @@ class GlavniProzor(BASE, FORM):
 
         # rezultat umjeravanja
         self.rezultatUmjeravanja = pd.DataFrame(columns=['cref', 'c', 'sr', 'r', 'UR'])
-        self.rezultatModel = modeli.RezultatModel()
+        self.rezultatModel = modeli.RezultatModel(tocke=self.konfiguracija.umjerneTocke)
         self.rezultatModel.set_frejm(self.rezultatUmjeravanja)
         self.rezultatView.setModel(self.rezultatModel)
-        self.rezultatView.horizontalHeader().setResizeMode(self.STRETCH)
         self.rezultatView.update()
 
         #definiranje modela tocaka za provjeru konvertera
         self.modelTocakaKonverter = modeli.KonverterTockeModel()
         self.modelTocakaKonverter.set_tocke(self.konfiguracija.konverterTocke)
         self.konverterTockeView.setModel(self.modelTocakaKonverter)
-        self.konverterTockeView.horizontalHeader().setResizeMode(self.STRETCH)
         self.konverterTockeView.update()
 
         #definiranje modela podataka za provjeru konvertera
@@ -128,10 +103,9 @@ class GlavniProzor(BASE, FORM):
 
         # rezultat provjere konvertera
         self.konverterRezultat = pd.DataFrame(columns=['c, R, NOx', 'c, R, NO2', 'c, NO', 'c, NOx'])
-        self.konverterRezultatModel = modeli.RezultatModel()
+        self.konverterRezultatModel = modeli.RezultatModel(tocke=self.konfiguracija.konverterTocke)
         self.konverterRezultatModel.set_frejm(self.rezultatUmjeravanja)
         self.konverterRezultatView.setModel(self.konverterRezultatModel)
-        self.konverterRezultatView.horizontalHeader().setResizeMode(self.STRETCH)
         self.konverterRezultatView.update()
 
         self.inicijalizacija_grafova()
@@ -157,11 +131,7 @@ class GlavniProzor(BASE, FORM):
         self.action_Exit.triggered.connect(self.close)
         self.action_ucitaj_podatke.triggered.connect(self.read_data)
         self.siroviPodaciView.clicked.connect(self.odaberi_start_umjeravanja)
-        self.tockeView.clicked.connect(self.odaberi_edit_tocku)
-
-        self.gumbDodajTocku.clicked.connect(self.dodaj_umjernu_tocku)
-        self.gumbBrisiTocku.clicked.connect(self.makni_umjernu_tocku)
-        self.gumbEditTocku.clicked.connect(self.edit_tocke)
+        self.action_promjeni_tocke_umjeravanja.triggered.connect(self.prikazi_edit_tocke_dijalog)
 
         self.comboMjerenje.currentIndexChanged.connect(self.recalculate)
         self.comboDilucija.currentIndexChanged.connect(self.recalculate)
@@ -176,7 +146,11 @@ class GlavniProzor(BASE, FORM):
         self.cnox50SpinBox.valueChanged.connect(self.recalculate_konverter)
         self.cnox95SpinBox.valueChanged.connect(self.recalculate_konverter)
 
-        self.connect(self.delegatZaBoju,
+        self.connect(self.rezultatDelegatZaBoju,
+                     QtCore.SIGNAL('promjena_boje_tocke'),
+                     self.refresh_views)
+
+        self.connect(self.konverterDelegatZaBoju,
                      QtCore.SIGNAL('promjena_boje_tocke'),
                      self.refresh_views)
 
@@ -187,6 +161,22 @@ class GlavniProzor(BASE, FORM):
         self.connect(self.konverterPodaciModel,
                      QtCore.SIGNAL('promjena_vrijednosti_konverter_tocke'),
                      self.refresh_views)
+
+    def prikazi_edit_tocke_dijalog(self):
+        """
+        Prikaz dijaloga za promjenu tocaka (granice i ukupan broj)
+        """
+        dots = copy.deepcopy(self.konfiguracija.umjerneTocke)
+        dijalog = editTocke.EditTockeDijalog(tocke=dots,
+                                             frejm=self.siroviPodaci,
+                                             start=self.siroviPodaciModel.startIndeks,
+                                             parent=self)
+        response = dijalog.exec_()
+        if response:
+            dots = copy.deepcopy(dijalog.vrati_nove_tocke())
+            self.konfiguracija.umjerneTocke = dots
+            self.refresh_views()
+            self.recalculate()
 
     def read_data(self):
         """
@@ -231,10 +221,7 @@ class GlavniProzor(BASE, FORM):
         self.siroviPodaci = frejm
         self.siroviPodaciModel.set_frejm(self.siroviPodaci)
         self.siroviPodaciModel.set_tocke(self.konfiguracija.umjerneTocke)
-        self.modelTocaka.set_frejm(self.siroviPodaci)
-        self.siroviPodaciView.horizontalHeader().setResizeMode(self.STRETCH)
         self.siroviPodaciView.update()
-        self.tockeView.update()
         #postavljanje podataka za provjeru konvertera samo ako je NOX
         testSet = set(['NOx', 'NO', 'NO2'])
         dataSet = set(self.siroviPodaci.columns)
@@ -243,7 +230,6 @@ class GlavniProzor(BASE, FORM):
             self.konverterPodaciModel.set_frejm(self.konverterPodaci)
             self.konverterPodaciModel.set_tocke(self.konfiguracija.konverterTocke)
             self.modelTocakaKonverter.set_frejm(self.konverterPodaci)
-            self.konverterPodaciView.horizontalHeader().setResizeMode(self.STRETCH)
             self.konverterPodaciView.update()
             self.konverterTockeView.update()
         else:
@@ -251,7 +237,6 @@ class GlavniProzor(BASE, FORM):
             self.konverterPodaciModel.set_frejm(self.konverterPodaci)
             self.konverterPodaciModel.set_tocke(self.konfiguracija.konverterTocke)
             self.modelTocakaKonverter.set_frejm(self.konverterPodaci)
-            self.konverterPodaciView.horizontalHeader().setResizeMode(self.STRETCH)
             self.konverterPodaciView.update()
             self.konverterTockeView.update()
 
@@ -272,111 +257,27 @@ class GlavniProzor(BASE, FORM):
         self.konverterPodaciModel.set_start(x)
         self.recalculate_konverter()
 
-    def odaberi_edit_tocku(self, x):
-        """
-        izbor tocke za editiranje
-        """
-        red = x.row()
-        try:
-            naziv = str(self.konfiguracija.umjerneTocke[red])
-            nazivEdit = 'Promjeni interval tocke: ' + naziv
-            nazivRemove = 'Izbrisi tocku: ' + naziv
-            self.gumbEditTocku.setText(nazivEdit)
-            self.gumbBrisiTocku.setText(nazivRemove)
-            self.redTockeZaEdit = red
-        except Exception as err:
-            logging.error(str(err), exc_info=True)
-            self.gumbEditTocku.setText('Promjeni interval tocke: ')
-            self.gumbBrisiTocku.setText('Izbrisi tocku: ')
-            self.redTockeZaEdit = None
-
-    def edit_tocke(self, x):
-        """
-        Metoda sluzi kao switch izmedju dva nacina rada siroviPodaciView.
-        1. izbor pocetka umjeravanja
-        2. izbor intervala (start end) izabrane tocke.
-        """
-        if self.gumbEditTocku.isChecked():
-            self.gumbDodajTocku.setEnabled(False)
-            self.gumbBrisiTocku.setEnabled(False)
-            self.siroviPodaciView.clicked.disconnect()
-            self.siroviPodaciView.clicked.connect(self.odaberi_novi_interval_izabrane_tocke)
-        else:
-            self.gumbDodajTocku.setEnabled(True)
-            self.gumbBrisiTocku.setEnabled(True)
-            self.siroviPodaciView.clicked.disconnect()
-            self.siroviPodaciView.clicked.connect(self.odaberi_start_umjeravanja)
-
-    def odaberi_novi_interval_izabrane_tocke(self, x):
-        """izbor novih granica tocke
-
-        1. provjeri da li je izabrana neka tocka i dohvati njene podatke (lokaciju)
-        2. selection changed...
-        """
-        if self.redTockeZaEdit is not None:
-            indeksi = self.siroviPodaciView.selectedIndexes()
-            redovi = set(sorted([i.row() for i in indeksi]))
-            #indeksi drugih tocaka
-            temp = list(range(len(self.konfiguracija.umjerneTocke)))
-            temp.remove(self.redTockeZaEdit)
-            testPreklapanja = [self.konfiguracija.umjerneTocke[i].test_indeksi_tocke_se_preklapaju(redovi) for i in temp]
-            if True in testPreklapanja:
-                return None
-            minimalni = min(redovi)
-            if len(redovi) >= 15 and minimalni >= self.siroviPodaciModel.startIndeks:
-                self.konfiguracija.umjerneTocke[self.redTockeZaEdit].indeksi = redovi
-                self.recalculate()
-
     def refresh_views(self):
         """
         force refresh modela i view-ova nakon promjene podataka
         """
+        #TODO!
         # umjeravanje
-        self.siroviPodaciModel.layoutChanged.emit()
-        self.modelTocaka.layoutChanged.emit()
-        self.rezultatModel.layoutChanged.emit()
+        self.siroviPodaciModel.set_tocke(self.konfiguracija.umjerneTocke)
+        self.rezultatModel.set_tocke(self.konfiguracija.umjerneTocke)
         self.siroviPodaciView.update()
-        self.tockeView.update()
         self.rezultatView.update()
         # konverter
-        self.konverterPodaciModel.layoutChanged.emit()
+        self.konverterPodaciModel.set_tocke(self.konfiguracija.konverterTocke)
         self.modelTocakaKonverter.layoutChanged.emit()
-        self.konverterRezultatModel.layoutChanged.emit()
+        self.konverterRezultatModel.set_tocke(self.konfiguracija.konverterTocke)
         self.konverterPodaciView.update()
         self.konverterTockeView.update()
         self.konverterRezultatView.update()
-
-    def dodaj_umjernu_tocku(self):
-        """
-        dodavanje nove umjerne tocke na popis
-        """
-        if len(self.konfiguracija.umjerneTocke) == 0:
-            #ne postoje tocke umjeravanja...napravi novu
-            tocka = konfig.Tocka(ime='TOCKA1', start=15, end=45, cref=0.8)
-            self.konfiguracija.umjerneTocke.append(tocka)
-        else:
-            #pronadji max indeks izmedju svih tocaka
-            maxIndeks = max([max(tocka.indeksi) for tocka in self.konfiguracija.umjerneTocke])
-            ime = "".join(['TOCKA',str(len(self.konfiguracija.umjerneTocke)+1)])
-            start = maxIndeks + 15
-            end = maxIndeks + 30
-            tocka = konfig.Tocka(ime=ime, start=start, end=end, cref=0.0)
-            self.konfiguracija.umjerneTocke.append(tocka)
-        self.recalculate()
-
-    def makni_umjernu_tocku(self, x):
-        """
-        Brisanje izabrane tocke...
-        """
-        if self.redTockeZaEdit is not None:
-            try:
-                self.konfiguracija.umjerneTocke.pop(self.redTockeZaEdit)
-                self.gumbEditTocku.setText('Promjeni interval tocke: ')
-                self.gumbBrisiTocku.setText('Izbrisi tocku: ')
-                self.redTockeZaEdit = None
-                self.recalculate()
-            except Exception as err:
-                logging.error(str(err), exc_info=True)
+        # clear and redraw grafove
+        self.crefCanvas.clear_graf()
+        self.mjerenjaCanvas.clear_graf()
+        self.prikazi_grafove()
 
     def setup_kalkulator(self):
         """
@@ -495,6 +396,10 @@ class GlavniProzor(BASE, FORM):
 
             x = list(self.rezultatUmjeravanja.loc[:, 'cref'])
             y = list(self.rezultatUmjeravanja.loc[:, 'c'])
+            if self.checkLinearnost.isChecked():
+                self.crefCanvas.set_slope_offset(self.kalkulator.slope, self.kalkulator.offset)
+            else:
+                self.crefCanvas.set_slope_offset(None, None)
             self.crefCanvas.crtaj(x, y)
             """
             1. sklepaj strukturu (tocke, frejm)

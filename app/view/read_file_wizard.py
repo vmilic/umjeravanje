@@ -167,6 +167,7 @@ class Page2Wizarda(QtGui.QWizardPage):
         self.izabranaPostaja.setVisible(False)
         self.izabranaPostaja.setText(str(self.comboPostaje.currentText()))
         tmplist = self.postajaInfo[str(self.comboPostaje.currentText())]
+        tmplist = [":::".join([item, str(self.uredjajInfo[item]['komponente'])])for item in tmplist]
         self.comboUredjaji = QtGui.QComboBox()
         self.comboUredjaji.addItems(tmplist)
         self.labelUredjaji = QtGui.QLabel('Uredjaj: ')
@@ -216,7 +217,9 @@ class Page2Wizarda(QtGui.QWizardPage):
             logging.debug('Serijska oznaka nije pronadjena')
         # update combobox sa ponudjenim izborom
         if lokacija is not None and serial is not None:
-            self.init_izbornike(lokacija, serial)
+            #self.init_izbornike(lokacija, serial)
+            self.init_izbornike(lokacija,
+                                ":::".join([serial, str(self.uredjajInfo[serial]['komponente'])]))
 
     def validatePage(self):
         """
@@ -227,6 +230,8 @@ class Page2Wizarda(QtGui.QWizardPage):
             QtGui.QMessageBox.information(self, 'Problem.', msg)
             return False
         serial = str(self.comboUredjaji.currentText())
+        ind = serial.find(':::')
+        serial = serial[:ind]
         if serial not in self.uredjajInfo:
             msg = 'Podaci o uredjaju ne postoje na REST-servisu.'
             QtGui.QMessageBox.information(self, 'Problem.', msg)
@@ -249,9 +254,13 @@ class Page2Wizarda(QtGui.QWizardPage):
         self.comboPostaje.blockSignals(False)
         self.comboUredjaji.blockSignals(True)
         self.comboUredjaji.clear()
-        self.comboUredjaji.addItems(self.postajaInfo[lokacija])
+        tmplist = self.postajaInfo[lokacija]
+        tmp = [":::".join([item, str(self.uredjajInfo[item]['komponente'])])for item in tmplist]
+        self.comboUredjaji.addItems(tmp)
         ind = self.comboUredjaji.findText(serial)
         self.comboUredjaji.setCurrentIndex(ind)
+        ind = serial.find(':::')
+        serial = serial[:ind]
         listaKomponenti = self.uredjajInfo[serial]['komponente']
         self.wizard().set_komponente(listaKomponenti)
         self.comboUredjaji.blockSignals(False)
@@ -267,7 +276,9 @@ class Page2Wizarda(QtGui.QWizardPage):
         lokacija = self.comboPostaje.currentText()
         self.comboUredjaji.blockSignals(True)
         self.comboUredjaji.clear()
-        self.comboUredjaji.addItems(self.postajaInfo[lokacija])
+        tmplist = self.postajaInfo[lokacija]
+        tmp = [":::".join([item, str(self.uredjajInfo[item]['komponente'])])for item in tmplist]
+        self.comboUredjaji.addItems(tmp)
         self.comboUredjaji.blockSignals(False)
         self.izabranaPostaja.setText(str(lokacija))
         msg = 'Promjena postaje, postaja={0}'.format(lokacija)
@@ -278,6 +289,8 @@ class Page2Wizarda(QtGui.QWizardPage):
         Promjena indeksa comboboxa sa uredjajima
         """
         serial = self.comboUredjaji.currentText()
+        ind = serial.find(':::')
+        serial = serial[:ind]
         self.izabraniUredjaj.setText(str(serial))
         listaKomponenti = self.uredjajInfo[serial]['komponente']
         self.wizard().set_komponente(listaKomponenti)

@@ -1,463 +1,463 @@
-INFO:::2015-08-03 14:43:33,190:::konfig_klase:::__init__:::LOC:30:::Lista defaultnih tocaka za umjeravanje, tocke=
-INFO:::2015-08-03 14:43:33,190:::konfig_klase:::__init__:::LOC:51:::Lista defaultnih tocaka za provjeru konvertera, tocke=
-INFO:::2015-08-03 14:43:33,190:::pomocne_funkcije:::pripremi_mape_postaja_i_uredjaja:::LOC:208:::Sastavljanje mapa postaja i uredjaja
-INFO:::2015-08-03 14:43:33,190:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:33,206:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/drzavna_mreza/postaje HTTP/1.1" 200 4307
-INFO:::2015-08-03 14:43:33,221:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:33,237:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj HTTP/1.1" 200 None
-INFO:::2015-08-03 14:43:35,234:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:35,234:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A08117 HTTP/1.1" 200 1703
-INFO:::2015-08-03 14:43:35,296:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:35,312:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A08117/lokacija HTTP/1.1" 200 556
-INFO:::2015-08-03 14:43:35,327:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:35,327:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A08118 HTTP/1.1" 200 1703
-INFO:::2015-08-03 14:43:35,390:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:35,405:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A08118/lokacija HTTP/1.1" 200 571
-INFO:::2015-08-03 14:43:35,421:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:35,421:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A08119 HTTP/1.1" 200 1703
-INFO:::2015-08-03 14:43:35,483:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:35,499:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A08119/lokacija HTTP/1.1" 200 566
-INFO:::2015-08-03 14:43:35,515:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:35,515:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A08120 HTTP/1.1" 200 1703
-INFO:::2015-08-03 14:43:35,577:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:35,593:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A08120/lokacija HTTP/1.1" 200 559
-INFO:::2015-08-03 14:43:35,608:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:35,608:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A09001 HTTP/1.1" 200 1703
-INFO:::2015-08-03 14:43:35,671:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:35,686:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A09001/lokacija HTTP/1.1" 200 559
-INFO:::2015-08-03 14:43:35,702:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:35,702:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A09002 HTTP/1.1" 200 1703
-INFO:::2015-08-03 14:43:35,764:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:35,764:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A09002/lokacija HTTP/1.1" 200 556
-INFO:::2015-08-03 14:43:35,795:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:35,795:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A09003 HTTP/1.1" 200 1703
-INFO:::2015-08-03 14:43:35,858:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:35,858:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A09003/lokacija HTTP/1.1" 200 748
-INFO:::2015-08-03 14:43:35,889:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:35,889:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A09004 HTTP/1.1" 200 1703
-INFO:::2015-08-03 14:43:35,951:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:35,951:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A09004/lokacija HTTP/1.1" 200 557
-INFO:::2015-08-03 14:43:35,983:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:35,983:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2024-E HTTP/1.1" 200 3667
-INFO:::2015-08-03 14:43:35,983:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:35,998:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2024-E/lokacija HTTP/1.1" 200 556
-INFO:::2015-08-03 14:43:36,014:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,014:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2026-E HTTP/1.1" 200 3667
-INFO:::2015-08-03 14:43:36,014:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,029:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2026-E/lokacija HTTP/1.1" 200 566
-INFO:::2015-08-03 14:43:36,045:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,045:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2074-E HTTP/1.1" 200 3600
-INFO:::2015-08-03 14:43:36,045:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,061:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2074-E/lokacija HTTP/1.1" 200 559
-INFO:::2015-08-03 14:43:36,076:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,076:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2075-E HTTP/1.1" 200 3600
-INFO:::2015-08-03 14:43:36,092:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,092:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2075-E/lokacija HTTP/1.1" 200 556
-INFO:::2015-08-03 14:43:36,107:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,123:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2076-E HTTP/1.1" 200 3600
-INFO:::2015-08-03 14:43:36,123:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,123:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2076-E/lokacija HTTP/1.1" 200 338
-INFO:::2015-08-03 14:43:36,123:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,139:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2077-E HTTP/1.1" 200 3600
-INFO:::2015-08-03 14:43:36,139:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,139:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2077-E/lokacija HTTP/1.1" 200 748
-INFO:::2015-08-03 14:43:36,170:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,170:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2078-E HTTP/1.1" 200 3600
-INFO:::2015-08-03 14:43:36,170:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,185:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2078-E/lokacija HTTP/1.1" 200 296
-INFO:::2015-08-03 14:43:36,185:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,185:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2079-E HTTP/1.1" 200 3600
-INFO:::2015-08-03 14:43:36,185:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,201:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2079-E/lokacija HTTP/1.1" 200 340
-INFO:::2015-08-03 14:43:36,201:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,201:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2080-E HTTP/1.1" 200 3600
-INFO:::2015-08-03 14:43:36,201:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,217:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2080-E/lokacija HTTP/1.1" 200 566
-INFO:::2015-08-03 14:43:36,232:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,232:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2081-E HTTP/1.1" 200 3600
-INFO:::2015-08-03 14:43:36,248:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,248:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2081-E/lokacija HTTP/1.1" 200 571
-INFO:::2015-08-03 14:43:36,263:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,279:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2082-E HTTP/1.1" 200 3600
-INFO:::2015-08-03 14:43:36,279:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,279:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2082-E/lokacija HTTP/1.1" 200 559
-INFO:::2015-08-03 14:43:36,295:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,310:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2214-1-2 HTTP/1.1" 200 2325
-INFO:::2015-08-03 14:43:36,310:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,310:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2214-1-2/lokacija HTTP/1.1" 200 557
-INFO:::2015-08-03 14:43:36,341:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,341:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2215-1-2 HTTP/1.1" 200 2325
-INFO:::2015-08-03 14:43:36,357:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,357:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2215-1-2/lokacija HTTP/1.1" 200 566
-INFO:::2015-08-03 14:43:36,388:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,388:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2219-E HTTP/1.1" 200 3654
-INFO:::2015-08-03 14:43:36,388:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,404:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2219-E/lokacija HTTP/1.1" 200 556
-INFO:::2015-08-03 14:43:36,419:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,435:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2220-E HTTP/1.1" 200 3654
-INFO:::2015-08-03 14:43:36,435:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,435:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2220-E/lokacija HTTP/1.1" 200 566
-INFO:::2015-08-03 14:43:36,451:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,466:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2231 HTTP/1.1" 200 2317
-INFO:::2015-08-03 14:43:36,466:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,466:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2231/lokacija HTTP/1.1" 200 556
-INFO:::2015-08-03 14:43:36,482:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,497:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2232 HTTP/1.1" 200 2317
-INFO:::2015-08-03 14:43:36,497:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,497:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2232/lokacija HTTP/1.1" 200 559
-INFO:::2015-08-03 14:43:36,529:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,529:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2819-E HTTP/1.1" 200 4768
-ERROR:::2015-08-03 14:43:36,529:::pomocne_funkcije:::get_uredjaj_info:::LOC:110:::Za uredjaj 2819-E nije definirana min granica za Opseg. Koristim default 0
+INFO:::2015-08-04 13:07:58,954:::konfig_klase:::__init__:::LOC:30:::Lista defaultnih tocaka za umjeravanje, tocke=
+INFO:::2015-08-04 13:07:58,954:::konfig_klase:::__init__:::LOC:51:::Lista defaultnih tocaka za provjeru konvertera, tocke=
+INFO:::2015-08-04 13:07:58,954:::pomocne_funkcije:::pripremi_mape_postaja_i_uredjaja:::LOC:208:::Sastavljanje mapa postaja i uredjaja
+INFO:::2015-08-04 13:07:58,954:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:07:58,970:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/drzavna_mreza/postaje HTTP/1.1" 200 4307
+INFO:::2015-08-04 13:07:59,001:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:07:59,017:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj HTTP/1.1" 200 None
+INFO:::2015-08-04 13:08:01,045:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,060:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A08117 HTTP/1.1" 200 1703
+INFO:::2015-08-04 13:08:01,123:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,138:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A08117/lokacija HTTP/1.1" 200 556
+INFO:::2015-08-04 13:08:01,169:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,169:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A08118 HTTP/1.1" 200 1703
+INFO:::2015-08-04 13:08:01,232:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,232:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A08118/lokacija HTTP/1.1" 200 571
+INFO:::2015-08-04 13:08:01,263:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,263:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A08119 HTTP/1.1" 200 1703
+INFO:::2015-08-04 13:08:01,325:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,325:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A08119/lokacija HTTP/1.1" 200 566
+INFO:::2015-08-04 13:08:01,341:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,357:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A08120 HTTP/1.1" 200 1703
+INFO:::2015-08-04 13:08:01,419:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,419:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A08120/lokacija HTTP/1.1" 200 559
+INFO:::2015-08-04 13:08:01,435:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,450:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A09001 HTTP/1.1" 200 1703
+INFO:::2015-08-04 13:08:01,513:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,513:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A09001/lokacija HTTP/1.1" 200 559
+INFO:::2015-08-04 13:08:01,528:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,544:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A09002 HTTP/1.1" 200 1703
+INFO:::2015-08-04 13:08:01,591:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,606:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A09002/lokacija HTTP/1.1" 200 556
+INFO:::2015-08-04 13:08:01,622:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,622:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A09003 HTTP/1.1" 200 1703
+INFO:::2015-08-04 13:08:01,684:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,700:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A09003/lokacija HTTP/1.1" 200 748
+INFO:::2015-08-04 13:08:01,715:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,731:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A09004 HTTP/1.1" 200 1703
+INFO:::2015-08-04 13:08:01,778:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,793:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/18A09004/lokacija HTTP/1.1" 200 557
+INFO:::2015-08-04 13:08:01,809:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,825:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2024-E HTTP/1.1" 200 3667
+INFO:::2015-08-04 13:08:01,825:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,825:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2024-E/lokacija HTTP/1.1" 200 556
+INFO:::2015-08-04 13:08:01,840:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,856:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2026-E HTTP/1.1" 200 3667
+INFO:::2015-08-04 13:08:01,856:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,856:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2026-E/lokacija HTTP/1.1" 200 566
+INFO:::2015-08-04 13:08:01,871:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,887:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2074-E HTTP/1.1" 200 3600
+INFO:::2015-08-04 13:08:01,887:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,887:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2074-E/lokacija HTTP/1.1" 200 559
+INFO:::2015-08-04 13:08:01,918:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,918:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2075-E HTTP/1.1" 200 3600
+INFO:::2015-08-04 13:08:01,918:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,918:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2075-E/lokacija HTTP/1.1" 200 556
+INFO:::2015-08-04 13:08:01,949:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,949:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2076-E HTTP/1.1" 200 3600
+INFO:::2015-08-04 13:08:01,949:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,965:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2076-E/lokacija HTTP/1.1" 200 338
+INFO:::2015-08-04 13:08:01,965:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,965:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2077-E HTTP/1.1" 200 3600
+INFO:::2015-08-04 13:08:01,965:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:01,981:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2077-E/lokacija HTTP/1.1" 200 748
+INFO:::2015-08-04 13:08:01,996:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,012:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2078-E HTTP/1.1" 200 3600
+INFO:::2015-08-04 13:08:02,012:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,012:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2078-E/lokacija HTTP/1.1" 200 296
+INFO:::2015-08-04 13:08:02,012:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,027:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2079-E HTTP/1.1" 200 3600
+INFO:::2015-08-04 13:08:02,027:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,027:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2079-E/lokacija HTTP/1.1" 200 340
+INFO:::2015-08-04 13:08:02,027:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,043:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2080-E HTTP/1.1" 200 3600
+INFO:::2015-08-04 13:08:02,043:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,043:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2080-E/lokacija HTTP/1.1" 200 566
+INFO:::2015-08-04 13:08:02,059:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,074:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2081-E HTTP/1.1" 200 3600
+INFO:::2015-08-04 13:08:02,074:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,074:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2081-E/lokacija HTTP/1.1" 200 571
+INFO:::2015-08-04 13:08:02,105:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,105:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2082-E HTTP/1.1" 200 3600
+INFO:::2015-08-04 13:08:02,105:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,121:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2082-E/lokacija HTTP/1.1" 200 559
+INFO:::2015-08-04 13:08:02,137:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,137:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2214-1-2 HTTP/1.1" 200 2325
+INFO:::2015-08-04 13:08:02,137:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,152:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2214-1-2/lokacija HTTP/1.1" 200 557
+INFO:::2015-08-04 13:08:02,168:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,168:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2215-1-2 HTTP/1.1" 200 2325
+INFO:::2015-08-04 13:08:02,168:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,183:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2215-1-2/lokacija HTTP/1.1" 200 566
+INFO:::2015-08-04 13:08:02,199:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,199:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2219-E HTTP/1.1" 200 3654
+INFO:::2015-08-04 13:08:02,199:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,215:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2219-E/lokacija HTTP/1.1" 200 556
+INFO:::2015-08-04 13:08:02,230:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,230:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2220-E HTTP/1.1" 200 3654
+INFO:::2015-08-04 13:08:02,230:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,246:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2220-E/lokacija HTTP/1.1" 200 566
+INFO:::2015-08-04 13:08:02,261:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,261:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2231 HTTP/1.1" 200 2317
+INFO:::2015-08-04 13:08:02,277:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,277:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2231/lokacija HTTP/1.1" 200 556
+INFO:::2015-08-04 13:08:02,293:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,308:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2232 HTTP/1.1" 200 2317
+INFO:::2015-08-04 13:08:02,308:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,308:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2232/lokacija HTTP/1.1" 200 559
+INFO:::2015-08-04 13:08:02,324:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,339:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2819-E HTTP/1.1" 200 4768
+ERROR:::2015-08-04 13:08:02,339:::pomocne_funkcije:::get_uredjaj_info:::LOC:110:::Za uredjaj 2819-E nije definirana min granica za Opseg. Koristim default 0
 Traceback (most recent call last):
   File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\model\pomocne_funkcije.py", line 106, in get_uredjaj_info
     minGranica = metoda.find('min').text
 AttributeError: 'NoneType' object has no attribute 'text'
-INFO:::2015-08-03 14:43:36,529:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,544:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2819-E/lokacija HTTP/1.1" 200 566
-INFO:::2015-08-03 14:43:36,560:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,560:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2820-E HTTP/1.1" 200 4768
-ERROR:::2015-08-03 14:43:36,560:::pomocne_funkcije:::get_uredjaj_info:::LOC:110:::Za uredjaj 2820-E nije definirana min granica za Opseg. Koristim default 0
+INFO:::2015-08-04 13:08:02,339:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,339:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2819-E/lokacija HTTP/1.1" 200 566
+INFO:::2015-08-04 13:08:02,371:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,371:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2820-E HTTP/1.1" 200 4768
+ERROR:::2015-08-04 13:08:02,371:::pomocne_funkcije:::get_uredjaj_info:::LOC:110:::Za uredjaj 2820-E nije definirana min granica za Opseg. Koristim default 0
 Traceback (most recent call last):
   File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\model\pomocne_funkcije.py", line 106, in get_uredjaj_info
     minGranica = metoda.find('min').text
 AttributeError: 'NoneType' object has no attribute 'text'
-INFO:::2015-08-03 14:43:36,560:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,575:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2820-E/lokacija HTTP/1.1" 200 556
-INFO:::2015-08-03 14:43:36,591:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,591:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2821-E HTTP/1.1" 200 4768
-ERROR:::2015-08-03 14:43:36,607:::pomocne_funkcije:::get_uredjaj_info:::LOC:110:::Za uredjaj 2821-E nije definirana min granica za Opseg. Koristim default 0
+INFO:::2015-08-04 13:08:02,371:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,386:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2820-E/lokacija HTTP/1.1" 200 556
+INFO:::2015-08-04 13:08:02,402:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,402:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2821-E HTTP/1.1" 200 4768
+ERROR:::2015-08-04 13:08:02,402:::pomocne_funkcije:::get_uredjaj_info:::LOC:110:::Za uredjaj 2821-E nije definirana min granica za Opseg. Koristim default 0
 Traceback (most recent call last):
   File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\model\pomocne_funkcije.py", line 106, in get_uredjaj_info
     minGranica = metoda.find('min').text
 AttributeError: 'NoneType' object has no attribute 'text'
-INFO:::2015-08-03 14:43:36,607:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,607:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2821-E/lokacija HTTP/1.1" 200 571
-INFO:::2015-08-03 14:43:36,622:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,638:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/CO_KT1 HTTP/1.1" 200 3252
-INFO:::2015-08-03 14:43:36,638:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,638:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/CO_KT1/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:36,638:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/CO_KT1/lokacija , code=500
-INFO:::2015-08-03 14:43:36,653:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,669:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/CO_OS1 HTTP/1.1" 200 3252
-INFO:::2015-08-03 14:43:36,669:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,685:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/CO_OS1/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:36,685:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/CO_OS1/lokacija , code=500
-INFO:::2015-08-03 14:43:36,685:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,700:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/CO_SK1 HTTP/1.1" 200 3252
-INFO:::2015-08-03 14:43:36,700:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,716:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/CO_SK1/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:36,716:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/CO_SK1/lokacija , code=500
-INFO:::2015-08-03 14:43:36,716:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,731:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/CO_ZG1 HTTP/1.1" 200 3251
-INFO:::2015-08-03 14:43:36,731:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,747:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/CO_ZG1/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:36,747:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/CO_ZG1/lokacija , code=500
-INFO:::2015-08-03 14:43:36,747:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,763:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/CO_ZG2 HTTP/1.1" 200 3251
-INFO:::2015-08-03 14:43:36,763:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,778:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/CO_ZG2/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:36,778:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/CO_ZG2/lokacija , code=500
-INFO:::2015-08-03 14:43:36,778:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,794:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/CO_ZG3 HTTP/1.1" 200 3251
-INFO:::2015-08-03 14:43:36,794:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,809:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/CO_ZG3/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:36,809:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/CO_ZG3/lokacija , code=500
-INFO:::2015-08-03 14:43:36,825:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,825:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/H2S_KT1 HTTP/1.1" 200 3244
-INFO:::2015-08-03 14:43:36,841:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,841:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/H2S_KT1/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:36,856:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/H2S_KT1/lokacija , code=500
-INFO:::2015-08-03 14:43:36,856:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,872:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/H2S_SK1 HTTP/1.1" 200 3244
-INFO:::2015-08-03 14:43:36,872:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,872:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/H2S_SK1/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:36,887:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/H2S_SK1/lokacija , code=500
-INFO:::2015-08-03 14:43:36,887:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,887:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/KT1_PM10 HTTP/1.1" 200 445
-INFO:::2015-08-03 14:43:36,903:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,903:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/KT1_PM10/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:36,903:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/KT1_PM10/lokacija , code=500
-INFO:::2015-08-03 14:43:36,903:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,919:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/NH3_KT1 HTTP/1.1" 200 3612
-ERROR:::2015-08-03 14:43:36,919:::pomocne_funkcije:::get_uredjaj_info:::LOC:110:::Za uredjaj NH3_KT1 nije definirana min granica za Opseg. Koristim default 0
+INFO:::2015-08-04 13:08:02,402:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,417:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/2821-E/lokacija HTTP/1.1" 200 571
+INFO:::2015-08-04 13:08:02,433:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,433:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/CO_KT1 HTTP/1.1" 200 3252
+INFO:::2015-08-04 13:08:02,433:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,449:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/CO_KT1/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:02,449:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/CO_KT1/lokacija , code=500
+INFO:::2015-08-04 13:08:02,449:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,464:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/CO_OS1 HTTP/1.1" 200 3252
+INFO:::2015-08-04 13:08:02,464:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,480:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/CO_OS1/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:02,480:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/CO_OS1/lokacija , code=500
+INFO:::2015-08-04 13:08:02,480:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,480:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/CO_SK1 HTTP/1.1" 200 3252
+INFO:::2015-08-04 13:08:02,480:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,495:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/CO_SK1/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:02,495:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/CO_SK1/lokacija , code=500
+INFO:::2015-08-04 13:08:02,495:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,511:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/CO_ZG1 HTTP/1.1" 200 3251
+INFO:::2015-08-04 13:08:02,511:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,527:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/CO_ZG1/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:02,527:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/CO_ZG1/lokacija , code=500
+INFO:::2015-08-04 13:08:02,527:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,542:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/CO_ZG2 HTTP/1.1" 200 3251
+INFO:::2015-08-04 13:08:02,542:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,558:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/CO_ZG2/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:02,558:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/CO_ZG2/lokacija , code=500
+INFO:::2015-08-04 13:08:02,558:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,573:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/CO_ZG3 HTTP/1.1" 200 3251
+INFO:::2015-08-04 13:08:02,573:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,589:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/CO_ZG3/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:02,589:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/CO_ZG3/lokacija , code=500
+INFO:::2015-08-04 13:08:02,589:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,605:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/H2S_KT1 HTTP/1.1" 200 3244
+INFO:::2015-08-04 13:08:02,605:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,605:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/H2S_KT1/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:02,605:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/H2S_KT1/lokacija , code=500
+INFO:::2015-08-04 13:08:02,620:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,620:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/H2S_SK1 HTTP/1.1" 200 3244
+INFO:::2015-08-04 13:08:02,636:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,636:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/H2S_SK1/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:02,636:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/H2S_SK1/lokacija , code=500
+INFO:::2015-08-04 13:08:02,636:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,651:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/KT1_PM10 HTTP/1.1" 200 445
+INFO:::2015-08-04 13:08:02,651:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,667:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/KT1_PM10/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:02,667:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/KT1_PM10/lokacija , code=500
+INFO:::2015-08-04 13:08:02,667:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,683:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/NH3_KT1 HTTP/1.1" 200 3612
+ERROR:::2015-08-04 13:08:02,683:::pomocne_funkcije:::get_uredjaj_info:::LOC:110:::Za uredjaj NH3_KT1 nije definirana min granica za Opseg. Koristim default 0
 Traceback (most recent call last):
   File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\model\pomocne_funkcije.py", line 106, in get_uredjaj_info
     minGranica = metoda.find('min').text
 AttributeError: 'NoneType' object has no attribute 'text'
-INFO:::2015-08-03 14:43:36,934:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,934:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/NH3_KT1/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:36,934:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/NH3_KT1/lokacija , code=500
-INFO:::2015-08-03 14:43:36,934:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,950:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/NO2_OS1 HTTP/1.1" 200 3607
-ERROR:::2015-08-03 14:43:36,950:::pomocne_funkcije:::get_uredjaj_info:::LOC:110:::Za uredjaj NO2_OS1 nije definirana min granica za Opseg. Koristim default 0
+INFO:::2015-08-04 13:08:02,683:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,698:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/NH3_KT1/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:02,698:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/NH3_KT1/lokacija , code=500
+INFO:::2015-08-04 13:08:02,698:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,714:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/NO2_OS1 HTTP/1.1" 200 3607
+ERROR:::2015-08-04 13:08:02,714:::pomocne_funkcije:::get_uredjaj_info:::LOC:110:::Za uredjaj NO2_OS1 nije definirana min granica za Opseg. Koristim default 0
 Traceback (most recent call last):
   File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\model\pomocne_funkcije.py", line 106, in get_uredjaj_info
     minGranica = metoda.find('min').text
 AttributeError: 'NoneType' object has no attribute 'text'
-INFO:::2015-08-03 14:43:36,950:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,965:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/NO2_OS1/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:36,965:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/NO2_OS1/lokacija , code=500
-INFO:::2015-08-03 14:43:36,965:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,981:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/NO2_SK1 HTTP/1.1" 200 3607
-ERROR:::2015-08-03 14:43:36,981:::pomocne_funkcije:::get_uredjaj_info:::LOC:110:::Za uredjaj NO2_SK1 nije definirana min granica za Opseg. Koristim default 0
+INFO:::2015-08-04 13:08:02,714:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,729:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/NO2_OS1/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:02,729:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/NO2_OS1/lokacija , code=500
+INFO:::2015-08-04 13:08:02,729:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,745:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/NO2_SK1 HTTP/1.1" 200 3607
+ERROR:::2015-08-04 13:08:02,745:::pomocne_funkcije:::get_uredjaj_info:::LOC:110:::Za uredjaj NO2_SK1 nije definirana min granica za Opseg. Koristim default 0
 Traceback (most recent call last):
   File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\model\pomocne_funkcije.py", line 106, in get_uredjaj_info
     minGranica = metoda.find('min').text
 AttributeError: 'NoneType' object has no attribute 'text'
-INFO:::2015-08-03 14:43:36,981:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:36,997:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/NO2_SK1/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:36,997:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/NO2_SK1/lokacija , code=500
-INFO:::2015-08-03 14:43:36,997:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,012:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/NO2_ZG1 HTTP/1.1" 200 3606
-ERROR:::2015-08-03 14:43:37,012:::pomocne_funkcije:::get_uredjaj_info:::LOC:110:::Za uredjaj NO2_ZG1 nije definirana min granica za Opseg. Koristim default 0
+INFO:::2015-08-04 13:08:02,745:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,761:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/NO2_SK1/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:02,761:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/NO2_SK1/lokacija , code=500
+INFO:::2015-08-04 13:08:02,761:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,776:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/NO2_ZG1 HTTP/1.1" 200 3606
+ERROR:::2015-08-04 13:08:02,776:::pomocne_funkcije:::get_uredjaj_info:::LOC:110:::Za uredjaj NO2_ZG1 nije definirana min granica za Opseg. Koristim default 0
 Traceback (most recent call last):
   File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\model\pomocne_funkcije.py", line 106, in get_uredjaj_info
     minGranica = metoda.find('min').text
 AttributeError: 'NoneType' object has no attribute 'text'
-INFO:::2015-08-03 14:43:37,012:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,028:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/NO2_ZG1/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:37,028:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/NO2_ZG1/lokacija , code=500
-INFO:::2015-08-03 14:43:37,028:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,043:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/NO2_ZG2 HTTP/1.1" 200 3606
-ERROR:::2015-08-03 14:43:37,043:::pomocne_funkcije:::get_uredjaj_info:::LOC:110:::Za uredjaj NO2_ZG2 nije definirana min granica za Opseg. Koristim default 0
+INFO:::2015-08-04 13:08:02,776:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,792:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/NO2_ZG1/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:02,792:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/NO2_ZG1/lokacija , code=500
+INFO:::2015-08-04 13:08:02,792:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,807:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/NO2_ZG2 HTTP/1.1" 200 3606
+ERROR:::2015-08-04 13:08:02,807:::pomocne_funkcije:::get_uredjaj_info:::LOC:110:::Za uredjaj NO2_ZG2 nije definirana min granica za Opseg. Koristim default 0
 Traceback (most recent call last):
   File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\model\pomocne_funkcije.py", line 106, in get_uredjaj_info
     minGranica = metoda.find('min').text
 AttributeError: 'NoneType' object has no attribute 'text'
-INFO:::2015-08-03 14:43:37,043:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,059:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/NO2_ZG2/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:37,059:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/NO2_ZG2/lokacija , code=500
-INFO:::2015-08-03 14:43:37,059:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,075:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/NO2_ZG3 HTTP/1.1" 200 3606
-ERROR:::2015-08-03 14:43:37,075:::pomocne_funkcije:::get_uredjaj_info:::LOC:110:::Za uredjaj NO2_ZG3 nije definirana min granica za Opseg. Koristim default 0
+INFO:::2015-08-04 13:08:02,807:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,823:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/NO2_ZG2/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:02,823:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/NO2_ZG2/lokacija , code=500
+INFO:::2015-08-04 13:08:02,823:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,839:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/NO2_ZG3 HTTP/1.1" 200 3606
+ERROR:::2015-08-04 13:08:02,839:::pomocne_funkcije:::get_uredjaj_info:::LOC:110:::Za uredjaj NO2_ZG3 nije definirana min granica za Opseg. Koristim default 0
 Traceback (most recent call last):
   File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\model\pomocne_funkcije.py", line 106, in get_uredjaj_info
     minGranica = metoda.find('min').text
 AttributeError: 'NoneType' object has no attribute 'text'
-INFO:::2015-08-03 14:43:37,075:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,090:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/NO2_ZG3/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:37,090:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/NO2_ZG3/lokacija , code=500
-INFO:::2015-08-03 14:43:37,090:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,106:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/O3_ZG3 HTTP/1.1" 200 3236
-INFO:::2015-08-03 14:43:37,106:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,121:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/O3_ZG3/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:37,121:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/O3_ZG3/lokacija , code=500
-INFO:::2015-08-03 14:43:37,121:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,137:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/OS1_BTX HTTP/1.1" 200 535
-INFO:::2015-08-03 14:43:37,137:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,153:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/OS1_BTX/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:37,153:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/OS1_BTX/lokacija , code=500
-INFO:::2015-08-03 14:43:37,153:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,168:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/OS1_PM10 HTTP/1.1" 200 445
-INFO:::2015-08-03 14:43:37,168:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,184:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/OS1_PM10/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:37,184:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/OS1_PM10/lokacija , code=500
-INFO:::2015-08-03 14:43:37,184:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,199:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI1_BTX HTTP/1.1" 200 535
-INFO:::2015-08-03 14:43:37,199:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,199:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI1_BTX/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:37,215:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI1_BTX/lokacija , code=500
-INFO:::2015-08-03 14:43:37,215:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,215:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI1_CO HTTP/1.1" 200 3252
-INFO:::2015-08-03 14:43:37,231:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,231:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI1_CO/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:37,231:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI1_CO/lokacija , code=500
-INFO:::2015-08-03 14:43:37,246:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,246:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI1_H2S HTTP/1.1" 200 3244
-INFO:::2015-08-03 14:43:37,262:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,262:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI1_H2S/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:37,262:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI1_H2S/lokacija , code=500
-INFO:::2015-08-03 14:43:37,277:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,277:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI1_NO2 HTTP/1.1" 200 3607
-ERROR:::2015-08-03 14:43:37,277:::pomocne_funkcije:::get_uredjaj_info:::LOC:110:::Za uredjaj RI1_NO2 nije definirana min granica za Opseg. Koristim default 0
+INFO:::2015-08-04 13:08:02,839:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,854:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/NO2_ZG3/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:02,854:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/NO2_ZG3/lokacija , code=500
+INFO:::2015-08-04 13:08:02,854:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,870:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/O3_ZG3 HTTP/1.1" 200 3236
+INFO:::2015-08-04 13:08:02,870:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,885:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/O3_ZG3/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:02,885:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/O3_ZG3/lokacija , code=500
+INFO:::2015-08-04 13:08:02,885:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,901:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/OS1_BTX HTTP/1.1" 200 535
+INFO:::2015-08-04 13:08:02,901:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,901:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/OS1_BTX/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:02,917:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/OS1_BTX/lokacija , code=500
+INFO:::2015-08-04 13:08:02,917:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,917:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/OS1_PM10 HTTP/1.1" 200 445
+INFO:::2015-08-04 13:08:02,932:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,932:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/OS1_PM10/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:02,932:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/OS1_PM10/lokacija , code=500
+INFO:::2015-08-04 13:08:02,932:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,948:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI1_BTX HTTP/1.1" 200 535
+INFO:::2015-08-04 13:08:02,948:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,963:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI1_BTX/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:02,963:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI1_BTX/lokacija , code=500
+INFO:::2015-08-04 13:08:02,963:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,979:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI1_CO HTTP/1.1" 200 3252
+INFO:::2015-08-04 13:08:02,995:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:02,995:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI1_CO/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:02,995:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI1_CO/lokacija , code=500
+INFO:::2015-08-04 13:08:03,010:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,010:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI1_H2S HTTP/1.1" 200 3244
+INFO:::2015-08-04 13:08:03,026:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,026:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI1_H2S/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,026:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI1_H2S/lokacija , code=500
+INFO:::2015-08-04 13:08:03,041:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,041:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI1_NO2 HTTP/1.1" 200 3607
+ERROR:::2015-08-04 13:08:03,041:::pomocne_funkcije:::get_uredjaj_info:::LOC:110:::Za uredjaj RI1_NO2 nije definirana min granica za Opseg. Koristim default 0
 Traceback (most recent call last):
   File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\model\pomocne_funkcije.py", line 106, in get_uredjaj_info
     minGranica = metoda.find('min').text
 AttributeError: 'NoneType' object has no attribute 'text'
-INFO:::2015-08-03 14:43:37,293:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,293:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI1_NO2/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:37,293:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI1_NO2/lokacija , code=500
-INFO:::2015-08-03 14:43:37,309:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,309:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI1_PM10 HTTP/1.1" 200 445
-INFO:::2015-08-03 14:43:37,309:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,324:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI1_PM10/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:37,324:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI1_PM10/lokacija , code=500
-INFO:::2015-08-03 14:43:37,324:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,340:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI1_SO2 HTTP/1.1" 200 3239
-INFO:::2015-08-03 14:43:37,340:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,355:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI1_SO2/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:37,355:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI1_SO2/lokacija , code=500
-INFO:::2015-08-03 14:43:37,355:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,371:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI2_CO HTTP/1.1" 200 3252
-INFO:::2015-08-03 14:43:37,371:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,387:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI2_CO/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:37,387:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI2_CO/lokacija , code=500
-INFO:::2015-08-03 14:43:37,387:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,387:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI2_NO2 HTTP/1.1" 200 3607
-ERROR:::2015-08-03 14:43:37,402:::pomocne_funkcije:::get_uredjaj_info:::LOC:110:::Za uredjaj RI2_NO2 nije definirana min granica za Opseg. Koristim default 0
+INFO:::2015-08-04 13:08:03,057:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,057:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI1_NO2/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,057:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI1_NO2/lokacija , code=500
+INFO:::2015-08-04 13:08:03,057:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,073:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI1_PM10 HTTP/1.1" 200 445
+INFO:::2015-08-04 13:08:03,073:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,088:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI1_PM10/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,088:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI1_PM10/lokacija , code=500
+INFO:::2015-08-04 13:08:03,088:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,104:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI1_SO2 HTTP/1.1" 200 3239
+INFO:::2015-08-04 13:08:03,104:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,119:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI1_SO2/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,119:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI1_SO2/lokacija , code=500
+INFO:::2015-08-04 13:08:03,119:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,135:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI2_CO HTTP/1.1" 200 3252
+INFO:::2015-08-04 13:08:03,135:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,151:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI2_CO/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,151:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI2_CO/lokacija , code=500
+INFO:::2015-08-04 13:08:03,151:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,166:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI2_NO2 HTTP/1.1" 200 3607
+ERROR:::2015-08-04 13:08:03,166:::pomocne_funkcije:::get_uredjaj_info:::LOC:110:::Za uredjaj RI2_NO2 nije definirana min granica za Opseg. Koristim default 0
 Traceback (most recent call last):
   File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\model\pomocne_funkcije.py", line 106, in get_uredjaj_info
     minGranica = metoda.find('min').text
 AttributeError: 'NoneType' object has no attribute 'text'
-INFO:::2015-08-03 14:43:37,402:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,402:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI2_NO2/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:37,402:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI2_NO2/lokacija , code=500
-INFO:::2015-08-03 14:43:37,402:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,418:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI2_O3 HTTP/1.1" 200 3236
-INFO:::2015-08-03 14:43:37,418:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,433:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI2_O3/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:37,433:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI2_O3/lokacija , code=500
-INFO:::2015-08-03 14:43:37,433:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,449:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI2_PM10 HTTP/1.1" 200 445
-INFO:::2015-08-03 14:43:37,449:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,449:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI2_PM10/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:37,449:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI2_PM10/lokacija , code=500
-INFO:::2015-08-03 14:43:37,449:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,465:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI2_SO2 HTTP/1.1" 200 3239
-INFO:::2015-08-03 14:43:37,465:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,480:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI2_SO2/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:37,480:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI2_SO2/lokacija , code=500
-INFO:::2015-08-03 14:43:37,480:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,496:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB1_BTX HTTP/1.1" 200 535
-INFO:::2015-08-03 14:43:37,496:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,496:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB1_BTX/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:37,496:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SB1_BTX/lokacija , code=500
-INFO:::2015-08-03 14:43:37,511:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,511:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB1_H2S HTTP/1.1" 200 3244
-INFO:::2015-08-03 14:43:37,511:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,527:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB1_H2S/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:37,527:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SB1_H2S/lokacija , code=500
-INFO:::2015-08-03 14:43:37,527:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,543:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB1_NO2 HTTP/1.1" 200 3607
-ERROR:::2015-08-03 14:43:37,543:::pomocne_funkcije:::get_uredjaj_info:::LOC:110:::Za uredjaj SB1_NO2 nije definirana min granica za Opseg. Koristim default 0
+INFO:::2015-08-04 13:08:03,166:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,182:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI2_NO2/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,182:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI2_NO2/lokacija , code=500
+INFO:::2015-08-04 13:08:03,182:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,197:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI2_O3 HTTP/1.1" 200 3236
+INFO:::2015-08-04 13:08:03,197:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,213:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI2_O3/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,213:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI2_O3/lokacija , code=500
+INFO:::2015-08-04 13:08:03,213:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,229:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI2_PM10 HTTP/1.1" 200 445
+INFO:::2015-08-04 13:08:03,229:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,229:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI2_PM10/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,229:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI2_PM10/lokacija , code=500
+INFO:::2015-08-04 13:08:03,244:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,244:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI2_SO2 HTTP/1.1" 200 3239
+INFO:::2015-08-04 13:08:03,260:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,260:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/RI2_SO2/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,260:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/RI2_SO2/lokacija , code=500
+INFO:::2015-08-04 13:08:03,275:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,275:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB1_BTX HTTP/1.1" 200 535
+INFO:::2015-08-04 13:08:03,291:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,291:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB1_BTX/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,291:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SB1_BTX/lokacija , code=500
+INFO:::2015-08-04 13:08:03,291:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,307:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB1_H2S HTTP/1.1" 200 3244
+INFO:::2015-08-04 13:08:03,322:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,322:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB1_H2S/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,322:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SB1_H2S/lokacija , code=500
+INFO:::2015-08-04 13:08:03,322:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,338:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB1_NO2 HTTP/1.1" 200 3607
+ERROR:::2015-08-04 13:08:03,338:::pomocne_funkcije:::get_uredjaj_info:::LOC:110:::Za uredjaj SB1_NO2 nije definirana min granica za Opseg. Koristim default 0
 Traceback (most recent call last):
   File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\model\pomocne_funkcije.py", line 106, in get_uredjaj_info
     minGranica = metoda.find('min').text
 AttributeError: 'NoneType' object has no attribute 'text'
-INFO:::2015-08-03 14:43:37,543:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,558:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB1_NO2/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:37,558:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SB1_NO2/lokacija , code=500
-INFO:::2015-08-03 14:43:37,558:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,574:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB1_O3 HTTP/1.1" 200 3236
-INFO:::2015-08-03 14:43:37,574:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,589:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB1_O3/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:37,589:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SB1_O3/lokacija , code=500
-INFO:::2015-08-03 14:43:37,589:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,605:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB1_PM25 HTTP/1.1" 200 448
-INFO:::2015-08-03 14:43:37,605:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,621:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB1_PM25/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:37,621:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SB1_PM25/lokacija , code=500
-INFO:::2015-08-03 14:43:37,621:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,636:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB1_SO2 HTTP/1.1" 200 3239
-INFO:::2015-08-03 14:43:37,636:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,652:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB1_SO2/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:37,652:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SB1_SO2/lokacija , code=500
-INFO:::2015-08-03 14:43:37,652:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,667:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB2_BTX HTTP/1.1" 200 584
-INFO:::2015-08-03 14:43:37,667:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,667:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB2_BTX/lokacija HTTP/1.1" 200 599
-INFO:::2015-08-03 14:43:37,699:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,714:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB2_CO HTTP/1.1" 200 3290
-INFO:::2015-08-03 14:43:37,714:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,714:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB2_CO/lokacija HTTP/1.1" 200 599
-INFO:::2015-08-03 14:43:37,745:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,745:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB2_H2S HTTP/1.1" 200 3277
-INFO:::2015-08-03 14:43:37,745:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,761:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB2_H2S/lokacija HTTP/1.1" 200 599
-INFO:::2015-08-03 14:43:37,777:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,777:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB2_PM HTTP/1.1" 200 491
-INFO:::2015-08-03 14:43:37,777:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,792:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB2_PM/lokacija HTTP/1.1" 200 599
-INFO:::2015-08-03 14:43:37,808:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,808:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB2_SO2 HTTP/1.1" 200 3277
-INFO:::2015-08-03 14:43:37,823:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,823:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB2_SO2/lokacija HTTP/1.1" 200 599
-INFO:::2015-08-03 14:43:37,839:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,855:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SK1_BTX HTTP/1.1" 200 532
-INFO:::2015-08-03 14:43:37,855:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,855:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SK1_BTX/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:37,855:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SK1_BTX/lokacija , code=500
-INFO:::2015-08-03 14:43:37,855:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,870:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SK1_PM10 HTTP/1.1" 200 445
-INFO:::2015-08-03 14:43:37,870:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:37,886:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SK1_PM10/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:37,886:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SK1_PM10/lokacija , code=500
-INFO:::2015-08-03 14:43:37,886:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:38,463:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SO2_KT1 HTTP/1.1" 200 3239
-INFO:::2015-08-03 14:43:38,463:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:38,479:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SO2_KT1/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:38,479:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SO2_KT1/lokacija , code=500
-INFO:::2015-08-03 14:43:38,479:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:38,494:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SO2_OS1 HTTP/1.1" 200 3239
-INFO:::2015-08-03 14:43:38,494:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:38,510:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SO2_OS1/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:38,510:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SO2_OS1/lokacija , code=500
-INFO:::2015-08-03 14:43:38,510:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:38,525:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SO2_SK1 HTTP/1.1" 200 3239
-INFO:::2015-08-03 14:43:38,525:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:38,541:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SO2_SK1/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:38,541:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SO2_SK1/lokacija , code=500
-INFO:::2015-08-03 14:43:38,541:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:38,557:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SO2_ZG1 HTTP/1.1" 200 3238
-INFO:::2015-08-03 14:43:38,557:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:38,572:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SO2_ZG1/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:38,572:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SO2_ZG1/lokacija , code=500
-INFO:::2015-08-03 14:43:38,572:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:38,588:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SO2_ZG2 HTTP/1.1" 200 3238
-INFO:::2015-08-03 14:43:38,588:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:38,603:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SO2_ZG2/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:38,603:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SO2_ZG2/lokacija , code=500
-INFO:::2015-08-03 14:43:38,603:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:38,619:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SO2_ZG3 HTTP/1.1" 200 3238
-INFO:::2015-08-03 14:43:38,619:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:38,635:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SO2_ZG3/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:38,635:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SO2_ZG3/lokacija , code=500
-INFO:::2015-08-03 14:43:38,635:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:38,650:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/ZG1_BTX HTTP/1.1" 200 535
-INFO:::2015-08-03 14:43:38,650:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:38,666:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/ZG1_BTX/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:38,666:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/ZG1_BTX/lokacija , code=500
-INFO:::2015-08-03 14:43:38,666:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:38,681:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/ZG1_PM10 HTTP/1.1" 200 445
-INFO:::2015-08-03 14:43:38,681:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:38,697:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/ZG1_PM10/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:38,697:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/ZG1_PM10/lokacija , code=500
-INFO:::2015-08-03 14:43:38,697:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:38,697:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/ZG1_PM10g HTTP/1.1" 200 445
-INFO:::2015-08-03 14:43:38,713:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:38,713:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/ZG1_PM10g/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:38,713:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/ZG1_PM10g/lokacija , code=500
-INFO:::2015-08-03 14:43:38,728:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:38,728:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/ZG2_PM10 HTTP/1.1" 200 445
-INFO:::2015-08-03 14:43:38,744:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:38,744:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/ZG2_PM10/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:38,744:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/ZG2_PM10/lokacija , code=500
-INFO:::2015-08-03 14:43:38,744:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:38,759:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/ZG3_PM10 HTTP/1.1" 200 445
-INFO:::2015-08-03 14:43:38,759:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:38,775:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/ZG3_PM10/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:38,775:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/ZG3_PM10/lokacija , code=500
-INFO:::2015-08-03 14:43:38,775:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:38,791:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/ZG3_PM10g HTTP/1.1" 200 445
-INFO:::2015-08-03 14:43:38,791:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
-DEBUG:::2015-08-03 14:43:38,806:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/ZG3_PM10g/lokacija HTTP/1.1" 500 1738
-ERROR:::2015-08-03 14:43:38,806:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/ZG3_PM10g/lokacija , code=500
-DEBUG:::2015-08-03 14:43:38,806:::kalkulator:::__init__:::LOC:17:::start inicijalizacije RacunUmjeravanja
-DEBUG:::2015-08-03 14:43:38,806:::kalkulator:::reset_results:::LOC:113:::All result members reset to None
-DEBUG:::2015-08-03 14:43:38,806:::kalkulator:::__init__:::LOC:29:::kraj inicijalizacije RacunUmjeravanja
-DEBUG:::2015-08-03 14:43:38,822:::kalkulator:::__init__:::LOC:492:::start inicijalizacije ProvjeraKonvertera
-DEBUG:::2015-08-03 14:43:38,822:::kalkulator:::reset_results:::LOC:538:::All result members reset to "n/a"
-DEBUG:::2015-08-03 14:43:38,822:::kalkulator:::__init__:::LOC:499:::kraj inicijalizacije ProvjeraKonvertera
-INFO:::2015-08-03 14:43:44,937:::read_file_wizard:::__init__:::LOC:19:::Inicijalizacija Wizada za citanje podataka
-DEBUG:::2015-08-03 14:43:47,636:::read_file_wizard:::initializePage:::LOC:203:::Pokusaj pronalaska uredjaja iz imena filea, ime=C:/Users/DHMZ-Milic/Documents/GitHub/umjeravanje/EAS 200E-NOx-002819-E -CONC1min-NXCNC1-20150311-5.csv
-DEBUG:::2015-08-03 14:43:47,636:::read_file_wizard:::initializePage:::LOC:206:::Predlozene serijske oznake oredjaja iz imena datoteke, oznake=['2819', '2819e', '2819E', '2819-e', '2819-E']
-DEBUG:::2015-08-03 14:43:47,636:::read_file_wizard:::initializePage:::LOC:211:::Serijska oznaka pronadjena, oznaka=2819-E
-DEBUG:::2015-08-03 14:43:47,636:::read_file_wizard:::init_izbornike:::LOC:261:::Default izbor postavljen, postaja=Plitvicka jezera , uredjaj=2819-E
-INFO:::2015-08-03 14:43:53,065:::kalkulator:::set_uredjaj:::LOC:36:::Postavljene informacije o uredjaju
-DEBUG:::2015-08-03 14:43:53,065:::kalkulator:::set_uredjaj:::LOC:37:::{'komponente': ['NO2', 'NOx', 'NO', 'None'], 'lokacija': 'Plitvicka jezera', 'komponenta': {'NO2': {'formula': 'NO2', 'mjernaJedinica': 'ug/m3', 'naziv': 'dusikov dioksid'}, 'NOx': {'formula': 'NOx', 'mjernaJedinica': 'ug/m3', 'naziv': 'dusikovi oksidi'}, 'NO': {'formula': 'NO', 'mjernaJedinica': 'ug/m3', 'naziv': 'dusikov monoksid'}}, 'analitickaMetoda': {'tr': {'mjernaJedinica': 's', 'naziv': 'Vrijeme uspona', 'oznaka': 'tr', 'min': '0.0', 'max': '180.0'}, 'tf': {'mjernaJedinica': 's', 'naziv': 'Vrijeme spustanja', 'oznaka': 'tf', 'min': '0.0', 'max': '180.0'}, 'Srz': {'mjernaJedinica': 'nmol/mol', 'naziv': 'Ponovljivost u nuli', 'oznaka': 'Srz', 'min': '0.0', 'max': '1.0'}, 'rmax': {'mjernaJedinica': '%', 'naziv': 'Maksimalno relativno odstupanje od linearnost', 'oznaka': 'rmax', 'min': '0.0', 'max': '4.0'}, 'o': {'mjernaJedinica': 'nmol/mol', 'naziv': 'Opseg', 'oznaka': 'o', 'min': 0.0, 'max': '400.0'}, 'Srs': {'mjernaJedinica': '%', 'naziv': 'Ponovljivost pri spanu', 'oznaka': 'Srs', 'min': '0.0', 'max': '1.5'}, 'rz': {'mjernaJedinica': 'nmol/mol', 'naziv': 'Odstupanje od linearnosti u nuli', 'oznaka': 'rz', 'min': '0.0', 'max': '5.0'}, 'Ec': {'mjernaJedinica': '%', 'naziv': 'Efikasnost konvertera', 'oznaka': 'Ec', 'min': '95.0', 'max': '105.0'}}}
-INFO:::2015-08-03 14:43:53,065:::kalkulator:::set_linearnost:::LOC:61:::Postavljen check za provjeru linearnosti, provjera linearnosti=False
-INFO:::2015-08-03 14:43:53,065:::kalkulator:::set_data:::LOC:44:::Postavljen frejm sa sirovim podacima.
-DEBUG:::2015-08-03 14:43:53,065:::kalkulator:::set_data:::LOC:45:::                       NOx     NO   NO2
+INFO:::2015-08-04 13:08:03,338:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,353:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB1_NO2/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,353:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SB1_NO2/lokacija , code=500
+INFO:::2015-08-04 13:08:03,353:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,369:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB1_O3 HTTP/1.1" 200 3236
+INFO:::2015-08-04 13:08:03,369:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,385:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB1_O3/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,385:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SB1_O3/lokacija , code=500
+INFO:::2015-08-04 13:08:03,385:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,400:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB1_PM25 HTTP/1.1" 200 448
+INFO:::2015-08-04 13:08:03,400:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,416:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB1_PM25/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,416:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SB1_PM25/lokacija , code=500
+INFO:::2015-08-04 13:08:03,416:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,431:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB1_SO2 HTTP/1.1" 200 3239
+INFO:::2015-08-04 13:08:03,431:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,447:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB1_SO2/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,447:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SB1_SO2/lokacija , code=500
+INFO:::2015-08-04 13:08:03,447:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,463:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB2_BTX HTTP/1.1" 200 584
+INFO:::2015-08-04 13:08:03,463:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,463:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB2_BTX/lokacija HTTP/1.1" 200 599
+INFO:::2015-08-04 13:08:03,494:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,509:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB2_CO HTTP/1.1" 200 3290
+INFO:::2015-08-04 13:08:03,509:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,525:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB2_CO/lokacija HTTP/1.1" 200 599
+INFO:::2015-08-04 13:08:03,541:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,541:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB2_H2S HTTP/1.1" 200 3277
+INFO:::2015-08-04 13:08:03,556:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,556:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB2_H2S/lokacija HTTP/1.1" 200 599
+INFO:::2015-08-04 13:08:03,572:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,587:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB2_PM HTTP/1.1" 200 491
+INFO:::2015-08-04 13:08:03,587:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,587:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB2_PM/lokacija HTTP/1.1" 200 599
+INFO:::2015-08-04 13:08:03,619:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,619:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB2_SO2 HTTP/1.1" 200 3277
+INFO:::2015-08-04 13:08:03,619:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,634:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SB2_SO2/lokacija HTTP/1.1" 200 599
+INFO:::2015-08-04 13:08:03,650:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,650:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SK1_BTX HTTP/1.1" 200 532
+INFO:::2015-08-04 13:08:03,650:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,665:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SK1_BTX/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,665:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SK1_BTX/lokacija , code=500
+INFO:::2015-08-04 13:08:03,665:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,681:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SK1_PM10 HTTP/1.1" 200 445
+INFO:::2015-08-04 13:08:03,681:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,681:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SK1_PM10/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,681:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SK1_PM10/lokacija , code=500
+INFO:::2015-08-04 13:08:03,681:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,697:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SO2_KT1 HTTP/1.1" 200 3239
+INFO:::2015-08-04 13:08:03,697:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,712:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SO2_KT1/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,712:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SO2_KT1/lokacija , code=500
+INFO:::2015-08-04 13:08:03,712:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,728:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SO2_OS1 HTTP/1.1" 200 3239
+INFO:::2015-08-04 13:08:03,728:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,728:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SO2_OS1/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,728:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SO2_OS1/lokacija , code=500
+INFO:::2015-08-04 13:08:03,743:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,743:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SO2_SK1 HTTP/1.1" 200 3239
+INFO:::2015-08-04 13:08:03,743:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,759:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SO2_SK1/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,759:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SO2_SK1/lokacija , code=500
+INFO:::2015-08-04 13:08:03,759:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,775:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SO2_ZG1 HTTP/1.1" 200 3238
+INFO:::2015-08-04 13:08:03,775:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,775:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SO2_ZG1/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,775:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SO2_ZG1/lokacija , code=500
+INFO:::2015-08-04 13:08:03,790:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,790:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SO2_ZG2 HTTP/1.1" 200 3238
+INFO:::2015-08-04 13:08:03,806:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,806:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SO2_ZG2/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,806:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SO2_ZG2/lokacija , code=500
+INFO:::2015-08-04 13:08:03,806:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,821:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SO2_ZG3 HTTP/1.1" 200 3238
+INFO:::2015-08-04 13:08:03,821:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,837:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/SO2_ZG3/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,837:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/SO2_ZG3/lokacija , code=500
+INFO:::2015-08-04 13:08:03,837:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,853:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/ZG1_BTX HTTP/1.1" 200 535
+INFO:::2015-08-04 13:08:03,853:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,853:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/ZG1_BTX/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,853:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/ZG1_BTX/lokacija , code=500
+INFO:::2015-08-04 13:08:03,868:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,868:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/ZG1_PM10 HTTP/1.1" 200 445
+INFO:::2015-08-04 13:08:03,868:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,884:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/ZG1_PM10/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,884:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/ZG1_PM10/lokacija , code=500
+INFO:::2015-08-04 13:08:03,884:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,899:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/ZG1_PM10g HTTP/1.1" 200 445
+INFO:::2015-08-04 13:08:03,899:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,899:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/ZG1_PM10g/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,899:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/ZG1_PM10g/lokacija , code=500
+INFO:::2015-08-04 13:08:03,915:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,915:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/ZG2_PM10 HTTP/1.1" 200 445
+INFO:::2015-08-04 13:08:03,931:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,931:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/ZG2_PM10/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,931:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/ZG2_PM10/lokacija , code=500
+INFO:::2015-08-04 13:08:03,931:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,946:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/ZG3_PM10 HTTP/1.1" 200 445
+INFO:::2015-08-04 13:08:03,946:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,962:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/ZG3_PM10/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,962:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/ZG3_PM10/lokacija , code=500
+INFO:::2015-08-04 13:08:03,962:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,962:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/ZG3_PM10g HTTP/1.1" 200 445
+INFO:::2015-08-04 13:08:03,962:::connectionpool:::_new_conn:::LOC:203:::Starting new HTTP connection (1): 172.20.0.178
+DEBUG:::2015-08-04 13:08:03,977:::connectionpool:::_make_request:::LOC:383:::"GET /SKZ-war/webresources/uredjaj/ZG3_PM10g/lokacija HTTP/1.1" 500 1738
+ERROR:::2015-08-04 13:08:03,977:::pomocne_funkcije:::get_lokaciju_uredjaja:::LOC:164:::Los request, url=http://172.20.0.178:8080/SKZ-war/webresources/uredjaj/ZG3_PM10g/lokacija , code=500
+DEBUG:::2015-08-04 13:08:03,977:::kalkulator:::__init__:::LOC:17:::start inicijalizacije RacunUmjeravanja
+DEBUG:::2015-08-04 13:08:03,977:::kalkulator:::reset_results:::LOC:113:::All result members reset to None
+DEBUG:::2015-08-04 13:08:03,977:::kalkulator:::__init__:::LOC:29:::kraj inicijalizacije RacunUmjeravanja
+DEBUG:::2015-08-04 13:08:03,977:::kalkulator:::__init__:::LOC:503:::start inicijalizacije ProvjeraKonvertera
+DEBUG:::2015-08-04 13:08:03,977:::kalkulator:::reset_results:::LOC:549:::All result members reset to "n/a"
+DEBUG:::2015-08-04 13:08:03,977:::kalkulator:::__init__:::LOC:510:::kraj inicijalizacije ProvjeraKonvertera
+INFO:::2015-08-04 13:08:07,113:::read_file_wizard:::__init__:::LOC:19:::Inicijalizacija Wizada za citanje podataka
+DEBUG:::2015-08-04 13:08:10,935:::read_file_wizard:::initializePage:::LOC:204:::Pokusaj pronalaska uredjaja iz imena filea, ime=C:/Users/DHMZ-Milic/Documents/GitHub/umjeravanje/EAS 200E-NOx-002819-E -CONC1min-NXCNC1-20150311-5.csv
+DEBUG:::2015-08-04 13:08:10,935:::read_file_wizard:::initializePage:::LOC:207:::Predlozene serijske oznake oredjaja iz imena datoteke, oznake=['2819', '2819e', '2819E', '2819-e', '2819-E']
+DEBUG:::2015-08-04 13:08:10,935:::read_file_wizard:::initializePage:::LOC:212:::Serijska oznaka pronadjena, oznaka=2819-E
+DEBUG:::2015-08-04 13:08:10,935:::read_file_wizard:::init_izbornike:::LOC:270:::Default izbor postavljen, postaja=Plitvicka jezera , uredjaj=2819-E
+INFO:::2015-08-04 13:08:27,852:::kalkulator:::set_uredjaj:::LOC:36:::Postavljene informacije o uredjaju
+DEBUG:::2015-08-04 13:08:27,852:::kalkulator:::set_uredjaj:::LOC:37:::{'komponenta': {'NO2': {'mjernaJedinica': 'ug/m3', 'formula': 'NO2', 'naziv': 'dusikov dioksid'}, 'NOx': {'mjernaJedinica': 'ug/m3', 'formula': 'NOx', 'naziv': 'dusikovi oksidi'}, 'NO': {'mjernaJedinica': 'ug/m3', 'formula': 'NO', 'naziv': 'dusikov monoksid'}}, 'komponente': ['NO2', 'NOx', 'NO', 'None'], 'analitickaMetoda': {'rz': {'oznaka': 'rz', 'mjernaJedinica': 'nmol/mol', 'max': '5.0', 'min': '0.0', 'naziv': 'Odstupanje od linearnosti u nuli'}, 'tr': {'oznaka': 'tr', 'mjernaJedinica': 's', 'max': '180.0', 'min': '0.0', 'naziv': 'Vrijeme uspona'}, 'Srz': {'oznaka': 'Srz', 'mjernaJedinica': 'nmol/mol', 'max': '1.0', 'min': '0.0', 'naziv': 'Ponovljivost u nuli'}, 'Srs': {'oznaka': 'Srs', 'mjernaJedinica': '%', 'max': '1.5', 'min': '0.0', 'naziv': 'Ponovljivost pri spanu'}, 'Ec': {'oznaka': 'Ec', 'mjernaJedinica': '%', 'max': '105.0', 'min': '95.0', 'naziv': 'Efikasnost konvertera'}, 'o': {'oznaka': 'o', 'mjernaJedinica': 'nmol/mol', 'max': '400.0', 'min': 0.0, 'naziv': 'Opseg'}, 'rmax': {'oznaka': 'rmax', 'mjernaJedinica': '%', 'max': '4.0', 'min': '0.0', 'naziv': 'Maksimalno relativno odstupanje od linearnost'}, 'tf': {'oznaka': 'tf', 'mjernaJedinica': 's', 'max': '180.0', 'min': '0.0', 'naziv': 'Vrijeme spustanja'}}, 'lokacija': 'Plitvicka jezera'}
+INFO:::2015-08-04 13:08:27,852:::kalkulator:::set_linearnost:::LOC:61:::Postavljen check za provjeru linearnosti, provjera linearnosti=False
+INFO:::2015-08-04 13:08:27,852:::kalkulator:::set_data:::LOC:44:::Postavljen frejm sa sirovim podacima.
+DEBUG:::2015-08-04 13:08:27,852:::kalkulator:::set_data:::LOC:45:::                       NOx     NO   NO2
 Time Stamp                             
 2015-11-03 12:04:01  309.3  309.3   0.0
 2015-11-03 12:05:01  317.3  315.2   2.1
@@ -522,32 +522,42 @@ Time Stamp
 2015-11-03 16:04:01  250.4  256.9  -6.4
 
 [240 rows x 3 columns]
-INFO:::2015-08-03 14:43:53,065:::kalkulator:::set_stupac:::LOC:53:::Postavljan stupac za racunanje, stupac=NO2
-INFO:::2015-08-03 14:43:53,065:::kalkulator:::set_dilucija:::LOC:93:::Postavljena dilucijska jedinica, dilucija=T700
-INFO:::2015-08-03 14:43:53,065:::kalkulator:::set_cistiZrak:::LOC:101:::Postavljan generator cistog zraka, cistiZrak=T701
-INFO:::2015-08-03 14:43:53,065:::kalkulator:::set_opseg:::LOC:69:::Postavljen opseg mjerenja, opseg=1.0
-INFO:::2015-08-03 14:43:53,065:::kalkulator:::set_cCRM:::LOC:77:::Postavljena koncentracija CRM, cCRM=1.0
-INFO:::2015-08-03 14:43:53,065:::kalkulator:::set_sCRM:::LOC:85:::Postavljena sljedivost CRM, sCRM=1.0
-DEBUG:::2015-08-03 14:43:53,065:::kalkulator:::reset_results:::LOC:113:::All result members reset to None
-ERROR:::2015-08-03 14:43:53,080:::kalkulator:::_izracunaj_ucz:::LOC:310:::Konfigu nedostaje [T701]:NO2
+INFO:::2015-08-04 13:08:27,852:::kalkulator:::set_stupac:::LOC:53:::Postavljan stupac za racunanje, stupac=NO2
+INFO:::2015-08-04 13:08:27,852:::kalkulator:::set_dilucija:::LOC:93:::Postavljena dilucijska jedinica, dilucija=T700
+INFO:::2015-08-04 13:08:27,852:::kalkulator:::set_cistiZrak:::LOC:101:::Postavljan generator cistog zraka, cistiZrak=T701
+INFO:::2015-08-04 13:08:27,852:::kalkulator:::set_opseg:::LOC:69:::Postavljen opseg mjerenja, opseg=1.0
+INFO:::2015-08-04 13:08:27,852:::kalkulator:::set_cCRM:::LOC:77:::Postavljena koncentracija CRM, cCRM=1.0
+INFO:::2015-08-04 13:08:27,852:::kalkulator:::set_sCRM:::LOC:85:::Postavljena sljedivost CRM, sCRM=1.0
+DEBUG:::2015-08-04 13:08:27,852:::kalkulator:::reset_results:::LOC:113:::All result members reset to None
+ERROR:::2015-08-04 13:08:27,867:::kalkulator:::_izracunaj_ucz:::LOC:318:::Konfigu nedostaje [T701]:NO2
 Traceback (most recent call last):
-  File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\model\kalkulator.py", line 305, in _izracunaj_ucz
+  File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\model\kalkulator.py", line 313, in _izracunaj_ucz
     e2 = 2 * float(self.konfig.get_konfig_element(zrak, komponenta))
   File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\model\konfig_klase.py", line 85, in get_konfig_element
     raise AttributeError(msg)
 AttributeError: Konfigu nedostaje [T701]:NO2
-ERROR:::2015-08-03 14:43:53,080:::kalkulator:::_izracunaj_ucz:::LOC:310:::Konfigu nedostaje [T701]:NO2
+ERROR:::2015-08-04 13:08:27,867:::kalkulator:::_izracunaj_ucz:::LOC:318:::Konfigu nedostaje [T701]:NO2
 Traceback (most recent call last):
-  File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\model\kalkulator.py", line 305, in _izracunaj_ucz
+  File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\model\kalkulator.py", line 313, in _izracunaj_ucz
     e2 = 2 * float(self.konfig.get_konfig_element(zrak, komponenta))
   File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\model\konfig_klase.py", line 85, in get_konfig_element
     raise AttributeError(msg)
 AttributeError: Konfigu nedostaje [T701]:NO2
-INFO:::2015-08-03 14:43:53,392:::kalkulator:::set_uredjaj:::LOC:36:::Postavljene informacije o uredjaju
-DEBUG:::2015-08-03 14:43:53,392:::kalkulator:::set_uredjaj:::LOC:37:::{'komponente': ['NO2', 'NOx', 'NO', 'None'], 'lokacija': 'Plitvicka jezera', 'komponenta': {'NO2': {'formula': 'NO2', 'mjernaJedinica': 'ug/m3', 'naziv': 'dusikov dioksid'}, 'NOx': {'formula': 'NOx', 'mjernaJedinica': 'ug/m3', 'naziv': 'dusikovi oksidi'}, 'NO': {'formula': 'NO', 'mjernaJedinica': 'ug/m3', 'naziv': 'dusikov monoksid'}}, 'analitickaMetoda': {'tr': {'mjernaJedinica': 's', 'naziv': 'Vrijeme uspona', 'oznaka': 'tr', 'min': '0.0', 'max': '180.0'}, 'tf': {'mjernaJedinica': 's', 'naziv': 'Vrijeme spustanja', 'oznaka': 'tf', 'min': '0.0', 'max': '180.0'}, 'Srz': {'mjernaJedinica': 'nmol/mol', 'naziv': 'Ponovljivost u nuli', 'oznaka': 'Srz', 'min': '0.0', 'max': '1.0'}, 'rmax': {'mjernaJedinica': '%', 'naziv': 'Maksimalno relativno odstupanje od linearnost', 'oznaka': 'rmax', 'min': '0.0', 'max': '4.0'}, 'o': {'mjernaJedinica': 'nmol/mol', 'naziv': 'Opseg', 'oznaka': 'o', 'min': 0.0, 'max': '400.0'}, 'Srs': {'mjernaJedinica': '%', 'naziv': 'Ponovljivost pri spanu', 'oznaka': 'Srs', 'min': '0.0', 'max': '1.5'}, 'rz': {'mjernaJedinica': 'nmol/mol', 'naziv': 'Odstupanje od linearnosti u nuli', 'oznaka': 'rz', 'min': '0.0', 'max': '5.0'}, 'Ec': {'mjernaJedinica': '%', 'naziv': 'Efikasnost konvertera', 'oznaka': 'Ec', 'min': '95.0', 'max': '105.0'}}}
-INFO:::2015-08-03 14:43:53,392:::kalkulator:::set_linearnost:::LOC:61:::Postavljen check za provjeru linearnosti, provjera linearnosti=False
-INFO:::2015-08-03 14:43:53,392:::kalkulator:::set_data:::LOC:44:::Postavljen frejm sa sirovim podacima.
-DEBUG:::2015-08-03 14:43:53,392:::kalkulator:::set_data:::LOC:45:::                       NOx     NO   NO2
+ERROR:::2015-08-04 13:08:27,899:::canvas:::crtaj:::LOC:79:::problem sa slope i offset za crtanje pravca. float() argument must be a string or a number, not 'NoneType'
+Traceback (most recent call last):
+  File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\view\canvas.py", line 76, in crtaj
+    a = float(self.slope)
+TypeError: float() argument must be a string or a number, not 'NoneType'
+ERROR:::2015-08-04 13:08:28,195:::canvas:::crtaj:::LOC:79:::problem sa slope i offset za crtanje pravca. float() argument must be a string or a number, not 'NoneType'
+Traceback (most recent call last):
+  File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\view\canvas.py", line 76, in crtaj
+    a = float(self.slope)
+TypeError: float() argument must be a string or a number, not 'NoneType'
+INFO:::2015-08-04 13:08:28,413:::kalkulator:::set_uredjaj:::LOC:36:::Postavljene informacije o uredjaju
+DEBUG:::2015-08-04 13:08:28,413:::kalkulator:::set_uredjaj:::LOC:37:::{'komponenta': {'NO2': {'mjernaJedinica': 'ug/m3', 'formula': 'NO2', 'naziv': 'dusikov dioksid'}, 'NOx': {'mjernaJedinica': 'ug/m3', 'formula': 'NOx', 'naziv': 'dusikovi oksidi'}, 'NO': {'mjernaJedinica': 'ug/m3', 'formula': 'NO', 'naziv': 'dusikov monoksid'}}, 'komponente': ['NO2', 'NOx', 'NO', 'None'], 'analitickaMetoda': {'rz': {'oznaka': 'rz', 'mjernaJedinica': 'nmol/mol', 'max': '5.0', 'min': '0.0', 'naziv': 'Odstupanje od linearnosti u nuli'}, 'tr': {'oznaka': 'tr', 'mjernaJedinica': 's', 'max': '180.0', 'min': '0.0', 'naziv': 'Vrijeme uspona'}, 'Srz': {'oznaka': 'Srz', 'mjernaJedinica': 'nmol/mol', 'max': '1.0', 'min': '0.0', 'naziv': 'Ponovljivost u nuli'}, 'Srs': {'oznaka': 'Srs', 'mjernaJedinica': '%', 'max': '1.5', 'min': '0.0', 'naziv': 'Ponovljivost pri spanu'}, 'Ec': {'oznaka': 'Ec', 'mjernaJedinica': '%', 'max': '105.0', 'min': '95.0', 'naziv': 'Efikasnost konvertera'}, 'o': {'oznaka': 'o', 'mjernaJedinica': 'nmol/mol', 'max': '400.0', 'min': 0.0, 'naziv': 'Opseg'}, 'rmax': {'oznaka': 'rmax', 'mjernaJedinica': '%', 'max': '4.0', 'min': '0.0', 'naziv': 'Maksimalno relativno odstupanje od linearnost'}, 'tf': {'oznaka': 'tf', 'mjernaJedinica': 's', 'max': '180.0', 'min': '0.0', 'naziv': 'Vrijeme spustanja'}}, 'lokacija': 'Plitvicka jezera'}
+INFO:::2015-08-04 13:08:28,413:::kalkulator:::set_linearnost:::LOC:61:::Postavljen check za provjeru linearnosti, provjera linearnosti=False
+INFO:::2015-08-04 13:08:28,413:::kalkulator:::set_data:::LOC:44:::Postavljen frejm sa sirovim podacima.
+DEBUG:::2015-08-04 13:08:28,429:::kalkulator:::set_data:::LOC:45:::                       NOx     NO   NO2
 Time Stamp                             
 2015-11-03 12:04:01  309.3  309.3   0.0
 2015-11-03 12:05:01  317.3  315.2   2.1
@@ -612,18 +622,28 @@ Time Stamp
 2015-11-03 16:04:01  250.4  256.9  -6.4
 
 [240 rows x 3 columns]
-INFO:::2015-08-03 14:43:53,408:::kalkulator:::set_stupac:::LOC:53:::Postavljan stupac za racunanje, stupac=NOx
-INFO:::2015-08-03 14:43:53,408:::kalkulator:::set_dilucija:::LOC:93:::Postavljena dilucijska jedinica, dilucija=T700
-INFO:::2015-08-03 14:43:53,408:::kalkulator:::set_cistiZrak:::LOC:101:::Postavljan generator cistog zraka, cistiZrak=T701
-INFO:::2015-08-03 14:43:53,408:::kalkulator:::set_opseg:::LOC:69:::Postavljen opseg mjerenja, opseg=1.0
-INFO:::2015-08-03 14:43:53,408:::kalkulator:::set_cCRM:::LOC:77:::Postavljena koncentracija CRM, cCRM=1.0
-INFO:::2015-08-03 14:43:53,408:::kalkulator:::set_sCRM:::LOC:85:::Postavljena sljedivost CRM, sCRM=1.0
-DEBUG:::2015-08-03 14:43:53,408:::kalkulator:::reset_results:::LOC:113:::All result members reset to None
-INFO:::2015-08-03 14:43:53,689:::kalkulator:::set_uredjaj:::LOC:36:::Postavljene informacije o uredjaju
-DEBUG:::2015-08-03 14:43:53,689:::kalkulator:::set_uredjaj:::LOC:37:::{'komponente': ['NO2', 'NOx', 'NO', 'None'], 'lokacija': 'Plitvicka jezera', 'komponenta': {'NO2': {'formula': 'NO2', 'mjernaJedinica': 'ug/m3', 'naziv': 'dusikov dioksid'}, 'NOx': {'formula': 'NOx', 'mjernaJedinica': 'ug/m3', 'naziv': 'dusikovi oksidi'}, 'NO': {'formula': 'NO', 'mjernaJedinica': 'ug/m3', 'naziv': 'dusikov monoksid'}}, 'analitickaMetoda': {'tr': {'mjernaJedinica': 's', 'naziv': 'Vrijeme uspona', 'oznaka': 'tr', 'min': '0.0', 'max': '180.0'}, 'tf': {'mjernaJedinica': 's', 'naziv': 'Vrijeme spustanja', 'oznaka': 'tf', 'min': '0.0', 'max': '180.0'}, 'Srz': {'mjernaJedinica': 'nmol/mol', 'naziv': 'Ponovljivost u nuli', 'oznaka': 'Srz', 'min': '0.0', 'max': '1.0'}, 'rmax': {'mjernaJedinica': '%', 'naziv': 'Maksimalno relativno odstupanje od linearnost', 'oznaka': 'rmax', 'min': '0.0', 'max': '4.0'}, 'o': {'mjernaJedinica': 'nmol/mol', 'naziv': 'Opseg', 'oznaka': 'o', 'min': 0.0, 'max': '400.0'}, 'Srs': {'mjernaJedinica': '%', 'naziv': 'Ponovljivost pri spanu', 'oznaka': 'Srs', 'min': '0.0', 'max': '1.5'}, 'rz': {'mjernaJedinica': 'nmol/mol', 'naziv': 'Odstupanje od linearnosti u nuli', 'oznaka': 'rz', 'min': '0.0', 'max': '5.0'}, 'Ec': {'mjernaJedinica': '%', 'naziv': 'Efikasnost konvertera', 'oznaka': 'Ec', 'min': '95.0', 'max': '105.0'}}}
-INFO:::2015-08-03 14:43:53,689:::kalkulator:::set_linearnost:::LOC:61:::Postavljen check za provjeru linearnosti, provjera linearnosti=False
-INFO:::2015-08-03 14:43:53,689:::kalkulator:::set_data:::LOC:44:::Postavljen frejm sa sirovim podacima.
-DEBUG:::2015-08-03 14:43:53,704:::kalkulator:::set_data:::LOC:45:::                       NOx     NO   NO2
+INFO:::2015-08-04 13:08:28,429:::kalkulator:::set_stupac:::LOC:53:::Postavljan stupac za racunanje, stupac=NOx
+INFO:::2015-08-04 13:08:28,429:::kalkulator:::set_dilucija:::LOC:93:::Postavljena dilucijska jedinica, dilucija=T700
+INFO:::2015-08-04 13:08:28,429:::kalkulator:::set_cistiZrak:::LOC:101:::Postavljan generator cistog zraka, cistiZrak=T701
+INFO:::2015-08-04 13:08:28,429:::kalkulator:::set_opseg:::LOC:69:::Postavljen opseg mjerenja, opseg=1.0
+INFO:::2015-08-04 13:08:28,429:::kalkulator:::set_cCRM:::LOC:77:::Postavljena koncentracija CRM, cCRM=1.0
+INFO:::2015-08-04 13:08:28,429:::kalkulator:::set_sCRM:::LOC:85:::Postavljena sljedivost CRM, sCRM=1.0
+DEBUG:::2015-08-04 13:08:28,429:::kalkulator:::reset_results:::LOC:113:::All result members reset to None
+ERROR:::2015-08-04 13:08:28,460:::canvas:::crtaj:::LOC:79:::problem sa slope i offset za crtanje pravca. float() argument must be a string or a number, not 'NoneType'
+Traceback (most recent call last):
+  File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\view\canvas.py", line 76, in crtaj
+    a = float(self.slope)
+TypeError: float() argument must be a string or a number, not 'NoneType'
+ERROR:::2015-08-04 13:08:28,694:::canvas:::crtaj:::LOC:79:::problem sa slope i offset za crtanje pravca. float() argument must be a string or a number, not 'NoneType'
+Traceback (most recent call last):
+  File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\view\canvas.py", line 76, in crtaj
+    a = float(self.slope)
+TypeError: float() argument must be a string or a number, not 'NoneType'
+INFO:::2015-08-04 13:08:28,928:::kalkulator:::set_uredjaj:::LOC:36:::Postavljene informacije o uredjaju
+DEBUG:::2015-08-04 13:08:28,928:::kalkulator:::set_uredjaj:::LOC:37:::{'komponenta': {'NO2': {'mjernaJedinica': 'ug/m3', 'formula': 'NO2', 'naziv': 'dusikov dioksid'}, 'NOx': {'mjernaJedinica': 'ug/m3', 'formula': 'NOx', 'naziv': 'dusikovi oksidi'}, 'NO': {'mjernaJedinica': 'ug/m3', 'formula': 'NO', 'naziv': 'dusikov monoksid'}}, 'komponente': ['NO2', 'NOx', 'NO', 'None'], 'analitickaMetoda': {'rz': {'oznaka': 'rz', 'mjernaJedinica': 'nmol/mol', 'max': '5.0', 'min': '0.0', 'naziv': 'Odstupanje od linearnosti u nuli'}, 'tr': {'oznaka': 'tr', 'mjernaJedinica': 's', 'max': '180.0', 'min': '0.0', 'naziv': 'Vrijeme uspona'}, 'Srz': {'oznaka': 'Srz', 'mjernaJedinica': 'nmol/mol', 'max': '1.0', 'min': '0.0', 'naziv': 'Ponovljivost u nuli'}, 'Srs': {'oznaka': 'Srs', 'mjernaJedinica': '%', 'max': '1.5', 'min': '0.0', 'naziv': 'Ponovljivost pri spanu'}, 'Ec': {'oznaka': 'Ec', 'mjernaJedinica': '%', 'max': '105.0', 'min': '95.0', 'naziv': 'Efikasnost konvertera'}, 'o': {'oznaka': 'o', 'mjernaJedinica': 'nmol/mol', 'max': '400.0', 'min': 0.0, 'naziv': 'Opseg'}, 'rmax': {'oznaka': 'rmax', 'mjernaJedinica': '%', 'max': '4.0', 'min': '0.0', 'naziv': 'Maksimalno relativno odstupanje od linearnost'}, 'tf': {'oznaka': 'tf', 'mjernaJedinica': 's', 'max': '180.0', 'min': '0.0', 'naziv': 'Vrijeme spustanja'}}, 'lokacija': 'Plitvicka jezera'}
+INFO:::2015-08-04 13:08:28,928:::kalkulator:::set_linearnost:::LOC:61:::Postavljen check za provjeru linearnosti, provjera linearnosti=False
+INFO:::2015-08-04 13:08:28,928:::kalkulator:::set_data:::LOC:44:::Postavljen frejm sa sirovim podacima.
+DEBUG:::2015-08-04 13:08:28,928:::kalkulator:::set_data:::LOC:45:::                       NOx     NO   NO2
 Time Stamp                             
 2015-11-03 12:04:01  309.3  309.3   0.0
 2015-11-03 12:05:01  317.3  315.2   2.1
@@ -688,18 +708,28 @@ Time Stamp
 2015-11-03 16:04:01  250.4  256.9  -6.4
 
 [240 rows x 3 columns]
-INFO:::2015-08-03 14:43:53,704:::kalkulator:::set_stupac:::LOC:53:::Postavljan stupac za racunanje, stupac=NOx
-INFO:::2015-08-03 14:43:53,704:::kalkulator:::set_dilucija:::LOC:93:::Postavljena dilucijska jedinica, dilucija=T700
-INFO:::2015-08-03 14:43:53,704:::kalkulator:::set_cistiZrak:::LOC:101:::Postavljan generator cistog zraka, cistiZrak=T701
-INFO:::2015-08-03 14:43:53,704:::kalkulator:::set_opseg:::LOC:69:::Postavljen opseg mjerenja, opseg=400.0
-INFO:::2015-08-03 14:43:53,704:::kalkulator:::set_cCRM:::LOC:77:::Postavljena koncentracija CRM, cCRM=1.0
-INFO:::2015-08-03 14:43:53,704:::kalkulator:::set_sCRM:::LOC:85:::Postavljena sljedivost CRM, sCRM=1.0
-DEBUG:::2015-08-03 14:43:53,704:::kalkulator:::reset_results:::LOC:113:::All result members reset to None
-INFO:::2015-08-03 14:43:53,970:::kalkulator:::set_uredjaj:::LOC:36:::Postavljene informacije o uredjaju
-DEBUG:::2015-08-03 14:43:53,970:::kalkulator:::set_uredjaj:::LOC:37:::{'komponente': ['NO2', 'NOx', 'NO', 'None'], 'lokacija': 'Plitvicka jezera', 'komponenta': {'NO2': {'formula': 'NO2', 'mjernaJedinica': 'ug/m3', 'naziv': 'dusikov dioksid'}, 'NOx': {'formula': 'NOx', 'mjernaJedinica': 'ug/m3', 'naziv': 'dusikovi oksidi'}, 'NO': {'formula': 'NO', 'mjernaJedinica': 'ug/m3', 'naziv': 'dusikov monoksid'}}, 'analitickaMetoda': {'tr': {'mjernaJedinica': 's', 'naziv': 'Vrijeme uspona', 'oznaka': 'tr', 'min': '0.0', 'max': '180.0'}, 'tf': {'mjernaJedinica': 's', 'naziv': 'Vrijeme spustanja', 'oznaka': 'tf', 'min': '0.0', 'max': '180.0'}, 'Srz': {'mjernaJedinica': 'nmol/mol', 'naziv': 'Ponovljivost u nuli', 'oznaka': 'Srz', 'min': '0.0', 'max': '1.0'}, 'rmax': {'mjernaJedinica': '%', 'naziv': 'Maksimalno relativno odstupanje od linearnost', 'oznaka': 'rmax', 'min': '0.0', 'max': '4.0'}, 'o': {'mjernaJedinica': 'nmol/mol', 'naziv': 'Opseg', 'oznaka': 'o', 'min': 0.0, 'max': '400.0'}, 'Srs': {'mjernaJedinica': '%', 'naziv': 'Ponovljivost pri spanu', 'oznaka': 'Srs', 'min': '0.0', 'max': '1.5'}, 'rz': {'mjernaJedinica': 'nmol/mol', 'naziv': 'Odstupanje od linearnosti u nuli', 'oznaka': 'rz', 'min': '0.0', 'max': '5.0'}, 'Ec': {'mjernaJedinica': '%', 'naziv': 'Efikasnost konvertera', 'oznaka': 'Ec', 'min': '95.0', 'max': '105.0'}}}
-INFO:::2015-08-03 14:43:53,970:::kalkulator:::set_linearnost:::LOC:61:::Postavljen check za provjeru linearnosti, provjera linearnosti=False
-INFO:::2015-08-03 14:43:53,970:::kalkulator:::set_data:::LOC:44:::Postavljen frejm sa sirovim podacima.
-DEBUG:::2015-08-03 14:43:53,970:::kalkulator:::set_data:::LOC:45:::                       NOx     NO   NO2
+INFO:::2015-08-04 13:08:28,928:::kalkulator:::set_stupac:::LOC:53:::Postavljan stupac za racunanje, stupac=NOx
+INFO:::2015-08-04 13:08:28,928:::kalkulator:::set_dilucija:::LOC:93:::Postavljena dilucijska jedinica, dilucija=T700
+INFO:::2015-08-04 13:08:28,928:::kalkulator:::set_cistiZrak:::LOC:101:::Postavljan generator cistog zraka, cistiZrak=T701
+INFO:::2015-08-04 13:08:28,928:::kalkulator:::set_opseg:::LOC:69:::Postavljen opseg mjerenja, opseg=400.0
+INFO:::2015-08-04 13:08:28,928:::kalkulator:::set_cCRM:::LOC:77:::Postavljena koncentracija CRM, cCRM=1.0
+INFO:::2015-08-04 13:08:28,928:::kalkulator:::set_sCRM:::LOC:85:::Postavljena sljedivost CRM, sCRM=1.0
+DEBUG:::2015-08-04 13:08:28,928:::kalkulator:::reset_results:::LOC:113:::All result members reset to None
+ERROR:::2015-08-04 13:08:28,975:::canvas:::crtaj:::LOC:79:::problem sa slope i offset za crtanje pravca. float() argument must be a string or a number, not 'NoneType'
+Traceback (most recent call last):
+  File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\view\canvas.py", line 76, in crtaj
+    a = float(self.slope)
+TypeError: float() argument must be a string or a number, not 'NoneType'
+ERROR:::2015-08-04 13:08:29,193:::canvas:::crtaj:::LOC:79:::problem sa slope i offset za crtanje pravca. float() argument must be a string or a number, not 'NoneType'
+Traceback (most recent call last):
+  File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\view\canvas.py", line 76, in crtaj
+    a = float(self.slope)
+TypeError: float() argument must be a string or a number, not 'NoneType'
+INFO:::2015-08-04 13:08:29,412:::kalkulator:::set_uredjaj:::LOC:36:::Postavljene informacije o uredjaju
+DEBUG:::2015-08-04 13:08:29,412:::kalkulator:::set_uredjaj:::LOC:37:::{'komponenta': {'NO2': {'mjernaJedinica': 'ug/m3', 'formula': 'NO2', 'naziv': 'dusikov dioksid'}, 'NOx': {'mjernaJedinica': 'ug/m3', 'formula': 'NOx', 'naziv': 'dusikovi oksidi'}, 'NO': {'mjernaJedinica': 'ug/m3', 'formula': 'NO', 'naziv': 'dusikov monoksid'}}, 'komponente': ['NO2', 'NOx', 'NO', 'None'], 'analitickaMetoda': {'rz': {'oznaka': 'rz', 'mjernaJedinica': 'nmol/mol', 'max': '5.0', 'min': '0.0', 'naziv': 'Odstupanje od linearnosti u nuli'}, 'tr': {'oznaka': 'tr', 'mjernaJedinica': 's', 'max': '180.0', 'min': '0.0', 'naziv': 'Vrijeme uspona'}, 'Srz': {'oznaka': 'Srz', 'mjernaJedinica': 'nmol/mol', 'max': '1.0', 'min': '0.0', 'naziv': 'Ponovljivost u nuli'}, 'Srs': {'oznaka': 'Srs', 'mjernaJedinica': '%', 'max': '1.5', 'min': '0.0', 'naziv': 'Ponovljivost pri spanu'}, 'Ec': {'oznaka': 'Ec', 'mjernaJedinica': '%', 'max': '105.0', 'min': '95.0', 'naziv': 'Efikasnost konvertera'}, 'o': {'oznaka': 'o', 'mjernaJedinica': 'nmol/mol', 'max': '400.0', 'min': 0.0, 'naziv': 'Opseg'}, 'rmax': {'oznaka': 'rmax', 'mjernaJedinica': '%', 'max': '4.0', 'min': '0.0', 'naziv': 'Maksimalno relativno odstupanje od linearnost'}, 'tf': {'oznaka': 'tf', 'mjernaJedinica': 's', 'max': '180.0', 'min': '0.0', 'naziv': 'Vrijeme spustanja'}}, 'lokacija': 'Plitvicka jezera'}
+INFO:::2015-08-04 13:08:29,412:::kalkulator:::set_linearnost:::LOC:61:::Postavljen check za provjeru linearnosti, provjera linearnosti=False
+INFO:::2015-08-04 13:08:29,412:::kalkulator:::set_data:::LOC:44:::Postavljen frejm sa sirovim podacima.
+DEBUG:::2015-08-04 13:08:29,427:::kalkulator:::set_data:::LOC:45:::                       NOx     NO   NO2
 Time Stamp                             
 2015-11-03 12:04:01  309.3  309.3   0.0
 2015-11-03 12:05:01  317.3  315.2   2.1
@@ -764,10 +794,322 @@ Time Stamp
 2015-11-03 16:04:01  250.4  256.9  -6.4
 
 [240 rows x 3 columns]
-INFO:::2015-08-03 14:43:53,970:::kalkulator:::set_stupac:::LOC:53:::Postavljan stupac za racunanje, stupac=NOx
-INFO:::2015-08-03 14:43:53,970:::kalkulator:::set_dilucija:::LOC:93:::Postavljena dilucijska jedinica, dilucija=T700
-INFO:::2015-08-03 14:43:53,970:::kalkulator:::set_cistiZrak:::LOC:101:::Postavljan generator cistog zraka, cistiZrak=T701
-INFO:::2015-08-03 14:43:53,970:::kalkulator:::set_opseg:::LOC:69:::Postavljen opseg mjerenja, opseg=400.0
-INFO:::2015-08-03 14:43:53,970:::kalkulator:::set_cCRM:::LOC:77:::Postavljena koncentracija CRM, cCRM=1.0
-INFO:::2015-08-03 14:43:53,970:::kalkulator:::set_sCRM:::LOC:85:::Postavljena sljedivost CRM, sCRM=1.0
-DEBUG:::2015-08-03 14:43:53,970:::kalkulator:::reset_results:::LOC:113:::All result members reset to None
+INFO:::2015-08-04 13:08:29,427:::kalkulator:::set_stupac:::LOC:53:::Postavljan stupac za racunanje, stupac=NOx
+INFO:::2015-08-04 13:08:29,427:::kalkulator:::set_dilucija:::LOC:93:::Postavljena dilucijska jedinica, dilucija=T700
+INFO:::2015-08-04 13:08:29,427:::kalkulator:::set_cistiZrak:::LOC:101:::Postavljan generator cistog zraka, cistiZrak=T701
+INFO:::2015-08-04 13:08:29,427:::kalkulator:::set_opseg:::LOC:69:::Postavljen opseg mjerenja, opseg=400.0
+INFO:::2015-08-04 13:08:29,427:::kalkulator:::set_cCRM:::LOC:77:::Postavljena koncentracija CRM, cCRM=1.0
+INFO:::2015-08-04 13:08:29,427:::kalkulator:::set_sCRM:::LOC:85:::Postavljena sljedivost CRM, sCRM=1.0
+DEBUG:::2015-08-04 13:08:29,427:::kalkulator:::reset_results:::LOC:113:::All result members reset to None
+ERROR:::2015-08-04 13:08:29,459:::canvas:::crtaj:::LOC:79:::problem sa slope i offset za crtanje pravca. float() argument must be a string or a number, not 'NoneType'
+Traceback (most recent call last):
+  File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\view\canvas.py", line 76, in crtaj
+    a = float(self.slope)
+TypeError: float() argument must be a string or a number, not 'NoneType'
+ERROR:::2015-08-04 13:08:29,677:::canvas:::crtaj:::LOC:79:::problem sa slope i offset za crtanje pravca. float() argument must be a string or a number, not 'NoneType'
+Traceback (most recent call last):
+  File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\view\canvas.py", line 76, in crtaj
+    a = float(self.slope)
+TypeError: float() argument must be a string or a number, not 'NoneType'
+INFO:::2015-08-04 13:08:30,941:::kalkulator:::set_uredjaj:::LOC:36:::Postavljene informacije o uredjaju
+DEBUG:::2015-08-04 13:08:30,941:::kalkulator:::set_uredjaj:::LOC:37:::{'komponenta': {'NO2': {'mjernaJedinica': 'ug/m3', 'formula': 'NO2', 'naziv': 'dusikov dioksid'}, 'NOx': {'mjernaJedinica': 'ug/m3', 'formula': 'NOx', 'naziv': 'dusikovi oksidi'}, 'NO': {'mjernaJedinica': 'ug/m3', 'formula': 'NO', 'naziv': 'dusikov monoksid'}}, 'komponente': ['NO2', 'NOx', 'NO', 'None'], 'analitickaMetoda': {'rz': {'oznaka': 'rz', 'mjernaJedinica': 'nmol/mol', 'max': '5.0', 'min': '0.0', 'naziv': 'Odstupanje od linearnosti u nuli'}, 'tr': {'oznaka': 'tr', 'mjernaJedinica': 's', 'max': '180.0', 'min': '0.0', 'naziv': 'Vrijeme uspona'}, 'Srz': {'oznaka': 'Srz', 'mjernaJedinica': 'nmol/mol', 'max': '1.0', 'min': '0.0', 'naziv': 'Ponovljivost u nuli'}, 'Srs': {'oznaka': 'Srs', 'mjernaJedinica': '%', 'max': '1.5', 'min': '0.0', 'naziv': 'Ponovljivost pri spanu'}, 'Ec': {'oznaka': 'Ec', 'mjernaJedinica': '%', 'max': '105.0', 'min': '95.0', 'naziv': 'Efikasnost konvertera'}, 'o': {'oznaka': 'o', 'mjernaJedinica': 'nmol/mol', 'max': '400.0', 'min': 0.0, 'naziv': 'Opseg'}, 'rmax': {'oznaka': 'rmax', 'mjernaJedinica': '%', 'max': '4.0', 'min': '0.0', 'naziv': 'Maksimalno relativno odstupanje od linearnost'}, 'tf': {'oznaka': 'tf', 'mjernaJedinica': 's', 'max': '180.0', 'min': '0.0', 'naziv': 'Vrijeme spustanja'}}, 'lokacija': 'Plitvicka jezera'}
+INFO:::2015-08-04 13:08:30,941:::kalkulator:::set_linearnost:::LOC:61:::Postavljen check za provjeru linearnosti, provjera linearnosti=False
+INFO:::2015-08-04 13:08:30,941:::kalkulator:::set_data:::LOC:44:::Postavljen frejm sa sirovim podacima.
+DEBUG:::2015-08-04 13:08:30,941:::kalkulator:::set_data:::LOC:45:::                       NOx     NO   NO2
+Time Stamp                             
+2015-11-03 12:04:01  309.3  309.3   0.0
+2015-11-03 12:05:01  317.3  315.2   2.1
+2015-11-03 12:06:01  283.6  227.7  55.8
+2015-11-03 12:07:01  193.6  184.9   8.7
+2015-11-03 12:08:01  239.4  239.4   0.0
+2015-11-03 12:09:01  348.5  348.5   0.0
+2015-11-03 12:10:01  353.6  353.6   0.0
+2015-11-03 12:11:01  348.2  348.2   0.0
+2015-11-03 12:12:01  344.6  348.6  -4.0
+2015-11-03 12:13:01  340.7  350.6  -9.9
+2015-11-03 12:14:01  338.9  348.9 -10.0
+2015-11-03 12:15:01  341.2  347.2  -6.0
+2015-11-03 12:16:01  369.3  362.4   6.9
+2015-11-03 12:17:01   11.0    9.6   1.3
+2015-11-03 12:18:01    1.3    1.3   0.0
+2015-11-03 12:19:01    1.1    1.1   0.0
+2015-11-03 12:20:01  335.6  323.1  12.6
+2015-11-03 12:21:01  349.0  349.0   0.0
+2015-11-03 12:22:01  347.4  347.4   0.0
+2015-11-03 12:23:01  348.7  348.7   0.0
+2015-11-03 12:24:01  337.2  345.9  -8.7
+2015-11-03 12:25:01  335.8  340.8  -5.0
+2015-11-03 12:26:01  336.4  338.0  -1.6
+2015-11-03 12:27:01  334.3  338.8  -4.5
+2015-11-03 12:28:01  331.5  341.0  -9.5
+2015-11-03 12:29:01  336.0  344.8  -8.8
+2015-11-03 12:30:01  337.7  345.9  -8.2
+2015-11-03 12:31:01  334.7  344.9 -10.2
+2015-11-03 12:32:01  334.8  345.4 -10.6
+2015-11-03 12:33:01  338.5  343.4  -4.9
+...                    ...    ...   ...
+2015-11-03 15:34:01  349.5  349.5   0.0
+2015-11-03 15:35:01  342.8  342.8   0.0
+2015-11-03 15:37:58  334.7  344.9 -10.2
+2015-11-03 15:38:01  334.7  344.9 -10.2
+2015-11-03 15:39:01  331.2  331.2   0.0
+2015-11-03 15:40:01  269.5  269.5   0.0
+2015-11-03 15:41:01  262.2  262.2   0.0
+2015-11-03 15:42:01  260.2  260.2   0.0
+2015-11-03 15:43:01  254.9  258.3  -3.4
+2015-11-03 15:44:01  254.0  258.6  -4.6
+2015-11-03 15:45:01  252.7  258.5  -5.8
+2015-11-03 15:46:01  252.2  258.9  -6.7
+2015-11-03 15:47:01  252.6  257.5  -4.9
+2015-11-03 15:48:01  252.0  254.5  -2.5
+2015-11-03 15:49:01  251.1  254.6  -3.5
+2015-11-03 15:50:01  251.2  256.7  -5.5
+2015-11-03 15:51:01  250.8  257.4  -6.6
+2015-11-03 15:52:01  253.0  256.6  -3.5
+2015-11-03 15:53:01  254.9  256.2  -1.4
+2015-11-03 15:54:01  254.0  257.9  -3.9
+2015-11-03 15:55:01  254.1  258.6  -4.5
+2015-11-03 15:56:01  252.9  256.5  -3.5
+2015-11-03 15:57:01  251.9  256.8  -5.0
+2015-11-03 15:58:01  252.0  257.8  -5.8
+2015-11-03 15:59:01  250.6  258.7  -8.1
+2015-11-03 16:00:01  250.4  256.9  -6.6
+2015-11-03 16:01:01  251.1  254.3  -3.1
+2015-11-03 16:02:01  253.4  253.6  -0.2
+2015-11-03 16:03:01  252.7  257.0  -4.3
+2015-11-03 16:04:01  250.4  256.9  -6.4
+
+[240 rows x 3 columns]
+INFO:::2015-08-04 13:08:30,941:::kalkulator:::set_stupac:::LOC:53:::Postavljan stupac za racunanje, stupac=NOx
+INFO:::2015-08-04 13:08:30,941:::kalkulator:::set_dilucija:::LOC:93:::Postavljena dilucijska jedinica, dilucija=T700
+INFO:::2015-08-04 13:08:30,941:::kalkulator:::set_cistiZrak:::LOC:101:::Postavljan generator cistog zraka, cistiZrak=T701
+INFO:::2015-08-04 13:08:30,941:::kalkulator:::set_opseg:::LOC:69:::Postavljen opseg mjerenja, opseg=400.0
+INFO:::2015-08-04 13:08:30,941:::kalkulator:::set_cCRM:::LOC:77:::Postavljena koncentracija CRM, cCRM=1.0
+INFO:::2015-08-04 13:08:30,941:::kalkulator:::set_sCRM:::LOC:85:::Postavljena sljedivost CRM, sCRM=1.0
+DEBUG:::2015-08-04 13:08:30,941:::kalkulator:::reset_results:::LOC:113:::All result members reset to None
+ERROR:::2015-08-04 13:08:30,987:::canvas:::crtaj:::LOC:79:::problem sa slope i offset za crtanje pravca. float() argument must be a string or a number, not 'NoneType'
+Traceback (most recent call last):
+  File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\view\canvas.py", line 76, in crtaj
+    a = float(self.slope)
+TypeError: float() argument must be a string or a number, not 'NoneType'
+ERROR:::2015-08-04 13:08:31,206:::canvas:::crtaj:::LOC:79:::problem sa slope i offset za crtanje pravca. float() argument must be a string or a number, not 'NoneType'
+Traceback (most recent call last):
+  File "C:\Users\DHMZ-Milic\Documents\GitHub\umjeravanje\app\view\canvas.py", line 76, in crtaj
+    a = float(self.slope)
+TypeError: float() argument must be a string or a number, not 'NoneType'
+INFO:::2015-08-04 13:08:32,282:::kalkulator:::set_uredjaj:::LOC:36:::Postavljene informacije o uredjaju
+DEBUG:::2015-08-04 13:08:32,282:::kalkulator:::set_uredjaj:::LOC:37:::{'komponenta': {'NO2': {'mjernaJedinica': 'ug/m3', 'formula': 'NO2', 'naziv': 'dusikov dioksid'}, 'NOx': {'mjernaJedinica': 'ug/m3', 'formula': 'NOx', 'naziv': 'dusikovi oksidi'}, 'NO': {'mjernaJedinica': 'ug/m3', 'formula': 'NO', 'naziv': 'dusikov monoksid'}}, 'komponente': ['NO2', 'NOx', 'NO', 'None'], 'analitickaMetoda': {'rz': {'oznaka': 'rz', 'mjernaJedinica': 'nmol/mol', 'max': '5.0', 'min': '0.0', 'naziv': 'Odstupanje od linearnosti u nuli'}, 'tr': {'oznaka': 'tr', 'mjernaJedinica': 's', 'max': '180.0', 'min': '0.0', 'naziv': 'Vrijeme uspona'}, 'Srz': {'oznaka': 'Srz', 'mjernaJedinica': 'nmol/mol', 'max': '1.0', 'min': '0.0', 'naziv': 'Ponovljivost u nuli'}, 'Srs': {'oznaka': 'Srs', 'mjernaJedinica': '%', 'max': '1.5', 'min': '0.0', 'naziv': 'Ponovljivost pri spanu'}, 'Ec': {'oznaka': 'Ec', 'mjernaJedinica': '%', 'max': '105.0', 'min': '95.0', 'naziv': 'Efikasnost konvertera'}, 'o': {'oznaka': 'o', 'mjernaJedinica': 'nmol/mol', 'max': '400.0', 'min': 0.0, 'naziv': 'Opseg'}, 'rmax': {'oznaka': 'rmax', 'mjernaJedinica': '%', 'max': '4.0', 'min': '0.0', 'naziv': 'Maksimalno relativno odstupanje od linearnost'}, 'tf': {'oznaka': 'tf', 'mjernaJedinica': 's', 'max': '180.0', 'min': '0.0', 'naziv': 'Vrijeme spustanja'}}, 'lokacija': 'Plitvicka jezera'}
+INFO:::2015-08-04 13:08:32,282:::kalkulator:::set_linearnost:::LOC:61:::Postavljen check za provjeru linearnosti, provjera linearnosti=True
+INFO:::2015-08-04 13:08:32,282:::kalkulator:::set_data:::LOC:44:::Postavljen frejm sa sirovim podacima.
+DEBUG:::2015-08-04 13:08:32,298:::kalkulator:::set_data:::LOC:45:::                       NOx     NO   NO2
+Time Stamp                             
+2015-11-03 12:04:01  309.3  309.3   0.0
+2015-11-03 12:05:01  317.3  315.2   2.1
+2015-11-03 12:06:01  283.6  227.7  55.8
+2015-11-03 12:07:01  193.6  184.9   8.7
+2015-11-03 12:08:01  239.4  239.4   0.0
+2015-11-03 12:09:01  348.5  348.5   0.0
+2015-11-03 12:10:01  353.6  353.6   0.0
+2015-11-03 12:11:01  348.2  348.2   0.0
+2015-11-03 12:12:01  344.6  348.6  -4.0
+2015-11-03 12:13:01  340.7  350.6  -9.9
+2015-11-03 12:14:01  338.9  348.9 -10.0
+2015-11-03 12:15:01  341.2  347.2  -6.0
+2015-11-03 12:16:01  369.3  362.4   6.9
+2015-11-03 12:17:01   11.0    9.6   1.3
+2015-11-03 12:18:01    1.3    1.3   0.0
+2015-11-03 12:19:01    1.1    1.1   0.0
+2015-11-03 12:20:01  335.6  323.1  12.6
+2015-11-03 12:21:01  349.0  349.0   0.0
+2015-11-03 12:22:01  347.4  347.4   0.0
+2015-11-03 12:23:01  348.7  348.7   0.0
+2015-11-03 12:24:01  337.2  345.9  -8.7
+2015-11-03 12:25:01  335.8  340.8  -5.0
+2015-11-03 12:26:01  336.4  338.0  -1.6
+2015-11-03 12:27:01  334.3  338.8  -4.5
+2015-11-03 12:28:01  331.5  341.0  -9.5
+2015-11-03 12:29:01  336.0  344.8  -8.8
+2015-11-03 12:30:01  337.7  345.9  -8.2
+2015-11-03 12:31:01  334.7  344.9 -10.2
+2015-11-03 12:32:01  334.8  345.4 -10.6
+2015-11-03 12:33:01  338.5  343.4  -4.9
+...                    ...    ...   ...
+2015-11-03 15:34:01  349.5  349.5   0.0
+2015-11-03 15:35:01  342.8  342.8   0.0
+2015-11-03 15:37:58  334.7  344.9 -10.2
+2015-11-03 15:38:01  334.7  344.9 -10.2
+2015-11-03 15:39:01  331.2  331.2   0.0
+2015-11-03 15:40:01  269.5  269.5   0.0
+2015-11-03 15:41:01  262.2  262.2   0.0
+2015-11-03 15:42:01  260.2  260.2   0.0
+2015-11-03 15:43:01  254.9  258.3  -3.4
+2015-11-03 15:44:01  254.0  258.6  -4.6
+2015-11-03 15:45:01  252.7  258.5  -5.8
+2015-11-03 15:46:01  252.2  258.9  -6.7
+2015-11-03 15:47:01  252.6  257.5  -4.9
+2015-11-03 15:48:01  252.0  254.5  -2.5
+2015-11-03 15:49:01  251.1  254.6  -3.5
+2015-11-03 15:50:01  251.2  256.7  -5.5
+2015-11-03 15:51:01  250.8  257.4  -6.6
+2015-11-03 15:52:01  253.0  256.6  -3.5
+2015-11-03 15:53:01  254.9  256.2  -1.4
+2015-11-03 15:54:01  254.0  257.9  -3.9
+2015-11-03 15:55:01  254.1  258.6  -4.5
+2015-11-03 15:56:01  252.9  256.5  -3.5
+2015-11-03 15:57:01  251.9  256.8  -5.0
+2015-11-03 15:58:01  252.0  257.8  -5.8
+2015-11-03 15:59:01  250.6  258.7  -8.1
+2015-11-03 16:00:01  250.4  256.9  -6.6
+2015-11-03 16:01:01  251.1  254.3  -3.1
+2015-11-03 16:02:01  253.4  253.6  -0.2
+2015-11-03 16:03:01  252.7  257.0  -4.3
+2015-11-03 16:04:01  250.4  256.9  -6.4
+
+[240 rows x 3 columns]
+INFO:::2015-08-04 13:08:32,298:::kalkulator:::set_stupac:::LOC:53:::Postavljan stupac za racunanje, stupac=NOx
+INFO:::2015-08-04 13:08:32,298:::kalkulator:::set_dilucija:::LOC:93:::Postavljena dilucijska jedinica, dilucija=T700
+INFO:::2015-08-04 13:08:32,298:::kalkulator:::set_cistiZrak:::LOC:101:::Postavljan generator cistog zraka, cistiZrak=T701
+INFO:::2015-08-04 13:08:32,298:::kalkulator:::set_opseg:::LOC:69:::Postavljen opseg mjerenja, opseg=400.0
+INFO:::2015-08-04 13:08:32,298:::kalkulator:::set_cCRM:::LOC:77:::Postavljena koncentracija CRM, cCRM=1.0
+INFO:::2015-08-04 13:08:32,298:::kalkulator:::set_sCRM:::LOC:85:::Postavljena sljedivost CRM, sCRM=1.0
+DEBUG:::2015-08-04 13:08:32,298:::kalkulator:::reset_results:::LOC:113:::All result members reset to None
+INFO:::2015-08-04 13:08:38,319:::kalkulator:::set_data:::LOC:518:::frejm sa podacima postavljen. frejm=<class 'pandas.core.frame.DataFrame'>
+DEBUG:::2015-08-04 13:08:38,319:::kalkulator:::set_data:::LOC:519:::                       NOx     NO   NO2
+Time Stamp                             
+2015-11-03 12:04:01  309.3  309.3   0.0
+2015-11-03 12:05:01  317.3  315.2   2.1
+2015-11-03 12:06:01  283.6  227.7  55.8
+2015-11-03 12:07:01  193.6  184.9   8.7
+2015-11-03 12:08:01  239.4  239.4   0.0
+2015-11-03 12:09:01  348.5  348.5   0.0
+2015-11-03 12:10:01  353.6  353.6   0.0
+2015-11-03 12:11:01  348.2  348.2   0.0
+2015-11-03 12:12:01  344.6  348.6  -4.0
+2015-11-03 12:13:01  340.7  350.6  -9.9
+2015-11-03 12:14:01  338.9  348.9 -10.0
+2015-11-03 12:15:01  341.2  347.2  -6.0
+2015-11-03 12:16:01  369.3  362.4   6.9
+2015-11-03 12:17:01   11.0    9.6   1.3
+2015-11-03 12:18:01    1.3    1.3   0.0
+2015-11-03 12:19:01    1.1    1.1   0.0
+2015-11-03 12:20:01  335.6  323.1  12.6
+2015-11-03 12:21:01  349.0  349.0   0.0
+2015-11-03 12:22:01  347.4  347.4   0.0
+2015-11-03 12:23:01  348.7  348.7   0.0
+2015-11-03 12:24:01  337.2  345.9  -8.7
+2015-11-03 12:25:01  335.8  340.8  -5.0
+2015-11-03 12:26:01  336.4  338.0  -1.6
+2015-11-03 12:27:01  334.3  338.8  -4.5
+2015-11-03 12:28:01  331.5  341.0  -9.5
+2015-11-03 12:29:01  336.0  344.8  -8.8
+2015-11-03 12:30:01  337.7  345.9  -8.2
+2015-11-03 12:31:01  334.7  344.9 -10.2
+2015-11-03 12:32:01  334.8  345.4 -10.6
+2015-11-03 12:33:01  338.5  343.4  -4.9
+...                    ...    ...   ...
+2015-11-03 15:34:01  349.5  349.5   0.0
+2015-11-03 15:35:01  342.8  342.8   0.0
+2015-11-03 15:37:58  334.7  344.9 -10.2
+2015-11-03 15:38:01  334.7  344.9 -10.2
+2015-11-03 15:39:01  331.2  331.2   0.0
+2015-11-03 15:40:01  269.5  269.5   0.0
+2015-11-03 15:41:01  262.2  262.2   0.0
+2015-11-03 15:42:01  260.2  260.2   0.0
+2015-11-03 15:43:01  254.9  258.3  -3.4
+2015-11-03 15:44:01  254.0  258.6  -4.6
+2015-11-03 15:45:01  252.7  258.5  -5.8
+2015-11-03 15:46:01  252.2  258.9  -6.7
+2015-11-03 15:47:01  252.6  257.5  -4.9
+2015-11-03 15:48:01  252.0  254.5  -2.5
+2015-11-03 15:49:01  251.1  254.6  -3.5
+2015-11-03 15:50:01  251.2  256.7  -5.5
+2015-11-03 15:51:01  250.8  257.4  -6.6
+2015-11-03 15:52:01  253.0  256.6  -3.5
+2015-11-03 15:53:01  254.9  256.2  -1.4
+2015-11-03 15:54:01  254.0  257.9  -3.9
+2015-11-03 15:55:01  254.1  258.6  -4.5
+2015-11-03 15:56:01  252.9  256.5  -3.5
+2015-11-03 15:57:01  251.9  256.8  -5.0
+2015-11-03 15:58:01  252.0  257.8  -5.8
+2015-11-03 15:59:01  250.6  258.7  -8.1
+2015-11-03 16:00:01  250.4  256.9  -6.6
+2015-11-03 16:01:01  251.1  254.3  -3.1
+2015-11-03 16:02:01  253.4  253.6  -0.2
+2015-11-03 16:03:01  252.7  257.0  -4.3
+2015-11-03 16:04:01  250.4  256.9  -6.4
+
+[240 rows x 3 columns]
+INFO:::2015-08-04 13:08:38,319:::kalkulator:::set_opseg:::LOC:525:::Postavljen novi opseg za provjeru konvertera, opseg=400.0
+INFO:::2015-08-04 13:08:38,319:::kalkulator:::set_cnox50:::LOC:531:::Postavljen cNOx50 za provjeru konvertera, value=200.0
+INFO:::2015-08-04 13:08:38,319:::kalkulator:::set_cnox95:::LOC:537:::Postavljen cNOx95 za provjeru konvertera, value=180.0
+DEBUG:::2015-08-04 13:08:38,319:::kalkulator:::reset_results:::LOC:549:::All result members reset to "n/a"
+INFO:::2015-08-04 13:08:39,458:::kalkulator:::set_data:::LOC:518:::frejm sa podacima postavljen. frejm=<class 'pandas.core.frame.DataFrame'>
+DEBUG:::2015-08-04 13:08:39,474:::kalkulator:::set_data:::LOC:519:::                       NOx     NO   NO2
+Time Stamp                             
+2015-11-03 12:04:01  309.3  309.3   0.0
+2015-11-03 12:05:01  317.3  315.2   2.1
+2015-11-03 12:06:01  283.6  227.7  55.8
+2015-11-03 12:07:01  193.6  184.9   8.7
+2015-11-03 12:08:01  239.4  239.4   0.0
+2015-11-03 12:09:01  348.5  348.5   0.0
+2015-11-03 12:10:01  353.6  353.6   0.0
+2015-11-03 12:11:01  348.2  348.2   0.0
+2015-11-03 12:12:01  344.6  348.6  -4.0
+2015-11-03 12:13:01  340.7  350.6  -9.9
+2015-11-03 12:14:01  338.9  348.9 -10.0
+2015-11-03 12:15:01  341.2  347.2  -6.0
+2015-11-03 12:16:01  369.3  362.4   6.9
+2015-11-03 12:17:01   11.0    9.6   1.3
+2015-11-03 12:18:01    1.3    1.3   0.0
+2015-11-03 12:19:01    1.1    1.1   0.0
+2015-11-03 12:20:01  335.6  323.1  12.6
+2015-11-03 12:21:01  349.0  349.0   0.0
+2015-11-03 12:22:01  347.4  347.4   0.0
+2015-11-03 12:23:01  348.7  348.7   0.0
+2015-11-03 12:24:01  337.2  345.9  -8.7
+2015-11-03 12:25:01  335.8  340.8  -5.0
+2015-11-03 12:26:01  336.4  338.0  -1.6
+2015-11-03 12:27:01  334.3  338.8  -4.5
+2015-11-03 12:28:01  331.5  341.0  -9.5
+2015-11-03 12:29:01  336.0  344.8  -8.8
+2015-11-03 12:30:01  337.7  345.9  -8.2
+2015-11-03 12:31:01  334.7  344.9 -10.2
+2015-11-03 12:32:01  334.8  345.4 -10.6
+2015-11-03 12:33:01  338.5  343.4  -4.9
+...                    ...    ...   ...
+2015-11-03 15:34:01  349.5  349.5   0.0
+2015-11-03 15:35:01  342.8  342.8   0.0
+2015-11-03 15:37:58  334.7  344.9 -10.2
+2015-11-03 15:38:01  334.7  344.9 -10.2
+2015-11-03 15:39:01  331.2  331.2   0.0
+2015-11-03 15:40:01  269.5  269.5   0.0
+2015-11-03 15:41:01  262.2  262.2   0.0
+2015-11-03 15:42:01  260.2  260.2   0.0
+2015-11-03 15:43:01  254.9  258.3  -3.4
+2015-11-03 15:44:01  254.0  258.6  -4.6
+2015-11-03 15:45:01  252.7  258.5  -5.8
+2015-11-03 15:46:01  252.2  258.9  -6.7
+2015-11-03 15:47:01  252.6  257.5  -4.9
+2015-11-03 15:48:01  252.0  254.5  -2.5
+2015-11-03 15:49:01  251.1  254.6  -3.5
+2015-11-03 15:50:01  251.2  256.7  -5.5
+2015-11-03 15:51:01  250.8  257.4  -6.6
+2015-11-03 15:52:01  253.0  256.6  -3.5
+2015-11-03 15:53:01  254.9  256.2  -1.4
+2015-11-03 15:54:01  254.0  257.9  -3.9
+2015-11-03 15:55:01  254.1  258.6  -4.5
+2015-11-03 15:56:01  252.9  256.5  -3.5
+2015-11-03 15:57:01  251.9  256.8  -5.0
+2015-11-03 15:58:01  252.0  257.8  -5.8
+2015-11-03 15:59:01  250.6  258.7  -8.1
+2015-11-03 16:00:01  250.4  256.9  -6.6
+2015-11-03 16:01:01  251.1  254.3  -3.1
+2015-11-03 16:02:01  253.4  253.6  -0.2
+2015-11-03 16:03:01  252.7  257.0  -4.3
+2015-11-03 16:04:01  250.4  256.9  -6.4
+
+[240 rows x 3 columns]
+INFO:::2015-08-04 13:08:39,474:::kalkulator:::set_opseg:::LOC:525:::Postavljen novi opseg za provjeru konvertera, opseg=400.0
+INFO:::2015-08-04 13:08:39,474:::kalkulator:::set_cnox50:::LOC:531:::Postavljen cNOx50 za provjeru konvertera, value=200.0
+INFO:::2015-08-04 13:08:39,474:::kalkulator:::set_cnox95:::LOC:537:::Postavljen cNOx95 za provjeru konvertera, value=180.0
+DEBUG:::2015-08-04 13:08:39,474:::kalkulator:::reset_results:::LOC:549:::All result members reset to "n/a"

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1093</width>
-    <height>826</height>
+    <width>1014</width>
+    <height>761</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -147,8 +147,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>1068</width>
-             <height>767</height>
+             <width>1006</width>
+             <height>630</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -157,7 +157,7 @@
               <item>
                <widget class="QTableView" name="siroviPodaciView">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
@@ -180,6 +180,12 @@
             </item>
             <item>
              <layout class="QVBoxLayout" name="rezultatiLayout">
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
               <item>
                <widget class="QGroupBox" name="groupBox">
                 <property name="sizePolicy">
@@ -193,12 +199,15 @@
                 </property>
                 <layout class="QGridLayout" name="gridLayout_2">
                  <property name="margin">
-                  <number>0</number>
+                  <number>6</number>
                  </property>
                  <item row="0" column="3">
                   <widget class="QDoubleSpinBox" name="doubleSpinBoxOpseg">
                    <property name="maximum">
                     <double>1000000.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>10.000000000000000</double>
                    </property>
                    <property name="value">
                     <double>1.000000000000000</double>
@@ -258,6 +267,9 @@
                    <property name="maximum">
                     <double>1000000.000000000000000</double>
                    </property>
+                   <property name="singleStep">
+                    <double>10.000000000000000</double>
+                   </property>
                    <property name="value">
                     <double>1.000000000000000</double>
                    </property>
@@ -306,84 +318,6 @@
                </widget>
               </item>
               <item>
-               <widget class="QGroupBox" name="groupBox_3">
-                <property name="title">
-                 <string>Tocke umjeravanja</string>
-                </property>
-                <layout class="QVBoxLayout" name="verticalLayout">
-                 <item>
-                  <widget class="QTableView" name="tockeView">
-                   <property name="minimumSize">
-                    <size>
-                     <width>0</width>
-                     <height>200</height>
-                    </size>
-                   </property>
-                   <property name="selectionMode">
-                    <enum>QAbstractItemView::SingleSelection</enum>
-                   </property>
-                   <property name="selectionBehavior">
-                    <enum>QAbstractItemView::SelectRows</enum>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_3">
-                   <property name="topMargin">
-                    <number>0</number>
-                   </property>
-                   <property name="bottomMargin">
-                    <number>0</number>
-                   </property>
-                   <item>
-                    <spacer name="horizontalSpacer">
-                     <property name="orientation">
-                      <enum>Qt::Horizontal</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>40</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
-                   <item>
-                    <widget class="QPushButton" name="gumbDodajTocku">
-                     <property name="text">
-                      <string>Dodaj tocku</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QPushButton" name="gumbEditTocku">
-                     <property name="enabled">
-                      <bool>true</bool>
-                     </property>
-                     <property name="text">
-                      <string>Promjeni interval tocke: </string>
-                     </property>
-                     <property name="checkable">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QPushButton" name="gumbBrisiTocku">
-                     <property name="enabled">
-                      <bool>true</bool>
-                     </property>
-                     <property name="text">
-                      <string>Izbrisi tocku</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-              <item>
                <widget class="QGroupBox" name="groupBox_4">
                 <property name="title">
                  <string>Rezultati umjeravanja</string>
@@ -391,9 +325,15 @@
                 <layout class="QVBoxLayout" name="verticalLayout_2">
                  <item>
                   <widget class="QTableView" name="rezultatView">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="minimumSize">
                     <size>
-                     <width>0</width>
+                     <width>300</width>
                      <height>200</height>
                     </size>
                    </property>
@@ -635,7 +575,7 @@
               <item>
                <widget class="QTableView" name="konverterPodaciView">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
@@ -878,7 +818,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1093</width>
+     <width>1014</width>
      <height>21</height>
     </rect>
    </property>
@@ -887,6 +827,7 @@
      <string>&amp;File</string>
     </property>
     <addaction name="action_ucitaj_podatke"/>
+    <addaction name="action_promjeni_tocke_umjeravanja"/>
     <addaction name="separator"/>
     <addaction name="action_Exit"/>
    </widget>
@@ -904,6 +845,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="action_ucitaj_podatke"/>
+   <addaction name="action_promjeni_tocke_umjeravanja"/>
   </widget>
   <action name="action_Exit">
    <property name="text">
@@ -916,6 +858,11 @@
    </property>
    <property name="toolTip">
     <string>Ucitaj sirove podatke iz datoteke</string>
+   </property>
+  </action>
+  <action name="action_promjeni_tocke_umjeravanja">
+   <property name="text">
+    <string>&amp;Promjeni tocke umjeravanja</string>
    </property>
   </action>
  </widget>

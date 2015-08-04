@@ -7,6 +7,7 @@ Created on Thu Apr  9 12:27:25 2015
 """
 import numpy as np
 import datetime
+import logging
 from PyQt4 import QtGui
 import matplotlib
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigCanvas
@@ -30,6 +31,11 @@ class Kanvas(FigCanvas):
         self.meta = meta
         self.setup_labels()
         self.fig.set_tight_layout(True)
+
+    def set_slope_offset(self, s, o):
+        """setter za slope i offsegt ako je provjera linearnosti ON"""
+        self.slope = s
+        self.offset = o
 
     def setup_labels(self):
         """
@@ -66,6 +72,19 @@ class Kanvas(FigCanvas):
         minimum = minimum - delta
         maksimum = maksimum + delta
         self.axes.set_xlim((minimum, maksimum))
+        try:
+            a = float(self.slope)
+            b = float(self.offset)
+        except Exception as err:
+            logging.error('problem sa slope i offset za crtanje pravca. '+str(err), exc_info=True)
+            a = None
+            b = None
+        if a is not None and b is not None:
+            xos = [minimum, maksimum]
+            yos = [(a*minimum)+b, (a*maksimum)+b]
+            self.axes.plot(xos,
+                           yos,
+                           'k-')
         self.draw()
 
 
