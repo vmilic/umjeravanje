@@ -9,6 +9,104 @@ from PyQt4 import QtGui, QtCore, uic
 import app.model.frejm_model as modeli
 import app.model.konfig_klase as konfig
 
+BASE3, FORM3 = uic.loadUiType('./app/view/uiFiles/edit_tocku.ui')
+class EditTockuDijalog(BASE3, FORM3):
+    """
+    Dijalog za edit pojedine tocke
+    """
+    def __init__(self, indeks=None, tocke=None, frejm=None, start=None, parent=None):
+        """
+        inicijalizacija sa:
+        -indeksom tocke koju editiramo
+        -listom tocaka
+        -frejmom sirovih podataka
+        -izabrani pocetni indeks
+        """
+        super(BASE3, self).__init__(parent)
+        self.setupUi(self)
+
+        #TODO! postavi pocetnu boju i indekse
+
+        self.indeks = indeks
+        self.tocke = tocke
+        self.frejm = frejm
+        self.startIndeks = start
+
+        self.dataModel = modeli.SiroviFrameModel()
+        self.dataModel.set_frejm(self.frejm)
+        self.dataModel.set_tocke(self.tocke)
+        self.dataModel.set_start(self.startIndeks)
+
+        self.tableViewPodaci.setModel(self.dataModel)
+        self.tableViewPodaci.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+
+        self.tocka = self.tocke[self.indeks]
+        minIndeks = list(self.frejm.index)[min(self.tocka.indeksi)]
+        maxIndeks = list(self.frejm.index)[max(self.tocka.indeksi)]
+        cref = float(self.tocka.crefFaktor)
+
+        self.crefDoubleSpinBox.setValue(cref)
+        self.labelStart.setText(minIndeks)
+        self.labelEnd.setText(maxIndeks)
+
+        #TODO! connect elemente sa slotovima
+
+    def set_start(self, ind):
+        #TODO! provjera preklapanja sa drugim tockama
+        red = ind.row()
+        minIndeks = red
+        maxIndeks = max(self.tocka.indeksi)
+        if minIndeks == maxIndeks:
+            return
+        if minIndeks > maxIndeks:
+            minIndeks, maxIndeks = maxIndeks, minIndeks
+        self.tocka.indeksi = set(range(minIndeks, maxIndeks))
+        self.labelStart.setText(maxIndeks)
+
+    def set_end(self, ind):
+        #TODO! provjera preklapanja sa drugim tockama
+        red = ind.row()
+        minIndeks = min(self.tocka.indeksi)
+        maxIndeks = red
+        if minIndeks == maxIndeks:
+            return
+        if minIndeks >= maxIndeks:
+            minIndeks, maxIndeks = maxIndeks, minIndeks
+        self.tocka.indeksi = set(range(minIndeks, maxIndeks))
+        self.labelEnd.setText(maxIndeks)
+
+    def set_cref(self, value):
+        self.tocka.crefFaktor = value
+
+    def promjena_boje(self, x):
+        #TODO! prikaz boje.. pixmap, boja gumba?
+        oldColor = self.tocka.boja.rgba()
+        newColor, test = QtGui.QColorDialog.getRgba(oldColor)
+        if test:
+            color = QtGui.QColor().fromRgba(newColor)
+            self.tocka.boja = color
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 BASE2, FORM2 = uic.loadUiType('./app/view/uiFiles/edit_tocke.ui')
 class EditTockeDijalog(BASE2, FORM2):

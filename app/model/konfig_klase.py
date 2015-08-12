@@ -6,15 +6,16 @@ Created on Wed May 20 09:12:51 2015
 """
 import configparser
 import numpy as np
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 import logging
 
 
-class MainKonfig(object):
+class MainKonfig(QtCore.QObject):
     """
     Konfig objekt sa glavnim postavkama aplikacije
     """
-    def __init__(self, cfg):
+    def __init__(self, cfg=None, parent=None):
+        QtCore.QObject.__init__(self, parent=parent)
         if not isinstance(cfg, configparser.ConfigParser):
             raise TypeError('Objektu nije prosljedjena instanca ConfigParser.')
         # konfiguracijski objekt
@@ -120,6 +121,36 @@ class MainKonfig(object):
         lista = value.split(sep=',')
         lista = [i.strip() for i in lista]
         return lista
+
+    def dodaj_tocku(self):
+        """
+        Metoda dodaje tocku na popis tocaka. Dodaje je iza vec definiranih
+        tocaka, ukupno 30 indeksa, prvih 15 zanemarenih, random boja.
+
+        Nakon promjene emitira se informacija da je doslo do promjene
+        """
+        ime = 'TOCKA'+str(len(self.umjerneTocke)+1)
+        indeks = max([max(tocka.indeksi) for tocka in self.umjerneTocke])
+        start = indeks+15
+        end = start+15
+        cref = 0.0
+        novaTocka = Tocka(ime=ime, start=start, end=end, cref=cref)
+        self.umjerneTocke.append(novaTocka)
+        self.emit(QtCore.SIGNAL('promjena_umjernih_tocaka'))
+
+    def makni_tocku(self, indeks):
+        """
+        Metoda brise tocku zadanu indeksom iz liste self.umjerneTocke.
+        Metoda mjenja nazive ostalih tocaka radi konzistencije.
+
+        Nakon promjene emitira se informacija da je doslo do promjene
+        """
+        self.umjerneTocke.pop(indeks)
+        #rename tocke
+        for i in range(len(self.umjerneTocke)):
+            self.umjerneTocke[i].ime = 'TOCKA'+str(i+1)
+        self.emit(QtCore.SIGNAL('promjena_umjernih_tocaka'))
+
 
 
 class Tocka(object):

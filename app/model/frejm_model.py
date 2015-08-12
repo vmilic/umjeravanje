@@ -8,6 +8,44 @@ import pandas as pd
 from PyQt4 import QtCore, QtGui
 
 
+class ComboBoxDelegate(QtGui.QItemDelegate):
+    def __init__(self, stupci=['None'], parent=None):
+        QtGui.QItemDelegate.__init__(self, parent=parent)
+        self.stupci = stupci
+
+    def createEditor(self, parent, option, index):
+        """
+        return editor widget
+
+        parent
+        --> argument sluzi da stvoreni editor ne bude "garbage collected" (parent drzi referencu na njega)
+        option
+        --> Qt style opcije... nebitno (ali mora biti kao positional argument)
+        index
+        --> indeks elementa iz tablice (veza sa modelom)
+        """
+        editor = QtGui.QComboBox(parent=parent)
+        editor.clear()
+        editor.addItems(sorted(self.stupci))
+        ind = editor.findText('None')
+        editor.setCurrentIndex(ind)
+        editor.setFocusPolicy(QtCore.Qt.StrongFocus)
+        return editor
+
+    def setEditorData(self, editor, index):
+        """
+        Inicijalizacija editora sa podacima, setup izgleda editora
+        """
+        pass
+
+    def setModelData(self, editor, model, index):
+        """
+        Nakon kraja editiranja, metoda postavlja novo unesenu vrijednost u model
+        """
+        data = str(editor.currentText())
+        model.setData(index, data)
+
+
 class ColorDelegate(QtGui.QItemDelegate):
     """
     Delegat klasa za tockeView, stupac 6 (promjena boje preko dijaloga)
@@ -309,11 +347,7 @@ class RezultatModel(QtCore.QAbstractTableModel):
         Flags each item in table as enabled and selectable
         """
         if index.isValid():
-            col = index.column()
-            if col == 6:
-                return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable
-            else:
-                return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
     def data(self, index, role):
         """
@@ -326,20 +360,11 @@ class RezultatModel(QtCore.QAbstractTableModel):
         col = index.column()
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             value = self.dataFrejm.iloc[row, col]
-            if type(value) != str:
-                return round(float(value), 2)
-            else:
-                return value
+            if not isinstance(value, str):
+                value = round(value, 3)
+            return str(value)
         if role == QtCore.Qt.BackgroundColorRole:
             return self.tocke[row].boja
-
-    def setData(self, index, value, role=QtCore.Qt.EditRole):
-        """
-        Metoda zaduzena za postavljanje novih vrijednosti u model(editable).
-        """
-        if not index.isValid():
-            return False
-        return False
 
     def headerData(self, section, orientation, role):
         """
@@ -351,6 +376,81 @@ class RezultatModel(QtCore.QAbstractTableModel):
         if orientation == QtCore.Qt.Horizontal:
             if role == QtCore.Qt.DisplayRole:
                 return str(self.dataFrejm.columns[section])
+
+
+class RezultatParametriModel(QtCore.QAbstractTableModel):
+    """
+    Model tablica za rezultate umjeeravanja
+    """
+    def __init__(self, lista=None, parent=None):
+        """
+        Initialize with pandas dataframe
+        """
+        QtCore.QAbstractTableModel.__init__(self, parent)
+        self.headeri = ['Naziv',
+                        'Min. granica',
+                        'Vrijednost',
+                        'Max. granica']
+        self.set_lista(lista)
+
+    def set_lista(self, lista):
+        """
+        seter za podatke
+        """
+        self.lista = lista
+        self.layoutChanged.emit()
+
+    def rowCount(self, parent=QtCore.QModelIndex()):
+        """
+        MUST BE IMPLEMENTED.
+        Return number of rows of pandas dataframe
+        """
+        return len(self.lista)
+
+    def columnCount(self, parent=QtCore.QModelIndex()):
+        """
+        MUST BE IMPLEMENTED
+        Return number of columns of pandas dataframe. (add one for time index)
+        """
+        return 4
+
+    def flags(self, index):
+        """
+        Flags each item in table as enabled and selectable
+        """
+        if index.isValid():
+            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+
+    def data(self, index, role):
+        """
+        MUST BE IMPLEMENTED.
+        Return value for each index and role
+        """
+        if not index.isValid():
+            return None
+        row = index.row()
+        col = index.column()
+        if role == QtCore.Qt.DisplayRole:
+            value = self.lista[row][col]
+            if not isinstance(value, str):
+                value = round(value, 3)
+            return str(value)
+        if role == QtCore.Qt.ToolTipRole:
+            return str(self.lista[row][col])
+        if role == QtCore.Qt.BackgroundColorRole:
+            test = self.lista[row][4]
+            if test:
+                return QtGui.QBrush(QtGui.QColor(0, 255, 0, 90))
+            else:
+                return QtGui.QBrush(QtGui.QColor(255, 0, 0, 90))
+
+    def headerData(self, section, orientation, role):
+        """
+        Sets the headers of the table...
+        """
+        if role == QtCore.Qt.DisplayRole:
+            if orientation == QtCore.Qt.Horizontal:
+                return str(self.headeri[section])
 
 
 class KonverterTockeModel(QtCore.QAbstractTableModel):
@@ -563,3 +663,134 @@ class KonverterFrameModel(QtCore.QAbstractTableModel):
         if orientation == QtCore.Qt.Horizontal:
             if role == QtCore.Qt.DisplayRole:
                 return str(self.dataFrejm.columns[section])
+
+class BaseFrejmModel(QtCore.QAbstractTableModel):
+    """
+    Definiranje qt modela za qt table view klase.
+    Osnova modela ce biti pandas dataframe.
+    Must reimplement:
+        rowCount()
+        columnCount()
+        data()
+        headerData()
+    Implemented by default:
+        parent()
+        index()
+    """
+    def __init__(self, frejm=pd.DataFrame(), parent=None):
+        """
+        Initialize with pandas dataframe with data
+        """
+        QtCore.QAbstractTableModel.__init__(self, parent)
+        self.dataFrejm = frejm
+        self.cols = ['None' for i in range(len(frejm.columns))]
+
+    def rowCount(self, parent=QtCore.QModelIndex()):
+        """
+        MUST BE IMPLEMENTED.
+        Return number of rows of pandas dataframe
+        """
+        return len(self.dataFrejm)+1
+        #return min(15, len(self.dataFrejm))+1 #prikaz max 15 vrijednosti u tablici
+
+    def columnCount(self, parent=QtCore.QModelIndex()):
+        """
+        MUST BE IMPLEMENTED
+        Return number of columns of pandas dataframe. (add one for time index)
+        """
+        return len(self.dataFrejm.columns)
+
+    def flags(self, index):
+        """
+        Flags each item in table as enabled and selectable
+        """
+        if index.isValid():
+            if index.row() == 0:
+                return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable
+            else:
+                return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+
+    def setData(self, index, value, role=QtCore.Qt.EditRole):
+        """
+        must be enabled for editable models
+        """
+        if not index.isValid():
+            return False
+
+        row = index.row()
+        col = index.column()
+        if role == QtCore.Qt.EditRole and row == 0:
+            self.cols[col] = str(value)
+            """emit sigala da je doslo do promjene u modelu. View se nece
+            updateati sve dokle god je fokus na comboboxu (smatra da editing
+            nije gotov)."""
+            self.dataChanged.emit(index, index)
+            return True
+        else:
+            return False
+
+    def data(self, index, role):
+        """
+        MUST BE IMPLEMENTED.
+        Return value for each index and role
+        """
+        if not index.isValid():
+            return None
+
+        row = index.row()
+        col = index.column()
+        if row == 0:
+            if role == QtCore.Qt.DisplayRole:
+                return self.cols[col]
+        else:
+            if role == QtCore.Qt.DisplayRole:
+                return round(float(self.dataFrejm.iloc[row-1, col]),2)
+
+    def headerData(self, section, orientation, role):
+        """
+        Sets the headers of the table...
+        """
+        if orientation == QtCore.Qt.Vertical:
+            if role == QtCore.Qt.DisplayRole:
+                if section == 0:
+                    return 'Vrijeme'
+                else:
+                    return str(self.dataFrejm.index[section-1])
+        if orientation == QtCore.Qt.Horizontal:
+            if role == QtCore.Qt.DisplayRole:
+                return str(self.dataFrejm.columns[section])
+
+
+class PostajaUredjajKomponentaModel(QtCore.QAbstractTableModel):
+    def __init__(self, lista=None, parent=None):
+        QtCore.QAbstractTableModel.__init__(self, parent)
+        self.headeri = ['Postaja', 'Uredjaj', 'Komponenta']
+        self.set_lista(lista)
+
+    def set_lista(self, x):
+        self.lista = x
+        self.layoutChanged.emit()
+
+    def rowCount(self, parent=QtCore.QModelIndex()):
+        return len(self.lista)
+
+    def columnCount(self, parent=QtCore.QModelIndex()):
+        return 3
+
+    def flags(self, index):
+        if index.isValid():
+            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+
+    def data(self, index, role):
+        if not index.isValid():
+            return None
+        row = index.row()
+        col = index.column()
+        if role == QtCore.Qt.DisplayRole:
+            return str(self.lista[row][col])
+
+    def headerData(self, section, orientation, role):
+        if orientation == QtCore.Qt.Horizontal:
+            if role == QtCore.Qt.DisplayRole:
+                return str(self.headeri[section])
+

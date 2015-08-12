@@ -7,13 +7,15 @@ Created on Tue May 12 10:05:56 2015
 import logging
 import numpy as np
 import pandas as pd
+from PyQt4 import QtCore
 
 
-class RacunUmjeravanja(object):
+class RacunUmjeravanja(QtCore.QObject):
     """
     Klasa za racunanje parametara umjeravanja.
     """
-    def __init__(self, cfg):
+    def __init__(self, cfg=None, parent=None):
+        QtCore.QObject.__init__(self, parent=parent)
         logging.debug('start inicijalizacije RacunUmjeravanja')
         self.konfig = cfg  # konfig objekt sa podacima o tockama, postavkama...
         self.uredjaj = {}  # mapa sa podacima o uredjaju
@@ -105,12 +107,25 @@ class RacunUmjeravanja(object):
         Reset membera koji sadrze rezultate na defaultnu pocetnu vrijednost
         prije racunanja.
         """
+        #TODO!
         self.rezultat = pd.DataFrame()
-        self.prilagodbaA = None
-        self.prilagodbaB = None
-        self.slope = None
-        self.offset = None
-        logging.debug('All result members reset to None')
+        self.prilagodbaA = np.NaN
+        self.prilagodbaB = np.NaN
+        self.slope = np.NaN
+        self.offset = np.NaN
+        self.srz = ['Srz', np.NaN, np.NaN, np.NaN, False]
+        self.srs = ['Srs', np.NaN, np.NaN, np.NaN, False]
+        self.rz = ['rz', np.NaN, np.NaN, np.NaN, False]
+        self.rmax = ['rmax', np.NaN, np.NaN, np.NaN, False]
+        logging.debug('All result members reset to np.NaN')
+
+    def get_provjeru_parametara(self):
+        """
+        Metoda dohvaca listu provjera kao nested listu.
+        Svaki element liste je lista sa elemetima :
+        [naziv, min granica, vrijednost, max granica, test]
+        """
+        return [self.srz, self.srs, self.rz, self.rmax]
 
     def dohvati_slajs_tocke(self, tocka, stupac):
         """
@@ -137,21 +152,23 @@ class RacunUmjeravanja(object):
         Funkcija vraca True ako sve valja, False inace
         """
         try:
-            assert(isinstance(self.data, pd.core.frame.DataFrame)), 'Frejm nije pandas dataframe.'
-            assert(len(self.data) > 0), 'Frejm nema podataka (prazan)'
-            assert(len(self.konfig.umjerneTocke) >= 2), 'Zadano je manje od dvije tocke za umjeravanje'
-            assert(self.stupac in list(self.data.columns)), 'Frejm nema trazeni stupac. stupac={0}'.format(self.stupac)
-            assert(self.opseg is not None and self.opseg > 0), 'Opseg nije dobro definiran'
-            assert(self.cCRM is not None and self.cCRM > 0), 'Koncentracija CRM nije dobro definirana'
-            assert(self.sCRM is not None and self.sCRM >= 0), 'Sljedivost CRM nije dobro definirana'
+            assert(isinstance(self.data, pd.core.frame.DataFrame)), 'Podaci nisu dobro zadani.'
+            assert(len(self.data) > 0), 'Nema podataka.'
+            assert(len(self.konfig.umjerneTocke) >= 2), 'Zadano je manje od dvije tocke za umjeravanje.'
+            assert(self.stupac in list(self.data.columns)), 'Podaci nemaju trazenu komponentu. komponenta={0}.'.format(self.stupac)
+            assert(self.opseg is not None and self.opseg > 0), 'Opseg nije dobro definiran.'
+            assert(self.cCRM is not None and self.cCRM > 0), 'Koncentracija CRM nije dobro definirana.'
+            assert(self.sCRM is not None and self.sCRM >= 0), 'Sljedivost CRM nije dobro definirana.'
             cf = [float(tocka.crefFaktor) for tocka in self.konfig.umjerneTocke]
-            assert(0.0 in cf), 'Nedostaje ZERO tocka'
-            assert(sum(cf) != 0.0), 'Nedostaje SPAN tocka'
-            assert(self.dilucija is not None), 'Dilucijska jedinica nije izabrana'
-            assert(self.cistiZrak is not None), 'Generator cistog zraka nije definiran'
+            negativniFaktori = [faktor for faktor in cf if faktor < 0]
+            assert(len(negativniFaktori) == 0), 'Barem jedan od cref Faktora je negativan.'
+            assert(0.0 in cf), 'Nedostaje ZERO tocka.'
+            assert(sum(cf) != 0.0), 'Nedostaje SPAN tocka.'
+            assert(self.dilucija is not None), 'Dilucijska jedinica nije izabrana.'
+            assert(self.cistiZrak is not None), 'Generator cistog zraka nije izabran.'
             return True
         except (AssertionError, AttributeError, TypeError) as e:
-            msg = ".".join(['Parametri za racunanje nisu ispravni',str(e)])
+            msg = ". ".join(['Parametri za racunanje nisu ispravni',str(e)])
             logging.debug(msg, exc_info=True)
             return False
 
@@ -160,22 +177,23 @@ class RacunUmjeravanja(object):
         Glavna funkcija racuna sve parametre umjeravanja. Nakon postavljanja
         konfiga i podataka u objekt, pozovi ovu metoda za racunanje.
         """
+        self.reset_results()
         if self.provjeri_ispravnost_parametara():
-            self.reset_results()
-            if self.linearnost:
-                self.racunaj_vrijednosti_umjeravanja_za_listu_tocaka(self.konfig.umjerneTocke)
-            else:
-                zero, span = self.pronadji_zero_span()
-                tocke = [self.konfig.umjerneTocke[span], self.konfig.umjerneTocke[zero]]
-                self.racunaj_vrijednosti_umjeravanja_za_listu_tocaka(tocke)
+            self.racunaj_vrijednosti_umjeravanja_za_listu_tocaka(self.konfig.umjerneTocke)
 
     def _izracunaj_cref(self, tocka):
         """
         Racunanje cref, za datu tocku umjeravanja.
         """
         try:
-            value = tocka.crefFaktor * self.opseg
-            return round(value, 3)
+            if not self.linearnost:
+                zero, span = self.pronadji_zero_span_tocke()
+                if tocka == zero or tocka == span:
+                    return tocka.crefFaktor * self.opseg
+                else:
+                    return np.NaN
+            else:
+                return tocka.crefFaktor * self.opseg
         except Exception as err:
             logging.error(str(err), exc_info=True)
             return np.NaN
@@ -187,42 +205,74 @@ class RacunUmjeravanja(object):
         datafrejmu.
         """
         try:
-            podaci = list(self.dohvati_slajs_tocke(tocka, self.stupac))
-            return round(np.average(podaci), 3)
+            if not self.linearnost:
+                zero, span = self.pronadji_zero_span_tocke()
+                if tocka == zero or tocka == span:
+                    podaci = list(self.dohvati_slajs_tocke(tocka, self.stupac))
+                    return np.average(podaci)
+                else:
+                    return np.NaN
+            else:
+                podaci = list(self.dohvati_slajs_tocke(tocka, self.stupac))
+                return np.average(podaci)
         except Exception as err:
             logging.error(str(err), exc_info=True)
             return np.NaN
 
     def _izracunaj_delta(self, tocka):
+        """
+        Racunanje razlike izmjerene koncentracije i referentne vrijednosti
+        """
         try:
-            value = self.rezultat.loc[str(tocka), 'c'] - self.rezultat.loc[str(tocka), 'cref']
-            return round(value, 3)
+            if not self.linearnost:
+                zero, span = self.pronadji_zero_span_tocke()
+                if tocka == zero or tocka == span:
+                    return self._izracunaj_c(tocka) - self._izracunaj_cref(tocka)
+                else:
+                    return np.NaN
+            else:
+                return self._izracunaj_c(tocka) - self._izracunaj_cref(tocka)
         except Exception as err:
             logging.error(str(err), exc_info=True)
             return np.NaN
 
     def _izracunaj_sr(self, tocka):
         """
-        Racunanje stdev za tocku,
+        Racunanje stdev za tocku
         """
         try:
-            podaci = list(self.dohvati_slajs_tocke(tocka, self.stupac))
-            return round(np.std(podaci, ddof=1), 3)
+            if not self.linearnost:
+                zero, span = self.pronadji_zero_span_tocke()
+                if tocka == zero or tocka == span:
+                    podaci = list(self.dohvati_slajs_tocke(tocka, self.stupac))
+                    return np.std(podaci, ddof=1)
+                else:
+                    return np.NaN
+            else:
+                podaci = list(self.dohvati_slajs_tocke(tocka, self.stupac))
+                return np.std(podaci, ddof=1)
         except Exception as err:
             logging.error(str(err), exc_info=True)
             return np.NaN
 
     def _izracunaj_regresijske_koef(self):
         """
-        Racunanje slope i offset, samo ako je ukljucena opcija za provjeru linearnosti
+        Racunanje slope i offset linearne regresije.
+        Koristi se np.linalg.lstsq
+
+        #izbacena span vrijednost iz racunice
         """
         try:
             if self.linearnost:
-                x = list(self.rezultat.loc[:, 'cref'])
-                y = list(self.rezultat.loc[:, 'c'])
-                line = np.polyfit(x, y, 1)
-                slope = round(line[0], 3)
-                offset = round(line[1], 3)
+                zero, span = self.pronadji_zero_span_tocke()
+                dots = [tocka for tocka in self.konfig.umjerneTocke if tocka != span]
+                x = [self._izracunaj_cref(tocka) for tocka in dots]
+                y = [self._izracunaj_c(tocka) for tocka in dots]
+                # sastavljanje matrice koeficijenata linearnog sustava
+                const = np.ones(len(x))
+                A = np.vstack([x, const])
+                A = A.T
+                slope, offset = np.linalg.lstsq(A, y)[0]
                 return slope, offset
             else:
                 return np.NaN, np.NaN
@@ -236,13 +286,12 @@ class RacunUmjeravanja(object):
         """
         try:
             zero, span = self.pronadji_zero_span()
-            s = str(self.konfig.umjerneTocke[span])
-            z = str(self.konfig.umjerneTocke[zero])
-            cref1 = self.rezultat.loc[s, 'cref']
-            c1 = self.rezultat.loc[s, 'c']
-            c2 = self.rezultat.loc[z, 'c']
-            A = round(cref1/(c1-c2), 3)
-            B = round(c1 / A, 3)
+            zero, span = self.pronadji_zero_span_tocke()
+            crefSpan = self._izracunaj_cref(span)
+            cSpan = self._izracunaj_c(span)
+            cZero = self._izracunaj_c(zero)
+            A = crefSpan / (cSpan - cZero)
+            B = -cZero / A
             return A, B
         except Exception as err:
             logging.error(str(err), exc_info=True)
@@ -254,16 +303,20 @@ class RacunUmjeravanja(object):
         """
         try:
             if self.linearnost:
-                zero, span = self.pronadji_zero_span()
-                z = self.konfig.umjerneTocke[zero]
-                if tocka == z:
+                zero, span = self.pronadji_zero_span_tocke()
+                if tocka == span:
+                    return np.NaN
+                elif tocka == zero:
                     c = self._izracunaj_c(tocka)
                     cref = self._izracunaj_cref(tocka)
-                    return round(abs(c - (cref * self.slope + self.offset)),3)
+                    return abs(c - (cref * self.slope + self.offset))
                 else:
                     c = self._izracunaj_c(tocka)
                     cref = self._izracunaj_cref(tocka)
-                    return round((abs(c - (cref * self.slope + self.offset)) / cref)*100,3)
+                    if cref != 0:
+                        return abs((c - (cref * self.slope + self.offset)) / cref)*100
+                    else:
+                        return np.NaN
             else:
                 return np.NaN
         except Exception as err:
@@ -277,7 +330,7 @@ class RacunUmjeravanja(object):
             value = (cref * (self.cCRM - cref))/(self.cCRM)
             d = str(self.dilucija)
             U = float(self.konfig.get_konfig_element(d, 'MFC_NUL_PLIN_U'))
-            return round(value * U, 3)
+            return value * U
         except Exception as err:
             logging.error(str(err), exc_info=True)
             return np.NaN
@@ -289,7 +342,7 @@ class RacunUmjeravanja(object):
             value = (cref * (self.cCRM - cref))/(self.cCRM)
             d = str(self.dilucija)
             U = float(self.konfig.get_konfig_element(d, 'MFC_KAL_PLIN_U'))
-            return round(value * U, 3)
+            return value * U
         except Exception as err:
             logging.error(str(err), exc_info=True)
             return np.NaN
@@ -299,7 +352,7 @@ class RacunUmjeravanja(object):
         try:
             sljedivost = self.sCRM
             cref = self._izracunaj_cref(tocka)
-            return round(sljedivost*cref/200, 3)
+            return sljedivost*cref/200
         except Exception as err:
             logging.error(str(err), exc_info=True)
             return np.NaN
@@ -313,7 +366,7 @@ class RacunUmjeravanja(object):
             e2 = 2 * float(self.konfig.get_konfig_element(zrak, komponenta))
             e3 = self.cCRM
             value = e1 * e2 / e3 / np.sqrt(3)
-            return round(value, 3)
+            return value
         except Exception as err:
             logging.error(str(err), exc_info=True)
             return np.NaN
@@ -328,15 +381,15 @@ class RacunUmjeravanja(object):
             ucr = self._izracunaj_ucr(tocka)
             ucz = self._izracunaj_ucz(tocka)
             if np.isnan(ufz):
-                return 'NaN'
+                return np.NaN
             if np.isnan(ufm):
-                return 'NaN'
+                return np.NaN
             if np.isnan(ucr):
-                return 'NaN'
+                return np.NaN
             if np.isnan(ucz):
-                return 'NaN'
+                return np.NaN
             value = 2 * np.sqrt(ufz**2+ufm**2+ucr**2+ucz**2+(2*ucz)**2)
-            return round(value, 3)
+            return value
         except Exception as err:
             logging.error(str(err), exc_info=True)
             return np.NaN
@@ -363,136 +416,141 @@ class RacunUmjeravanja(object):
                    'delta',
                    'sr',
                    'r',
-                   'UR',
-                   'Boja']
+                   'UR']
         # stvaranje output frejma za tablicu
         self.rezultat = pd.DataFrame(columns=columns, index=indeks)
+        # prvo izracunajmo slope i offset jer su te vrijednosti potrebne za racunanje
+        # r
+        # racun za slope i offset
+        self.slope, self.offset = self._izracunaj_regresijske_koef()
+        # racun koeficijenata funkcije prilagodbe
+        self.prilagodbaA, self.prilagodbaB = self._izracunaj_prilagodbu()
+        # racunanje parametara umjeravanja
         for tocka in tocke:
-            # Redosljed racunanja je bitan jer funkcije "ispod" ovise o
-            # rezulatima funkcija "iznad".
             row = str(tocka)
             self.rezultat.loc[row, 'cref'] = self._izracunaj_cref(tocka)
             self.rezultat.loc[row, 'c'] = self._izracunaj_c(tocka)
             self.rezultat.loc[row, 'delta'] = self._izracunaj_delta(tocka)
             self.rezultat.loc[row, 'sr'] = self._izracunaj_sr(tocka)
-
-        # racun za slope i offset
-        self.slope, self.offset = self._izracunaj_regresijske_koef()
-        # racun koeficijenata funkcije prilagodbe
-        self.prilagodbaA, self.prilagodbaB = self._izracunaj_prilagodbu()
-        for tocka in tocke:
-            row = str(tocka)
             self.rezultat.loc[row, 'r'] = self._izracunaj_r(tocka)
             self.rezultat.loc[row, 'UR'] = self._izracunaj_UR(tocka)
-            self.rezultat.loc[row, 'Boja'] = ''
 
-    def provjeri_ponovljivost_stdev_u_nuli(self):
+        # provjera ispravnosti parametara umjeravanja u odnosu na normu
+        self.srz = self._provjeri_ponovljivost_stdev_u_nuli()
+        self.srs = self._provjeri_ponovljivost_stdev_za_vrijednost()
+        self.rz = self._provjeri_odstupanje_od_linearnosti_u_nuli()
+        self.rmax = self._provjeri_maksimalno_relativno_odstupanje_od_linearnosti()
+
+    def _provjeri_ponovljivost_stdev_u_nuli(self):
         """
-        provjera ponovljivosti (sr) pri koncentraciji 0
+        provjera ponovljivosti (sr) u zero tocki
+
+        rezultat je lista [naziv, min granica, vrijednost, max granica, test]
         """
-        if len(self.rezultat) > 0:
-            try:
-                zero, span = self.pronadji_zero_span()
-                value = self.rezultat.loc[str(self.konfig.umjerneTocke[zero]), 'sr']
-                normMin = round(float(self.uredjaj['analitickaMetoda']['Srz']['min']), 3)
-                norm = round(float(self.uredjaj['analitickaMetoda']['Srz']['max']), 3)
-            except (TypeError, AttributeError, LookupError) as err1:
-                logging.debug(str(err1), exc_info=True)
-                return 'Uredjaj nema poststavke za ponovljivost stdev u nuli'
-            if value < norm and value >= normMin:
-                msg = 'vrijednost={0} , dopusteno odstupanje={1}, Dobro'.format(str(value), str(norm))
-                return msg
+        try:
+            normMin = float(self.uredjaj['analitickaMetoda']['Srz']['min'])
+            normMax = float(self.uredjaj['analitickaMetoda']['Srz']['max'])
+            naziv = str(self.uredjaj['analitickaMetoda']['Srz']['naziv'])
+            zero, span = self.pronadji_zero_span_tocke()
+            value = self._izracunaj_sr(zero)
+            if value < normMax and value >= normMin:
+                return [naziv, normMin, value, normMax, True]
             else:
-                msg = 'vrijednost={0} , dopusteno odstupanje={1}, Lose'.format(str(value), str(norm))
-                return msg
-        else:
-            return 'NaN'
+                return [naziv, normMin, value, normMax, False]
+        except Exception as err1:
+            logging.debug(str(err1), exc_info=True)
+            return ['Srz', np.NaN, np.NaN, np.Nan, False]
 
-    def provjeri_ponovljivost_stdev_za_vrijednost(self):
+    def _provjeri_ponovljivost_stdev_za_vrijednost(self):
         """
         provjera ponovljivosti za zadanu koncentraciju c
-        """
-        if len(self.rezultat) > 0:
-            try:
-                zero, span = self.pronadji_zero_span()
-                value = self.rezultat.loc[str(self.konfig.umjerneTocke[span]), 'sr']
-                normMin = round(float(self.uredjaj['analitickaMetoda']['Srs']['min']), 3)
-                norm = round(float(self.uredjaj['analitickaMetoda']['Srs']['max']), 3)
-            except (TypeError, AttributeError, LookupError) as err1:
-                logging.debug(str(err1), exc_info=True)
-                return 'Uredjaj nema poststavke za ponovljivost stdev za span'
-            if value < norm  and value >= normMin:
-                msg = 'vrijednost={0} , dopusteno odstupanje={1}, Dobro'.format(str(value), str(norm))
-                return msg
-            else:
-                msg = 'vrijednost={0} , dopusteno odstupanje={1}, Lose'.format(str(value), str(norm))
-                return msg
-        else:
-            return 'NaN'
 
-    def provjeri_odstupanje_od_linearnosti_u_nuli(self):
+        rezultat je lista [naziv, min granica, vrijednost, max granica, test]
+        """
+        try:
+            normMin = float(self.uredjaj['analitickaMetoda']['Srs']['min'])
+            normMax = float(self.uredjaj['analitickaMetoda']['Srs']['max'])
+            naziv = str(self.uredjaj['analitickaMetoda']['Srs']['naziv'])
+            zero, span = self.pronadji_zero_span_tocke()
+            value = self._izracunaj_sr(span)
+            if value < normMax and value >= normMin:
+                return [naziv, normMin, value, normMax, True]
+            else:
+                return [naziv, normMin, value, normMax, False]
+        except Exception as err1:
+            logging.debug(str(err1), exc_info=True)
+            return ['Srs', np.NaN, np.NaN, np.Nan, False]
+
+    def _provjeri_odstupanje_od_linearnosti_u_nuli(self):
         """
         provjera odstupanja od linearnosti za koncentraciju 0
-        """
-        if len(self.rezultat) > 0 and self.linearnost:
-            try:
-                zero, span = self.pronadji_zero_span()
-                value = self.rezultat.loc[str(self.konfig.umjerneTocke[zero]), 'r']
-                normMin = round(float(self.uredjaj['analitickaMetoda']['rz']['min']), 3)
-                norm = round(float(self.uredjaj['analitickaMetoda']['rz']['max']), 3)
-            except (TypeError, AttributeError, LookupError) as err1:
-                logging.debug(str(err1), exc_info=True)
-                return 'Uredjaj nema poststavke za odstupanje od linearnosti u nuli'
-            if value <= norm and value >= normMin:
-                msg = 'vrijednost={0} , dopusteno odstupanje={1}, Dobro'.format(str(value), str(norm))
-                return msg
-            else:
-                msg = 'vrijednost={0} , dopusteno odstupanje={1}, Lose'.format(str(value), str(norm))
-                return msg
-        else:
-            return 'NaN'
 
-    def provjeri_maksimalno_relativno_odstupanje_od_linearnosti(self):
+        rezultat je lista [naziv, min granica, vrijednost, max granica, test]
+        """
+        try:
+            normMin = float(self.uredjaj['analitickaMetoda']['rz']['min'])
+            normMax = float(self.uredjaj['analitickaMetoda']['rz']['max'])
+            naziv = str(self.uredjaj['analitickaMetoda']['rz']['naziv'])
+            zero, span = self.pronadji_zero_span_tocke()
+            value = self._izracunaj_r(zero)
+            if value < normMax and value >= normMin:
+                return [naziv, normMin, value, normMax, True]
+            else:
+                return [naziv, normMin, value, normMax, False]
+        except Exception as err1:
+            logging.debug(str(err1), exc_info=True)
+            return ['rz', np.NaN, np.NaN, np.Nan, False]
+
+    def _provjeri_maksimalno_relativno_odstupanje_od_linearnosti(self):
         """
         max relativno odstupanje od linearnosti
+
+        rezultat je lista [naziv, min granica, vrijednost, max granica, test]
         """
-        if len(self.rezultat) > 0 and self.linearnost:
-            try:
-                r = list(self.rezultat.loc[:, 'r'])
-                #ignore zero i span
-                indZero, indSpan = self.pronadji_zero_span()
-                r[indZero] = 0.0
-                value = max(r)
-                normMin = round(float(self.uredjaj['analitickaMetoda']['rmax']['min']), 3)
-                norm = round(float(self.uredjaj['analitickaMetoda']['rmax']['max']), 3)
-            except (TypeError, AttributeError, LookupError) as err1:
-                logging.debug(str(err1), exc_info=True)
-                return 'Uredjaj nema poststavke za maksimalno odstupanje od linearnosti'
-            if value <= norm and value >= normMin:
-                msg = 'vrijednost={0} , dopusteno odstupanje={1}, Dobro'.format(str(value), str(norm))
-                return msg
+        try:
+            normMin = float(self.uredjaj['analitickaMetoda']['rmax']['min'])
+            normMax = float(self.uredjaj['analitickaMetoda']['rmax']['max'])
+            naziv = str(self.uredjaj['analitickaMetoda']['rmax']['naziv'])
+            zero, span = self.pronadji_zero_span_tocke()
+            dots = [tocka for tocka in self.konfig.umjerneTocke if (tocka != zero and tocka != span)]
+            r = [self._izracunaj_r(tocka) for tocka in dots]
+            value = max(r)
+            if value < normMax and value >= normMin:
+                return [naziv, normMin, value, normMax, True]
             else:
-                msg = 'vrijednost={0} , dopusteno odstupanje={1}, Lose'.format(str(value), str(norm))
-                return msg
-        else:
-            return 'NaN'
+                return [naziv, normMin, value, normMax, False]
+        except Exception as err1:
+            logging.debug(str(err1), exc_info=True)
+            return ['rmax', np.NaN, np.NaN, np.Nan, False]
 
     def pronadji_zero_span(self):
         """
         Metoda pronalazi indekse za zero i span.
 
-        Zero je prva tocka koja ima crefFaktor jednak 0.0
+        Zero je prva tocka koja ima crefFaktor jednak 0.0, a ako niti jedna
+        tocka nema taj crefFaktor, onda se uzima ona sa najmanjim crefFaktorom.
         Span je prva tocka sa crefFaktorom 0.8, a ako niti jedna tocka nema
         taj crefFaktor, onda se uzima ona sa najvecim crefFaktorom
         """
         cf = [float(tocka.crefFaktor) for tocka in self.konfig.umjerneTocke]
-        zero = cf.index(0.0)
+        if 0.0 in cf:
+            zero = cf.index(0.0)
+        else:
+            zero = cf.index(min(cf))
         if 0.8 in cf:
             span = cf.index(0.8)
         else:
             span = cf.index(max(cf))
         return zero, span
 
+    def pronadji_zero_span_tocke(self):
+        """
+        metoda vraca tuple zero i span tocke
+        """
+        zeroIndeks, spanIndeks = self.pronadji_zero_span()
+        zero = self.konfig.umjerneTocke[zeroIndeks]
+        span = self.konfig.umjerneTocke[spanIndeks]
+        return zero, span
 
 
 class ProvjeraKonvertera(object):
