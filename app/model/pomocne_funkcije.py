@@ -41,7 +41,10 @@ def get_uredjaje(url):
     do resursa uredjaji, izlaz je lista svih uredjaja.
     """
     try:
-        r = requests.get(url)
+        head = {"accept":"application/xml"}
+        r = requests.get(url,
+                         headers=head,
+                         timeout=15.1)
         if r.ok:
             output = []
             root = ET.fromstring(r.text)
@@ -71,6 +74,7 @@ def get_uredjaj_info(url, serial):
         oznaka: oznaka analiticke metode (npr.'Srz')
         min: minimalno odstupanje (npr. 1.0)
         max: maksimalno odstupanje (npr. 15.0)
+        mjernaJedinica: mjerne jedinice metode... string (npr. 'umol/mol')
         }
 
     komponenta :
@@ -86,9 +90,12 @@ def get_uredjaj_info(url, serial):
     lokacija: sting lokacije uredjaja (npr. 'Plitvicka jezera')
     }
     """
-    combinedUrl = "/".join([url, serial])
     try:
-        r = requests.get(combinedUrl)
+        combinedUrl = "/".join([url, serial])
+        head = {"accept":"application/xml"}
+        r = requests.get(combinedUrl,
+                         headers=head,
+                         timeout=15.1)
         if r.ok:
             output = {'analitickaMetoda': {},
                       'komponente': [],
@@ -154,7 +161,10 @@ def get_lokaciju_uredjaja(url, serial):
     """
     try:
         relurl = "/".join([url,str(serial),'lokacija'])
-        r = requests.get(relurl)
+        head = {"accept":"application/xml"}
+        r = requests.get(relurl,
+                         headers=head,
+                         timeout=15.1)
         if r.ok:
             root = ET.fromstring(r.text)
             lokacija = root.find('nazivPostaje').text
@@ -175,7 +185,10 @@ def get_postaje(url):
     za vrijednost praznu listu.
     """
     try:
-        r = requests.get(url)
+        head = {"accept":"application/xml"}
+        r = requests.get(url,
+                         headers=head,
+                         timeout=15.1)
         if r.ok:
             output = {}
             root = ET.fromstring(r.text)
@@ -191,6 +204,7 @@ def get_postaje(url):
         msg = 'Gruba greska kod dohvacanja postaja, url={0}'.format(url)
         logging.error(msg, exc_info=True)
         return {}
+
 
 def pripremi_mape_postaja_i_uredjaja(url1, url2):
     """
@@ -223,3 +237,46 @@ def pripremi_mape_postaja_i_uredjaja(url1, url2):
         else:
             svePostaje[lokacija] = [serial]
     return svePostaje, sviUredjaji
+
+def priprema_podataka_za_model_stanica_i_uredjaja(devices):
+    """
+    helper metoda za sastavljanje nested liste [lokacija, uredjaj, komponenta]
+    """
+    uredjaji = set()
+    komponente = set()
+    postaje = set()
+    output = []
+    if devices is None:
+        return postaje, uredjaji, komponente, output
+    for key in devices:
+        sveKomponente = devices[key]['komponente']
+        lokacija = devices[key]['lokacija']
+        if not sveKomponente:
+            continue
+        for komponenta in sveKomponente:
+            uredjaji.add(key)
+            komponente.add(komponenta)
+            postaje.add(lokacija)
+            output.append([lokacija, key, komponenta])
+    return postaje, uredjaji, komponente, output
+
+
+#if __name__ == '__main__':
+#    url1 = 'http://172.20.0.178:8080/SKZ-war/webresources/uredjaj'
+#    url2 = 'http://172.20.0.178:8080/SKZ-war/webresources/drzavna_mreza/postaje'
+#    pos, ure = pripremi_mape_postaja_i_uredjaja(url1, url2)
+#    postaje, uredjaji, komponente, output = priprema_podataka_za_model_stanica_i_uredjaja(ure)
+#    for combo in output:
+#        print(combo)
+
+
+
+
+
+
+
+
+
+
+
+

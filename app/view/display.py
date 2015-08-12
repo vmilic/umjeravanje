@@ -5,7 +5,6 @@ Created on Mon May 18 12:02:42 2015
 @author: DHMZ-Milic
 """
 import logging
-import copy
 import pandas as pd
 from PyQt4 import QtGui, QtCore, uic
 import app.model.konfig_klase as konfig
@@ -14,9 +13,65 @@ import app.model.frejm_model as modeli
 import app.model.kalkulator as calc
 import app.view.read_file_wizard as datareader
 import app.view.canvas as canvas
-import app.view.dijalog_edit_tocke as editTocke
 
-#TODO! logging i converter tab, refactor
+
+class TableViewRezultata(QtGui.QTableView):
+    """
+    view za rezultate...podrska za kontekstni menu
+    """
+    def __init__(self, parent=None):
+        QtGui.QTableView.__init__(self, parent=parent)
+        self.verticalHeader().setVisible(False)
+        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+
+    def contextMenuEvent(self, event):
+        """
+        event koji definira kontekstni menu..
+        """
+        self.selected = self.selectionModel().selection().indexes()
+        #define context menu items
+        menu = QtGui.QMenu()
+        dodaj = QtGui.QAction('Dodaj tocku', self)
+        makni = QtGui.QAction('Makni tocku', self)
+        postavke = QtGui.QAction('Postavke tocke', self)
+        menu.addAction(dodaj)
+        menu.addAction(makni)
+        menu.addSeparator()
+        menu.addAction(postavke)
+        #connect context menu items
+        dodaj.triggered.connect(self.emit_add)
+        makni.triggered.connect(self.emit_remove)
+        postavke.triggered.connect(self.emit_edit)
+        #display context menu
+        menu.exec_(self.mapToGlobal(event.pos()))
+
+    def emit_add(self, x):
+        """
+        Metoda emitira zahtjev za dodavanjem nove tocke
+        """
+        #za sada nemam pametniju ideju
+        if len(self.model().dataFrejm):
+            self.emit(QtCore.SIGNAL('dodaj_tocku'))
+
+    def emit_remove(self, x):
+        """
+        Metoda emitira zahtjev za brisanjem tocke
+        """
+        selektirani = self.selectedIndexes()
+        if selektirani:
+            indeks = selektirani[0].row()
+            self.emit(QtCore.SIGNAL('makni_tocku(PyQt_PyObject)'), indeks)
+
+    def emit_edit(self, x):
+        """
+        Metoda salje zahtjev za promjenom parametara selektirane tocke
+        """
+        selektirani = self.selectedIndexes()
+        if selektirani:
+            indeks = selektirani[0].row()
+            self.emit(QtCore.SIGNAL('edit_tocku(PyQt_PyObject)'), indeks)
 
 
 BASE, FORM = uic.loadUiType('./app/view/uiFiles/display.ui')
@@ -29,8 +84,9 @@ class GlavniProzor(BASE, FORM):
         self.setupUi(self)
         self.uredjaji = {}
         self.postaje = {}
+        #citanje podataka iz konfiga
         try:
-            self.konfiguracija = konfig.MainKonfig(cfg)
+            self.konfiguracija = konfig.MainKonfig(cfg=cfg)
             self.postaje, self.uredjaji = helperi.pripremi_mape_postaja_i_uredjaja(
                 self.konfiguracija.uredjajUrl,
                 self.konfiguracija.postajeUrl)
@@ -38,43 +94,46 @@ class GlavniProzor(BASE, FORM):
             msg = 'Konfig aplikacije ne moze naci trazeni element.'
             logging.error(msg, exc_info=True)
             raise SystemExit('Konfiguracijski file nije ispravan.')
-
         # inicijalni setup membera
+        ### popunjavanje comboboxeva ###
         self.comboDilucija.addItems(self.konfiguracija.get_listu_dilucija())
         self.comboZrak.addItems(self.konfiguracija.get_listu_cistiZrak())
+        ### stanje checkboxeva ###
         self.checkLinearnost.setChecked(self.konfiguracija.provjeraLinearnosti)
-
-        self.rezultatView.horizontalHeader().setStretchLastSection(True)
-        self.konverterTockeView.horizontalHeader().setStretchLastSection(True)
-        self.konverterRezultatView.horizontalHeader().setStretchLastSection(True)
-        self.siroviPodaciView.horizontalHeader().setStretchLastSection(True)
-        self.konverterPodaciView.horizontalHeader().setStretchLastSection(True)
-        #self.tockeView.horizontalHeader().setStretchLastSection(True)
-
-        #definiranje modela sirovih podataka
+        #definiranje kalkulatora
+        self.kalkulator = calc.RacunUmjeravanja(cfg=self.konfiguracija)
+        # view-ovi
+        ### tablica sa ucitanim podacima ###
+        self.siroviPodaciView.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+        ### tablica rezultata ###
+        self.rezultatView = TableViewRezultata()
+        self.rezultatView.setMinimumSize(300,250)
+        self.rezultatViewLayout.addWidget(self.rezultatView)
+        self.rezultatView.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+        ### tablica sa testom analitickih metoda ###
+        self.rezultatParametriView = QtGui.QTableView()
+        self.rezultatParametriView.setMinimumSize(300,250)
+        self.rezultatViewLayout.addWidget(self.rezultatParametriView)
+        self.rezultatParametriView.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+        # modeli
+        ### model za ucitane podatke ###
         self.siroviPodaci = pd.DataFrame()
         self.siroviPodaciModel = modeli.SiroviFrameModel()
         self.siroviPodaciView.setModel(self.siroviPodaciModel)
-
-
-        #color delegat za tablicu
-        self.konverterDelegatZaBoju = modeli.ColorDelegate(tocke=self.konfiguracija.konverterTocke)
-        self.rezultatDelegatZaBoju = modeli.ColorDelegate(tocke=self.konfiguracija.umjerneTocke)
-        #set delegat na svoje mjesto
-        self.konverterTockeView.setItemDelegateForColumn(5, self.konverterDelegatZaBoju)
-        self.rezultatView.setItemDelegateForColumn(6, self.rezultatDelegatZaBoju)
-
-
-        #definiranje kalkulatora
-        self.kalkulator = calc.RacunUmjeravanja(cfg=self.konfiguracija)
-
-        # rezultat umjeravanja
+        self.siroviPodaciView.update()
+        ### model za rezultate ###
         self.rezultatUmjeravanja = pd.DataFrame(columns=['cref', 'c', 'sr', 'r', 'UR'])
         self.rezultatModel = modeli.RezultatModel(tocke=self.konfiguracija.umjerneTocke)
         self.rezultatModel.set_frejm(self.rezultatUmjeravanja)
         self.rezultatView.setModel(self.rezultatModel)
         self.rezultatView.update()
+        ### model za test analitickih metoda ###
+        initialDefault = self.kalkulator.get_provjeru_parametara()
+        self.rezultatParametriModel = modeli.RezultatParametriModel(lista=initialDefault)
+        self.rezultatParametriView.setModel(self.rezultatParametriModel)
+        self.rezultatParametriView.update()
 
+        #TODO! treba prilagoditi konverter na nesto smislenije
         #definiranje modela tocaka za provjeru konvertera
         self.modelTocakaKonverter = modeli.KonverterTockeModel()
         self.modelTocakaKonverter.set_tocke(self.konfiguracija.konverterTocke)
@@ -130,8 +189,8 @@ class GlavniProzor(BASE, FORM):
         """
         self.action_Exit.triggered.connect(self.close)
         self.action_ucitaj_podatke.triggered.connect(self.read_data)
+
         self.siroviPodaciView.clicked.connect(self.odaberi_start_umjeravanja)
-        self.action_promjeni_tocke_umjeravanja.triggered.connect(self.prikazi_edit_tocke_dijalog)
 
         self.comboMjerenje.currentIndexChanged.connect(self.recalculate)
         self.comboDilucija.currentIndexChanged.connect(self.recalculate)
@@ -142,17 +201,10 @@ class GlavniProzor(BASE, FORM):
         self.doubleSpinBoxSljedivostCRM.valueChanged.connect(self.recalculate)
 
         self.konverterPodaciView.clicked.connect(self.odaberi_start_provjere_konvertera)
+
         self.konverterOpseg.valueChanged.connect(self.recalculate_konverter)
         self.cnox50SpinBox.valueChanged.connect(self.recalculate_konverter)
         self.cnox95SpinBox.valueChanged.connect(self.recalculate_konverter)
-
-        self.connect(self.rezultatDelegatZaBoju,
-                     QtCore.SIGNAL('promjena_boje_tocke'),
-                     self.refresh_views)
-
-        self.connect(self.konverterDelegatZaBoju,
-                     QtCore.SIGNAL('promjena_boje_tocke'),
-                     self.refresh_views)
 
         self.connect(self.siroviPodaciModel,
                      QtCore.SIGNAL('promjena_vrijednosti_tocke'),
@@ -162,29 +214,43 @@ class GlavniProzor(BASE, FORM):
                      QtCore.SIGNAL('promjena_vrijednosti_konverter_tocke'),
                      self.refresh_views)
 
-    def prikazi_edit_tocke_dijalog(self):
+        self.connect(self.rezultatView,
+                     QtCore.SIGNAL('dodaj_tocku'),
+                     self.konfiguracija.dodaj_tocku)
+
+        self.connect(self.konfiguracija,
+                     QtCore.SIGNAL('promjena_umjernih_tocaka'),
+                     self.recalculate)
+
+        self.connect(self.rezultatView,
+                     QtCore.SIGNAL('makni_tocku(PyQt_PyObject)'),
+                     self.konfiguracija.makni_tocku)
+
+        self.connect(self.konfiguracija,
+                     QtCore.SIGNAL('promjena_umjernih_tocaka'),
+                     self.recalculate)
+
+        self.connect(self.rezultatView,
+                     QtCore.SIGNAL('edit_tocku(PyQt_PyObject)'),
+                     self.edit_tocku_dijalog)
+
+
+    def edit_tocku_dijalog(self, indeks):
         """
-        Prikaz dijaloga za promjenu tocaka (granice i ukupan broj)
+        Poziv dijaloga za edit vrijednosti parametara izabrane tocke.
+        ulazni parametar indeks je indeks pod kojim se ta tocka nalazi
+        u listi self.konfiguracija.umjerneTocke
         """
-        dots = copy.deepcopy(self.konfiguracija.umjerneTocke)
-        dijalog = editTocke.EditTockeDijalog(tocke=dots,
-                                             frejm=self.siroviPodaci,
-                                             start=self.siroviPodaciModel.startIndeks,
-                                             parent=self)
-        response = dijalog.exec_()
-        if response:
-            dots = copy.deepcopy(dijalog.vrati_nove_tocke())
-            self.konfiguracija.umjerneTocke = dots
-            self.refresh_views()
-            self.recalculate()
+        #TODO!
+        QtGui.QMessageBox.information(self, 'edit_tocku_dijalog', 'NOT IMPLEMENTED')
+
 
     def read_data(self):
         """
         ucitavanje sirovih podataka preko wizarda
         """
         self.fileWizard = datareader.CarobnjakZaCitanjeFilea(uredjaji=self.uredjaji,
-                                                             postaje=self.postaje,
-                                                             parent=self)
+                                                             postaje=self.postaje)
         prihvacen = self.fileWizard.exec_()
         if prihvacen:
             frejm = self.fileWizard.get_frejm()
@@ -261,12 +327,13 @@ class GlavniProzor(BASE, FORM):
         """
         force refresh modela i view-ova nakon promjene podataka
         """
-        #TODO!
         # umjeravanje
         self.siroviPodaciModel.set_tocke(self.konfiguracija.umjerneTocke)
         self.rezultatModel.set_tocke(self.konfiguracija.umjerneTocke)
+        self.rezultatParametriModel.set_lista(self.kalkulator.get_provjeru_parametara())
         self.siroviPodaciView.update()
         self.rezultatView.update()
+        self.rezultatParametriView.update()
         # konverter
         self.konverterPodaciModel.set_tocke(self.konfiguracija.konverterTocke)
         self.modelTocakaKonverter.layoutChanged.emit()
@@ -284,7 +351,10 @@ class GlavniProzor(BASE, FORM):
         Funkcija postavlja priprema kalkulator za racunanje. Predaje mu konfig,
         podatke i stupac s kojim se racuna.
         """
-        self.kalkulator.set_uredjaj(self.uredjaji[str(self.labelUredjaj.text())])
+        try:
+            self.kalkulator.set_uredjaj(self.uredjaji[str(self.labelUredjaj.text())])
+        except LookupError:
+            logging.debug('Uredjaj nije definiran (n/a)', exc_info=True)
         self.kalkulator.set_linearnost(self.checkLinearnost.isChecked())
         self.kalkulator.set_data(self.siroviPodaci)
         self.kalkulator.set_stupac(self.comboMjerenje.currentText())
@@ -349,12 +419,6 @@ class GlavniProzor(BASE, FORM):
         prilagodbaB = self.kalkulator.prilagodbaB
         if prilagodbaB is not None:
             self.labelB.setText(str(round(prilagodbaB, 3)))
-        # set provjere parametara
-        self.labelPonovNula.setText(str(self.kalkulator.provjeri_ponovljivost_stdev_u_nuli()))
-        self.labelPonovC.setText((str(self.kalkulator.provjeri_ponovljivost_stdev_za_vrijednost())))
-        if self.checkLinearnost.isChecked():
-            self.labelOdstNula.setText((str(self.kalkulator.provjeri_odstupanje_od_linearnosti_u_nuli())))
-            self.labelOdstMax.setText((str(self.kalkulator.provjeri_maksimalno_relativno_odstupanje_od_linearnosti())))
 
     def prikazi_rezultate_konvertera(self):
         # set result data to table view
@@ -374,10 +438,6 @@ class GlavniProzor(BASE, FORM):
         self.labelOffset.setText('n/a')
         self.labelA.setText('n/a')
         self.labelB.setText('n/a')
-        self.labelPonovNula.setText('n/a')
-        self.labelPonovC.setText('n/a')
-        self.labelOdstNula.setText('n/a')
-        self.labelOdstMax.setText('n/a')
 
     def clear_konverter_result_labels(self):
         """

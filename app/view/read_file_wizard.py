@@ -7,9 +7,13 @@ Created on Wed Apr 29 12:15:30 2015
 import os
 import logging
 import pandas as pd
-from PyQt4 import QtGui, QtCore
+from PyQt4 import QtGui
 import app.model.pomocne_funkcije as helperi
+import app.model.frejm_model as modeli
 
+################################################################################
+################################################################################
+#TODO! wizard klasa
 class CarobnjakZaCitanjeFilea(QtGui.QWizard):
     """
     Wizard dijalog klasa za ucitavanje fileova za umjeravanje
@@ -17,9 +21,15 @@ class CarobnjakZaCitanjeFilea(QtGui.QWizard):
     def __init__(self, parent=None, uredjaji=None, postaje=None):
         QtGui.QWizard.__init__(self, parent)
         logging.info('Inicijalizacija Wizada za citanje podataka')
+
+        tmp = helperi.priprema_podataka_za_model_stanica_i_uredjaja(uredjaji)
+        self.setPostaja, self.setUredjaj, self.setKomponenta, self.listaZaModel = tmp
+
         self.uredjaji = uredjaji
         self.postaje = postaje
+
         self.komponente = []
+        self.izbor = []
         # opcije
         self.setWizardStyle(QtGui.QWizard.ModernStyle)
         self.setMinimumSize(600,600)
@@ -33,6 +43,15 @@ class CarobnjakZaCitanjeFilea(QtGui.QWizard):
         self.setPage(2, self.P2)
         self.setPage(3, self.P3)
         self.setStartId(1)
+
+    def set_izbor(self, lista):
+        """
+        postavljanje izbora postaje-uredjaja-komponente
+        """
+        self.izbor = lista
+        uredjaj = self.izbor[1]
+        komp = self.uredjaji[uredjaj]['komponente']
+        self.set_komponente(komp)
 
     def set_komponente(self, lista):
         """
@@ -70,7 +89,7 @@ class CarobnjakZaCitanjeFilea(QtGui.QWizard):
         """
         Vrati izabranu postaju nakon uspjesnog izlaska iz wizarda.
         """
-        postaja = str(self.P2.izabranaPostaja.text())
+        postaja = str(self.izbor[0])
         if len(postaja) != 0:
             return postaja
         else:
@@ -80,13 +99,14 @@ class CarobnjakZaCitanjeFilea(QtGui.QWizard):
         """
         Vrati izabrani uredjaj nakon uspjesnog izlaska iz wizarda.
         """
-        uredjaj = str(self.P2.izabraniUredjaj.text())
+        uredjaj = str(self.izbor[1])
         if len(uredjaj) != 0:
             return uredjaj
         else:
             return 'None'
-
-
+################################################################################
+################################################################################
+#TODO! stranica 1
 class Page1Wizarda(QtGui.QWizardPage):
     """
     Prva stranica izbornika, prikazuje polje za unos lokacije filea i gumb
@@ -144,160 +164,171 @@ class Page1Wizarda(QtGui.QWizardPage):
             QtGui.QMessageBox.information(self, 'Problem.', msg)
             return False
         return True
-
-
+################################################################################
+################################################################################
+#TODO! stranica 2
 class Page2Wizarda(QtGui.QWizardPage):
     """
-    Stranica wizarda za izbor uredjaja. Prikazuje se padajuci izbornik
-    sa svim serijskim brojevima uredjaja koji su zadani u configu.
+    Izbor postaje, uredjaja i komponente. Podaci su u modelu koji je "wrapan"
+    u 3 proxy modela koji omogucavaju filtriranje za svaki od pojedinih stupaca.
+    Filtriranje je uz pomoc comboboxeva. Izbor kombinacije je klikom na model.
     """
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         QtGui.QWizard.__init__(self, parent)
         self.setTitle('Izbor uredjaja')
-        self.setSubTitle('Provjeri izbor uredjaja prije nastavka.')
-        # memberi
-        self.uredjajInfo = self.parent().uredjaji
-        self.postajaInfo = self.parent().postaje
-        svePostaje = sorted(list(self.postajaInfo.keys()))
-        # widgeti
-        self.comboPostaje = QtGui.QComboBox()
-        self.comboPostaje.addItems(svePostaje)
-        self.labelPostaje = QtGui.QLabel('Postaja : ')
-        self.izabranaPostaja = QtGui.QLineEdit()
-        self.izabranaPostaja.setVisible(False)
-        self.izabranaPostaja.setText(str(self.comboPostaje.currentText()))
-        tmplist = self.postajaInfo[str(self.comboPostaje.currentText())]
-        tmplist = [":::".join([item, str(self.uredjajInfo[item]['komponente'])])for item in tmplist]
-        self.comboUredjaji = QtGui.QComboBox()
-        self.comboUredjaji.addItems(tmplist)
-        self.labelUredjaji = QtGui.QLabel('Uredjaj: ')
-        self.izabraniUredjaj = QtGui.QLineEdit()
-        self.izabraniUredjaj.setVisible(False)
-        # layout
-        layoutUredjaji = QtGui.QHBoxLayout()
-        layoutPostaje = QtGui.QHBoxLayout()
-        layout = QtGui.QVBoxLayout()
-        layoutUredjaji.addWidget(self.labelUredjaji)
-        layoutUredjaji.addWidget(self.comboUredjaji)
-        layoutUredjaji.addWidget(self.izabraniUredjaj)
-        layoutPostaje.addWidget(self.labelPostaje)
-        layoutPostaje.addWidget(self.comboPostaje)
-        layoutPostaje.addWidget(self.izabranaPostaja)
-        layout.addLayout(layoutPostaje)
-        layout.addLayout(layoutUredjaji)
-        self.setLayout(layout)
-        # povezivanje elemenata
-        self.comboPostaje.currentIndexChanged.connect(self.promjeni_postaju)
-        self.comboUredjaji.currentIndexChanged.connect(self.promjeni_uredjaj)
-        self.registerField('uredjaj', self.izabraniUredjaj)
-        self.registerField('postaja', self.izabranaPostaja)
+        msg = 'Izaberi kombinaciju postaje uredjaja i komponente'
+        self.setSubTitle(msg)
+        #memberi
+        self.postaje = sorted(list(self.parent().setPostaja))
+        self.uredjaji = sorted(list(self.parent().setUredjaj))
+        self.komponente = sorted(list(self.parent().setKomponenta))
+        self.modelList = self.parent().listaZaModel
+        self.postaje.append('')  #opcija bez filtera
+        self.uredjaji.append('')  #opcija bez filtera
+        self.komponente.append('')  #opcija bez filtera
+
+        #widgets
+        self.comboKomponenta = QtGui.QComboBox()
+        self.comboKomponenta.addItems(self.komponente)
+        self.comboPostaja = QtGui.QComboBox()
+        self.comboPostaja.addItems(self.postaje)
+        self.comboUredjaj = QtGui.QComboBox()
+        self.comboUredjaj.addItems(self.uredjaji)
+        self.labelKomponenta = QtGui.QLabel('Filter komponente')
+        self.labelPostaja = QtGui.QLabel('Filter postaja')
+        self.labelUredjaj = QtGui.QLabel('Filter uredjaja')
+        self.tableView = QtGui.QTableView()
+        self.fileLabel = QtGui.QLabel('')
+        self.fileLabel.setWordWrap(True)
+        self.fileLabel.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding,
+                                     QtGui.QSizePolicy.Fixed)
+        self.label1 = QtGui.QLabel('Datoteka :')
+
+        #models
+        self.model = modeli.PostajaUredjajKomponentaModel(lista=self.modelList, parent=self)
+
+        self.proksiModelPostaja = QtGui.QSortFilterProxyModel()
+        self.proksiModelPostaja.setDynamicSortFilter(True)
+        self.proksiModelPostaja.setFilterKeyColumn(0)
+        self.proksiModelPostaja.setSourceModel(self.model)
+
+        self.proksiModelUredjaj = QtGui.QSortFilterProxyModel()
+        self.proksiModelUredjaj.setDynamicSortFilter(True)
+        self.proksiModelUredjaj.setFilterKeyColumn(1)
+        self.proksiModelUredjaj.setSourceModel(self.proksiModelPostaja)
+
+        self.proksiModelKomponenta = QtGui.QSortFilterProxyModel()
+        self.proksiModelKomponenta.setDynamicSortFilter(True)
+        self.proksiModelKomponenta.setFilterKeyColumn(2)
+        self.proksiModelKomponenta.setSourceModel(self.proksiModelUredjaj)
+
+        self.tableView.setModel(self.proksiModelKomponenta)
+        self.tableView.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+        self.tableView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.tableView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.tableView.verticalHeader().setVisible(False)
+        self.tableView.setSortingEnabled(True)
+
+        #layout
+        fileLayout = QtGui.QHBoxLayout()
+        fileLayout.addWidget(self.label1)
+        fileLayout.addWidget(self.fileLabel)
+        postajaLayout = QtGui.QVBoxLayout()
+        postajaLayout.addWidget(self.labelPostaja)
+        postajaLayout.addWidget(self.comboPostaja)
+        uredjajLayout = QtGui.QVBoxLayout()
+        uredjajLayout.addWidget(self.labelUredjaj)
+        uredjajLayout.addWidget(self.comboUredjaj)
+        komponentaLayout = QtGui.QVBoxLayout()
+        komponentaLayout.addWidget(self.labelKomponenta)
+        komponentaLayout.addWidget(self.comboKomponenta)
+        filterLayout = QtGui.QHBoxLayout()
+        filterLayout.addLayout(postajaLayout)
+        filterLayout.addLayout(uredjajLayout)
+        filterLayout.addLayout(komponentaLayout)
+        glavniLayout = QtGui.QVBoxLayout()
+        glavniLayout.addLayout(fileLayout)
+        glavniLayout.addLayout(filterLayout)
+        glavniLayout.addWidget(self.tableView)
+        self.setLayout(glavniLayout)
+
+        #connections
+        self.comboPostaja.currentIndexChanged.connect(self.filter_stanica)
+        self.comboKomponenta.currentIndexChanged.connect(self.filter_komponenta)
+        self.comboUredjaj.currentIndexChanged.connect(self.filter_uredjaj)
+        self.tableView.clicked.connect(self.set_izabrani)
+
+
+    def filter_stanica(self, x):
+        s = str(self.comboPostaja.currentText())
+        self.proksiModelPostaja.setFilterFixedString(s)
+        self.tableView.update()
+
+    def filter_komponenta(self, x):
+        s = str(self.comboKomponenta.currentText())
+        self.proksiModelKomponenta.setFilterFixedString(s)
+        self.tableView.update()
+
+    def filter_uredjaj(self, x):
+        s = str(self.comboUredjaj.currentText())
+        self.proksiModelUredjaj.setFilterFixedString(s)
+        self.tableView.update()
+
+    def set_izabrani(self, indeks):
+        """
+        lagana komplikacija... da bi dosao do indeksa moram transformirati indeks
+        koji je trenutno izabran nazad kroz sve proxy modele
+        """
+        iuredjaj = self.proksiModelKomponenta.mapToSource(indeks)
+        ipostaja = self.proksiModelUredjaj.mapToSource(iuredjaj)
+        imodel = self.proksiModelPostaja.mapToSource(ipostaja)
+        red = imodel.row()
+        self.izbor = self.modelList[red]
+        self.wizard().set_izbor(self.izbor)
 
     def initializePage(self):
         """
-        Funkcija se poziva prilikom inicijalizacije stranice. Treba populirati
-        comboboxeve i postaviti izbor
+        Funkcija se poziva prilikom inicijalizacije stranice.
+        Pokusaj automatskog pronalaska kombinacije stanice, uredjaja i komponente
+        iz imena filea.
         """
-        # parse name za serial... nadji postaju i uredjaj if possible
-        serial = None
-        lokacija = None
-        msg = 'Pokusaj pronalaska uredjaja iz imena filea, ime={0}'.format(self.field('filepath'))
-        logging.debug(msg)
-        predlozeniUredjaji = helperi.parse_name_for_serial(self.field('filepath'))
-        msg = 'Predlozene serijske oznake oredjaja iz imena datoteke, oznake={0}'.format(predlozeniUredjaji)
-        logging.debug(msg)
-        if len(predlozeniUredjaji) != 0:
-            for i in predlozeniUredjaji:
-                if i in self.uredjajInfo:
-                    msg = 'Serijska oznaka pronadjena, oznaka={0}'.format(i)
-                    logging.debug(msg)
-                    serial = i
-                    lokacija = self.uredjajInfo[i]['lokacija']
-                    break
-        else:
-            logging.debug('Serijska oznaka nije pronadjena')
-        # update combobox sa ponudjenim izborom
-        if lokacija is not None and serial is not None:
-            #self.init_izbornike(lokacija, serial)
-            self.init_izbornike(lokacija,
-                                ":::".join([serial, str(self.uredjajInfo[serial]['komponente'])]))
+        name = os.path.split(self.field('filepath'))[1]
+        self.fileLabel.setText(name)
+        name = name.lower()
+        self.izbor = []
+        #inicijalno bez filtera
+        self.filter_stanica(self.postaje.index(''))
+        self.filter_uredjaj(self.uredjaji.index(''))
+        #pokusaj pronaci postaju u imenu filea
+        for stanica in self.postaje:
+            if stanica.lower() in name:
+                ind = self.comboPostaja.findText(stanica)
+                self.comboPostaja.setCurrentIndex(ind)
+                break
+        for uredjaj in self.uredjaji:
+            if uredjaj.lower() in name:
+                ind = self.comboUredjaj.findText(uredjaj)
+                self.comboUredjaj.setCurrentIndex(ind)
+                break
+        ind = self.comboKomponenta.findText('')
+        self.comboKomponenta.setCurrentIndex(ind)
 
     def validatePage(self):
         """
-        provjeri da li je izabran uredjaj
+        provjeri da li je izabrana kombinacija postaja-uredjaj-komponenta
         """
-        if self.comboUredjaji.count() == 0:
-            msg = 'Na postoji nema uredjaja, izaberite drugu postaju.'
+        if self.comboUredjaj.count() == 1:
+            msg = 'Nema uredjaja sa definiranim komponentama.'
             QtGui.QMessageBox.information(self, 'Problem.', msg)
             return False
-        serial = str(self.comboUredjaji.currentText())
-        ind = serial.find(':::')
-        serial = serial[:ind]
-        if serial not in self.uredjajInfo:
-            msg = 'Podaci o uredjaju ne postoje na REST-servisu.'
+        if not self.izbor:
+            msg = 'Niste izabrali kombinaciju u tablici'
             QtGui.QMessageBox.information(self, 'Problem.', msg)
             return False
-        else:
-            if len(self.uredjajInfo[serial]['komponente']) == 0:
-                msg = 'Uredjaj nema komponente mjerenja.'
-                QtGui.QMessageBox.information(self, 'Problem.', msg)
-                return False
         return True
-
-    def init_izbornike(self, lokacija, serial):
-        """
-        Metoda je zaduzena za postavljanje inicijalnog izbora ako je iz filea
-        uspjesno prepoznat neki uredjaj. Postavlja postaju i uredjaj.
-        """
-        ind = self.comboPostaje.findText(lokacija)
-        self.comboPostaje.blockSignals(True)
-        self.comboPostaje.setCurrentIndex(ind)
-        self.comboPostaje.blockSignals(False)
-        self.comboUredjaji.blockSignals(True)
-        self.comboUredjaji.clear()
-        tmplist = self.postajaInfo[lokacija]
-        tmp = [":::".join([item, str(self.uredjajInfo[item]['komponente'])])for item in tmplist]
-        self.comboUredjaji.addItems(tmp)
-        ind = self.comboUredjaji.findText(serial)
-        self.comboUredjaji.setCurrentIndex(ind)
-        ind = serial.find(':::')
-        serial = serial[:ind]
-        listaKomponenti = self.uredjajInfo[serial]['komponente']
-        self.wizard().set_komponente(listaKomponenti)
-        self.comboUredjaji.blockSignals(False)
-        self.izabranaPostaja.setText(str(lokacija))
-        self.izabraniUredjaj.setText(str(serial))
-        msg = 'Default izbor postavljen, postaja={0} , uredjaj={1}'.format(lokacija, serial)
-        logging.debug(msg)
-
-    def promjeni_postaju(self, x):
-        """
-        Promjena indeksa comboboxa sa postajama
-        """
-        lokacija = self.comboPostaje.currentText()
-        self.comboUredjaji.blockSignals(True)
-        self.comboUredjaji.clear()
-        tmplist = self.postajaInfo[lokacija]
-        tmp = [":::".join([item, str(self.uredjajInfo[item]['komponente'])])for item in tmplist]
-        self.comboUredjaji.addItems(tmp)
-        self.comboUredjaji.blockSignals(False)
-        self.izabranaPostaja.setText(str(lokacija))
-        msg = 'Promjena postaje, postaja={0}'.format(lokacija)
-        logging.debug(msg)
-
-    def promjeni_uredjaj(self, x):
-        """
-        Promjena indeksa comboboxa sa uredjajima
-        """
-        serial = self.comboUredjaji.currentText()
-        ind = serial.find(':::')
-        serial = serial[:ind]
-        self.izabraniUredjaj.setText(str(serial))
-        listaKomponenti = self.uredjajInfo[serial]['komponente']
-        self.wizard().set_komponente(listaKomponenti)
-        msg = 'Promjena uredjaja, uredjaj={0}'.format(serial)
-        logging.debug(msg)
-
-
+################################################################################
+################################################################################
+#TODO! stranica 3
 class Page3Wizarda(QtGui.QWizardPage):
     def __init__(self, parent = None):
         """
@@ -305,17 +336,79 @@ class Page3Wizarda(QtGui.QWizardPage):
         """
         QtGui.QWizard.__init__(self, parent)
         self.setTitle('Stranica 3')
-        self.setSubTitle('Izaberite komponente')
+        self.setSubTitle('Izaberite komponente za pojedini stupac')
 
         self.tableView = QtGui.QTableView()
-        self.tableView.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
         self.tableView.setWordWrap(True)
-        #self.tableView.horizontalHeader().setVisible(False)
-        self.tableView.setMouseTracking(True)
+        self.tableView.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
 
+        self.fileLabel = QtGui.QLabel('')
+        self.fileLabel.setWordWrap(True)
+        self.fileLabel.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding,
+                                     QtGui.QSizePolicy.Fixed)
+        self.label1 = QtGui.QLabel('Datoteka :')
+
+
+        fileLayout = QtGui.QHBoxLayout()
+        fileLayout.addWidget(self.label1)
+        fileLayout.addWidget(self.fileLabel)
         layout = QtGui.QVBoxLayout()
+        layout.addLayout(fileLayout)
         layout.addWidget(self.tableView)
         self.setLayout(layout)
+
+    def initializePage(self):
+        """
+        Funkcija se pokrece prilikom inicijalizacije stranice
+        """
+        name = os.path.split(self.field('filepath'))[1]
+        self.fileLabel.setText(name)
+
+        self.mjerenja = self.wizard().komponente
+        self.path = self.field('filepath')
+        izbor = self.wizard().izbor
+        if len(izbor) == 3:
+            uredjaj = izbor[1]
+        else:
+            uredjaj = ''
+
+        txt = " ".join(['Izaberi komponente', uredjaj])
+        self.setSubTitle(txt)
+        try:
+            self.df = self.read_csv_file(self.path)
+            self.model = modeli.BaseFrejmModel(frejm=self.df)
+            self.delegat = modeli.ComboBoxDelegate(stupci = self.mjerenja, parent=self.tableView)
+            self.tableView.setModel(self.model)
+            self.tableView.setItemDelegateForRow(0, self.delegat)
+            for col in range(len(self.df.columns)):
+                self.tableView.openPersistentEditor(self.model.index(0, col))
+                self.tableView.indexWidget(self.model.index(0, col)).currentIndexChanged.connect(self.dinamicki_update_opcija_comboa)
+        except OSError as err:
+            msg = 'error kod citanja filea: {0}\n'.format(str(err))
+            QtGui.QMessageBox.information(self, 'Problem.', msg)
+            self.wizard().done(0)
+
+    def validatePage(self):
+        """
+        Validator za stranicu. return True ako je sve u redu, inace vrati False.
+
+        -svi nazivi stupaca moraju biti unikatni (osim 'None')
+        -mora biti barem jedan stupac
+        """
+        izabraniStupci = [i for i in self.model.cols if i != 'None']
+        izabraniStupci = [i for i in izabraniStupci if i != '']
+        setIzabranih = set(izabraniStupci)
+        if len(izabraniStupci) == (len(self.mjerenja) - 1):
+            if len(setIzabranih) == len(izabraniStupci):
+                return True
+            else:
+                msg = 'Isti naziv je koristen na vise stupaca. Naziv se smije koristiti samo jednom.'
+                QtGui.QMessageBox.information(self, 'Problem.', msg)
+                return False
+        else:
+            msg = 'Sve dozvoljene komponente moraju biti izabrane.'
+            QtGui.QMessageBox.information(self, 'Problem.', msg)
+            return False
 
     def dinamicki_update_opcija_comboa(self, ind):
         """
@@ -356,53 +449,6 @@ class Page3Wizarda(QtGui.QWizardPage):
         combo.setCurrentIndex(ind)
         combo.blockSignals(False)
 
-    def initializePage(self):
-        """
-        Funkcija se pokrece prilikom inicijalizacije stranice
-        """
-        self.mjerenja = self.wizard().komponente
-
-        self.path = self.field('filepath')
-        self.uredjaj = self.field('uredjaj')
-
-        txt = " ".join(['Izaberi komponente', self.uredjaj])
-        self.setSubTitle(txt)
-        try:
-            self.df = self.read_csv_file(self.path)
-            self.model = BaseFrejmModel(frejm=self.df)
-            self.delegat = ComboBoxDelegate(stupci = self.mjerenja, parent=self.tableView)
-            self.tableView.setModel(self.model)
-            self.tableView.setItemDelegateForRow(0, self.delegat)
-            for col in range(len(self.df.columns)):
-                self.tableView.openPersistentEditor(self.model.index(0, col))
-                self.tableView.indexWidget(self.model.index(0, col)).currentIndexChanged.connect(self.dinamicki_update_opcija_comboa)
-        except OSError as err:
-            msg = 'error kod citanja filea: {0}\n'.format(str(err))
-            QtGui.QMessageBox.information(self, 'Problem.', msg)
-            self.wizard().done(0)
-
-    def validatePage(self):
-        """
-        Validator za stranicu. return True ako je sve u redu, inace vrati False.
-
-        -svi nazivi stupaca moraju biti unikatni (osim 'None')
-        -mora biti barem jedan stupac
-        """
-        izabraniStupci = [i for i in self.model.cols if i != 'None']
-        izabraniStupci = [i for i in izabraniStupci if i != '']
-        setIzabranih = set(izabraniStupci)
-        if len(izabraniStupci) == (len(self.mjerenja) - 1):
-            if len(setIzabranih) == len(izabraniStupci):
-                return True
-            else:
-                msg = 'Isti naziv je koristen na vise stupaca. Naziv se smije koristiti samo jednom.'
-                QtGui.QMessageBox.information(self, 'Problem.', msg)
-                return False
-        else:
-            msg = 'Sve dozvoljene komponente moraju biti izabrane.'
-            QtGui.QMessageBox.information(self, 'Problem.', msg)
-            return False
-
     def read_csv_file(self, path):
         """
         reader csv filea
@@ -415,138 +461,3 @@ class Page3Wizarda(QtGui.QWizardPage):
                             sep=",",
                             encoding="iso-8859-1")
         return frejm
-
-
-class ComboBoxDelegate(QtGui.QItemDelegate):
-    def __init__(self, stupci=['None'], parent=None):
-        QtGui.QItemDelegate.__init__(self, parent=parent)
-        self.stupci = stupci
-
-    def createEditor(self, parent, option, index):
-        """
-        return editor widget
-
-        parent
-        --> argument sluzi da stvoreni editor ne bude "garbage collected" (parent drzi referencu na njega)
-        option
-        --> Qt style opcije... nebitno (ali mora biti kao positional argument)
-        index
-        --> indeks elementa iz tablice (veza sa modelom)
-        """
-        editor = QtGui.QComboBox(parent=parent)
-        editor.clear()
-        editor.addItems(sorted(self.stupci))
-        ind = editor.findText('None')
-        editor.setCurrentIndex(ind)
-        editor.setFocusPolicy(QtCore.Qt.StrongFocus)
-        return editor
-
-    def setEditorData(self, editor, index):
-        """
-        Inicijalizacija editora sa podacima, setup izgleda editora
-        """
-        pass
-
-    def setModelData(self, editor, model, index):
-        """
-        Nakon kraja editiranja, metoda postavlja novo unesenu vrijednost u model
-        """
-        data = str(editor.currentText())
-        model.setData(index, data)
-
-
-class BaseFrejmModel(QtCore.QAbstractTableModel):
-    """
-    Definiranje qt modela za qt table view klase.
-    Osnova modela ce biti pandas dataframe.
-    Must reimplement:
-        rowCount()
-        columnCount()
-        data()
-        headerData()
-    Implemented by default:
-        parent()
-        index()
-    """
-    def __init__(self, frejm=pd.DataFrame(), parent=None):
-        """
-        Initialize with pandas dataframe with data
-        """
-        QtCore.QAbstractTableModel.__init__(self, parent)
-        self.dataFrejm = frejm
-        self.cols = ['None' for i in range(len(frejm.columns))]
-
-    def rowCount(self, parent=QtCore.QModelIndex()):
-        """
-        MUST BE IMPLEMENTED.
-        Return number of rows of pandas dataframe
-        """
-        return len(self.dataFrejm)+1
-        #return min(15, len(self.dataFrejm))+1 #prikaz max 15 vrijednosti u tablici
-
-    def columnCount(self, parent=QtCore.QModelIndex()):
-        """
-        MUST BE IMPLEMENTED
-        Return number of columns of pandas dataframe. (add one for time index)
-        """
-        return len(self.dataFrejm.columns)
-
-    def flags(self, index):
-        """
-        Flags each item in table as enabled and selectable
-        """
-        if index.isValid():
-            if index.row() == 0:
-                return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable
-            else:
-                return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
-
-    def setData(self, index, value, role=QtCore.Qt.EditRole):
-        """
-        must be enabled for editable models
-        """
-        if not index.isValid():
-            return False
-
-        row = index.row()
-        col = index.column()
-        if role == QtCore.Qt.EditRole and row == 0:
-            self.cols[col] = str(value)
-            """emit sigala da je doslo do promjene u modelu. View se nece
-            updateati sve dokle god je fokus na comboboxu (smatra da editing
-            nije gotov)."""
-            self.dataChanged.emit(index, index)
-            return True
-        else:
-            return False
-
-    def data(self, index, role):
-        """
-        MUST BE IMPLEMENTED.
-        Return value for each index and role
-        """
-        if not index.isValid():
-            return None
-
-        row = index.row()
-        col = index.column()
-        if row == 0:
-            if role == QtCore.Qt.DisplayRole:
-                return self.cols[col]
-        else:
-            if role == QtCore.Qt.DisplayRole:
-                return round(float(self.dataFrejm.iloc[row-1, col]),2)
-
-    def headerData(self, section, orientation, role):
-        """
-        Sets the headers of the table...
-        """
-        if orientation == QtCore.Qt.Vertical:
-            if role == QtCore.Qt.DisplayRole:
-                if section == 0:
-                    return 'Vrijeme'
-                else:
-                    return str(self.dataFrejm.index[section-1])
-        if orientation == QtCore.Qt.Horizontal:
-            if role == QtCore.Qt.DisplayRole:
-                return str(self.dataFrejm.columns[section])
