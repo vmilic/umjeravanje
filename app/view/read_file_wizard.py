@@ -11,9 +11,6 @@ from PyQt4 import QtGui
 import app.model.pomocne_funkcije as helperi
 import app.model.frejm_model as modeli
 
-################################################################################
-################################################################################
-#TODO! wizard klasa
 class CarobnjakZaCitanjeFilea(QtGui.QWizard):
     """
     Wizard dijalog klasa za ucitavanje fileova za umjeravanje
@@ -104,9 +101,8 @@ class CarobnjakZaCitanjeFilea(QtGui.QWizard):
             return uredjaj
         else:
             return 'None'
-################################################################################
-################################################################################
-#TODO! stranica 1
+
+
 class Page1Wizarda(QtGui.QWizardPage):
     """
     Prva stranica izbornika, prikazuje polje za unos lokacije filea i gumb
@@ -164,9 +160,8 @@ class Page1Wizarda(QtGui.QWizardPage):
             QtGui.QMessageBox.information(self, 'Problem.', msg)
             return False
         return True
-################################################################################
-################################################################################
-#TODO! stranica 2
+
+
 class Page2Wizarda(QtGui.QWizardPage):
     """
     Izbor postaje, uredjaja i komponente. Podaci su u modelu koji je "wrapan"
@@ -176,59 +171,34 @@ class Page2Wizarda(QtGui.QWizardPage):
     def __init__(self, parent=None):
         QtGui.QWizard.__init__(self, parent)
         self.setTitle('Izbor uredjaja')
-        msg = 'Izaberi kombinaciju postaje uredjaja i komponente'
+        msg = 'Izaberi kombinaciju, postaje uredjaja i komponente'
         self.setSubTitle(msg)
         #memberi
-        self.postaje = sorted(list(self.parent().setPostaja))
-        self.uredjaji = sorted(list(self.parent().setUredjaj))
-        self.komponente = sorted(list(self.parent().setKomponenta))
+        pos = list(self.parent().setPostaja)
+        ure = list(self.parent().setUredjaj)
+        kom = list(self.parent().setKomponenta)
+        pos.append('---')  #nedostatak izbora
+        ure.append('---')
+        kom.append('---')
+        self.postaje = sorted(pos)
+        self.uredjaji = sorted(ure)
+        self.komponente = sorted(kom)
         self.modelList = self.parent().listaZaModel
-        self.postaje.append('')  #opcija bez filtera
-        self.uredjaji.append('')  #opcija bez filtera
-        self.komponente.append('')  #opcija bez filtera
-
+        self.undoStack = []
         #widgets
         self.comboKomponenta = QtGui.QComboBox()
-        self.comboKomponenta.addItems(self.komponente)
         self.comboPostaja = QtGui.QComboBox()
-        self.comboPostaja.addItems(self.postaje)
         self.comboUredjaj = QtGui.QComboBox()
-        self.comboUredjaj.addItems(self.uredjaji)
-        self.labelKomponenta = QtGui.QLabel('Filter komponente')
-        self.labelPostaja = QtGui.QLabel('Filter postaja')
-        self.labelUredjaj = QtGui.QLabel('Filter uredjaja')
+        self.labelKomponenta = QtGui.QLabel('Komponenta')
+        self.labelPostaja = QtGui.QLabel('Postaja')
+        self.labelUredjaj = QtGui.QLabel('Uredjaj')
         self.tableView = QtGui.QTableView()
         self.fileLabel = QtGui.QLabel('')
         self.fileLabel.setWordWrap(True)
         self.fileLabel.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding,
                                      QtGui.QSizePolicy.Fixed)
         self.label1 = QtGui.QLabel('Datoteka :')
-
-        #models
-        self.model = modeli.PostajaUredjajKomponentaModel(lista=self.modelList, parent=self)
-
-        self.proksiModelPostaja = QtGui.QSortFilterProxyModel()
-        self.proksiModelPostaja.setDynamicSortFilter(True)
-        self.proksiModelPostaja.setFilterKeyColumn(0)
-        self.proksiModelPostaja.setSourceModel(self.model)
-
-        self.proksiModelUredjaj = QtGui.QSortFilterProxyModel()
-        self.proksiModelUredjaj.setDynamicSortFilter(True)
-        self.proksiModelUredjaj.setFilterKeyColumn(1)
-        self.proksiModelUredjaj.setSourceModel(self.proksiModelPostaja)
-
-        self.proksiModelKomponenta = QtGui.QSortFilterProxyModel()
-        self.proksiModelKomponenta.setDynamicSortFilter(True)
-        self.proksiModelKomponenta.setFilterKeyColumn(2)
-        self.proksiModelKomponenta.setSourceModel(self.proksiModelUredjaj)
-
-        self.tableView.setModel(self.proksiModelKomponenta)
-        self.tableView.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
-        self.tableView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.tableView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        self.tableView.verticalHeader().setVisible(False)
-        self.tableView.setSortingEnabled(True)
-
+        self.undoGumb = QtGui.QPushButton('Undo')
         #layout
         fileLayout = QtGui.QHBoxLayout()
         fileLayout.addWidget(self.label1)
@@ -242,49 +212,23 @@ class Page2Wizarda(QtGui.QWizardPage):
         komponentaLayout = QtGui.QVBoxLayout()
         komponentaLayout.addWidget(self.labelKomponenta)
         komponentaLayout.addWidget(self.comboKomponenta)
-        filterLayout = QtGui.QHBoxLayout()
-        filterLayout.addLayout(postajaLayout)
-        filterLayout.addLayout(uredjajLayout)
-        filterLayout.addLayout(komponentaLayout)
+        comboLayout = QtGui.QHBoxLayout()
+        comboLayout.addLayout(postajaLayout)
+        comboLayout.addLayout(uredjajLayout)
+        comboLayout.addLayout(komponentaLayout)
+        undoLayout = QtGui.QHBoxLayout()
+        undoLayout.addStretch()
+        undoLayout.addWidget(self.undoGumb)
         glavniLayout = QtGui.QVBoxLayout()
         glavniLayout.addLayout(fileLayout)
-        glavniLayout.addLayout(filterLayout)
-        glavniLayout.addWidget(self.tableView)
+        glavniLayout.addLayout(comboLayout)
+        glavniLayout.addLayout(undoLayout)
         self.setLayout(glavniLayout)
-
         #connections
-        self.comboPostaja.currentIndexChanged.connect(self.filter_stanica)
-        self.comboKomponenta.currentIndexChanged.connect(self.filter_komponenta)
-        self.comboUredjaj.currentIndexChanged.connect(self.filter_uredjaj)
-        self.tableView.clicked.connect(self.set_izabrani)
-
-
-    def filter_stanica(self, x):
-        s = str(self.comboPostaja.currentText())
-        self.proksiModelPostaja.setFilterFixedString(s)
-        self.tableView.update()
-
-    def filter_komponenta(self, x):
-        s = str(self.comboKomponenta.currentText())
-        self.proksiModelKomponenta.setFilterFixedString(s)
-        self.tableView.update()
-
-    def filter_uredjaj(self, x):
-        s = str(self.comboUredjaj.currentText())
-        self.proksiModelUredjaj.setFilterFixedString(s)
-        self.tableView.update()
-
-    def set_izabrani(self, indeks):
-        """
-        lagana komplikacija... da bi dosao do indeksa moram transformirati indeks
-        koji je trenutno izabran nazad kroz sve proxy modele
-        """
-        iuredjaj = self.proksiModelKomponenta.mapToSource(indeks)
-        ipostaja = self.proksiModelUredjaj.mapToSource(iuredjaj)
-        imodel = self.proksiModelPostaja.mapToSource(ipostaja)
-        red = imodel.row()
-        self.izbor = self.modelList[red]
-        self.wizard().set_izbor(self.izbor)
+        self.comboUredjaj.currentIndexChanged.connect(self.promjena_uredjaja)
+        self.comboPostaja.currentIndexChanged.connect(self.promjena_postaje)
+        self.comboKomponenta.currentIndexChanged.connect(self.promjena_komponente)
+        self.undoGumb.clicked.connect(self.undo_implementacija)
 
     def initializePage(self):
         """
@@ -292,43 +236,245 @@ class Page2Wizarda(QtGui.QWizardPage):
         Pokusaj automatskog pronalaska kombinacije stanice, uredjaja i komponente
         iz imena filea.
         """
+        self.undoStack.append(['---', '---', '---'])
+        self.reset_combos()
         name = os.path.split(self.field('filepath'))[1]
         self.fileLabel.setText(name)
-        name = name.lower()
-        self.izbor = []
-        #inicijalno bez filtera
-        self.filter_stanica(self.postaje.index(''))
-        self.filter_uredjaj(self.uredjaji.index(''))
-        #pokusaj pronaci postaju u imenu filea
-        for stanica in self.postaje:
-            if stanica.lower() in name:
-                ind = self.comboPostaja.findText(stanica)
-                self.comboPostaja.setCurrentIndex(ind)
-                break
+        predlozeniUredjaji = helperi.parse_name_for_serial(self.field('filepath'))
+        predlozeni = '---'
         for uredjaj in self.uredjaji:
-            if uredjaj.lower() in name:
-                ind = self.comboUredjaj.findText(uredjaj)
-                self.comboUredjaj.setCurrentIndex(ind)
+            if uredjaj in predlozeniUredjaji:
+                predlozeni = uredjaj
                 break
-        ind = self.comboKomponenta.findText('')
-        self.comboKomponenta.setCurrentIndex(ind)
+        self.comboUredjaj.setCurrentIndex(self.comboUredjaj.findText(predlozeni))
 
     def validatePage(self):
         """
         provjeri da li je izabrana kombinacija postaja-uredjaj-komponenta
         """
+        postaja = self.comboPostaja.currentText()
+        komponenta = self.comboKomponenta.currentText()
+        uredjaj = self.comboUredjaj.currentText()
+        self.izbor = [postaja, uredjaj, komponenta]
         if self.comboUredjaj.count() == 1:
             msg = 'Nema uredjaja sa definiranim komponentama.'
             QtGui.QMessageBox.information(self, 'Problem.', msg)
             return False
-        if not self.izbor:
-            msg = 'Niste izabrali kombinaciju u tablici'
+        if uredjaj == '---':
+            msg = 'Niste izabrali uredjaj'
             QtGui.QMessageBox.information(self, 'Problem.', msg)
             return False
+        if postaja == '---':
+            msg = 'Niste izabrali postaju'
+            QtGui.QMessageBox.information(self, 'Problem.', msg)
+            return False
+        if komponenta == '---':
+            msg = 'Niste izabrali komponentu'
+            QtGui.QMessageBox.information(self, 'Problem.', msg)
+            return False
+        self.wizard().set_izbor(self.izbor)
         return True
-################################################################################
-################################################################################
-#TODO! stranica 3
+
+    def block_combo_signals(self):
+        """
+        Blokiranje signala svih comboboxeva
+        """
+        self.comboUredjaj.blockSignals(True)
+        self.comboPostaja.blockSignals(True)
+        self.comboKomponenta.blockSignals(True)
+
+    def unblock_combo_signals(self):
+        """
+        Odblokiranje signala svih comboboxeva
+        """
+        self.comboUredjaj.blockSignals(False)
+        self.comboPostaja.blockSignals(False)
+        self.comboKomponenta.blockSignals(False)
+
+    def reset_combos(self):
+        """
+        reset comboboxeva na inicijalno stanje (sve moguce vrijednosti)
+        """
+        self.block_combo_signals()
+        self.comboKomponenta.clear()
+        self.comboPostaja.clear()
+        self.comboUredjaj.clear()
+        self.comboKomponenta.addItems(self.komponente)
+        self.comboPostaja.addItems(self.postaje)
+        self.comboUredjaj.addItems(self.uredjaji)
+        self.comboUredjaj.setCurrentIndex(self.comboUredjaj.findText('---'))
+        self.comboPostaja.setCurrentIndex(self.comboPostaja.findText('---'))
+        self.comboKomponenta.setCurrentIndex(self.comboKomponenta.findText('---'))
+        self.unblock_combo_signals()
+
+    def undo_implementacija(self):
+        """
+        implementacija undo na prethodni value
+        """
+        if len(self.undoStack) > 1:
+            postaja, uredjaj, komponenta = self.undoStack.pop()
+            self.reset_combos()
+            self.block_combo_signals()
+            self.comboPostaja.setCurrentIndex(self.comboPostaja.findText(postaja))
+            self.comboUredjaj.setCurrentIndex(self.comboUredjaj.findText(uredjaj))
+            self.comboKomponenta.setCurrentIndex(self.comboKomponenta.findText(komponenta))
+            self.unblock_combo_signals()
+
+    def promjena_postaje(self, x):
+        """
+        promjena postaje u comboboxu
+        """
+        #trenutno stanje
+        postaja = self.comboPostaja.currentText()
+        komponenta = self.comboKomponenta.currentText()
+        uredjaj = self.comboUredjaj.currentText()
+        if postaja == '---':
+            self.reset_combos()
+            self.undoStack.append(['---', '---', '---'])
+        else:
+            moguci = [k for k in self.modelList if postaja in k]
+            if uredjaj != '---':
+                moguci = [k for k in moguci if uredjaj in k]
+            if komponenta != '---':
+                moguci = [k for k in moguci if komponenta in k]
+            if len(moguci) == 1:
+                ure = moguci[0][1]
+                kom = moguci[0][2]
+                self.block_combo_signals()
+                self.comboUredjaj.clear()
+                self.comboKomponenta.clear()
+                self.comboUredjaj.addItems(['---', ure])
+                self.comboKomponenta.addItems(['---', kom])
+                self.comboUredjaj.setCurrentIndex(self.comboUredjaj.findText(ure))
+                self.comboKomponenta.setCurrentIndex(self.comboKomponenta.findText(kom))
+                self.unblock_combo_signals()
+            else:
+                moguciUredjaji = [k[1] for k in moguci]
+                moguceKomponente = [k[2] for k in moguci]
+                moguciUredjaji.append('---')
+                moguceKomponente.append('---')
+                moguciUredjaji = sorted(list(set(moguciUredjaji)))
+                moguceKomponente = sorted(list(set(moguceKomponente)))
+                self.block_combo_signals()
+                self.comboUredjaj.clear()
+                self.comboKomponenta.clear()
+                self.comboUredjaj.addItems(moguciUredjaji)
+                self.comboKomponenta.addItems(moguceKomponente)
+                if uredjaj in moguciUredjaji:
+                    self.comboUredjaj.setCurrentIndex(self.comboUredjaj.findText(uredjaj))
+                else:
+                    self.comboUredjaj.setCurrentIndex(self.comboUredjaj.findText('---'))
+                if komponenta in moguceKomponente:
+                    self.comboKomponenta.setCurrentIndex(self.comboKomponenta.findText(komponenta))
+                else:
+                    self.comboKomponenta.setCurrentIndex(self.comboKomponenta.findText('---'))
+                self.unblock_combo_signals()
+            postaja = self.comboPostaja.currentText()
+            uredjaj = self.comboUredjaj.currentText()
+            komponenta = self.comboKomponenta.currentText()
+            self.undoStack.append([postaja, uredjaj, komponenta])
+
+
+    def promjena_uredjaja(self, x):
+        """
+        promjena uredjaja u comboboxu
+        """
+        #trenutno stanje
+        postaja = self.comboPostaja.currentText()
+        komponenta = self.comboKomponenta.currentText()
+        uredjaj = self.comboUredjaj.currentText()
+        if uredjaj == '---':
+            self.reset_combos()
+            self.undoStack.append(['---', '---', '---'])
+        else:
+            moguci = [k for k in self.modelList if uredjaj in k]
+            postaja = moguci[0][0] #uredjaj ima samo jednu postaju
+            if len(moguci) == 1:
+                kom = moguci[0][2]
+                self.block_combo_signals()
+                self.comboPostaja.clear()
+                self.comboKomponenta.clear()
+                self.comboPostaja.addItems(['---', postaja])
+                self.comboKomponenta.addItems(['---', kom])
+                self.comboPostaja.setCurrentIndex(self.comboPostaja.findText(postaja))
+                self.comboKomponenta.setCurrentIndex(self.comboKomponenta.findText(kom))
+                self.unblock_combo_signals()
+            else:
+                mogucePostaje = ['---', postaja]
+                moguceKomponente = [k[2] for k in moguci]
+                moguceKomponente.append('---')
+                moguceKomponente = sorted(list(set(moguceKomponente)))
+                self.block_combo_signals()
+                self.comboPostaja.clear()
+                self.comboKomponenta.clear()
+                self.comboPostaja.addItems(mogucePostaje)
+                self.comboKomponenta.addItems(moguceKomponente)
+                self.comboPostaja.setCurrentIndex(self.comboPostaja.findText(postaja))
+                if komponenta in moguceKomponente:
+                    self.comboKomponenta.setCurrentIndex(self.comboKomponenta.findText(komponenta))
+                else:
+                    self.comboKomponenta.setCurrentIndex(self.comboKomponenta.findText('---'))
+                self.unblock_combo_signals()
+            postaja = self.comboPostaja.currentText()
+            uredjaj = self.comboUredjaj.currentText()
+            komponenta = self.comboKomponenta.currentText()
+            self.undoStack.append([postaja, uredjaj, komponenta])
+
+    def promjena_komponente(self, x):
+        """
+        promjena komponente u comboboxu
+        """
+        #trenutno stanje
+        postaja = self.comboPostaja.currentText()
+        komponenta = self.comboKomponenta.currentText()
+        uredjaj = self.comboUredjaj.currentText()
+        if komponenta == '---':
+            self.reset_combos()
+            self.undoStack.append(['---', '---', '---'])
+        else:
+            moguci = [k for k in self.modelList if komponenta in k]
+            if uredjaj != '---':
+                moguci = [k for k in moguci if uredjaj in k]
+            if postaja != '---':
+                moguci = [k for k in moguci if postaja in k]
+            if len(moguci) == 1:
+                pos = moguci[0][0]
+                ure = moguci[0][1]
+                self.block_combo_signals()
+                self.comboUredjaj.clear()
+                self.comboPostaja.clear()
+                self.comboUredjaj.addItems(['---', ure])
+                self.comboPostaja.addItems(['---', pos])
+                self.comboUredjaj.setCurrentIndex(self.comboUredjaj.findText(ure))
+                self.comboPostaja.setCurrentIndex(self.comboPostaja.findText(pos))
+                self.unblock_combo_signals()
+            else:
+                moguciUredjaji = [k[1] for k in moguci]
+                mogucePostaje = [k[0] for k in moguci]
+                moguciUredjaji.append('---')
+                mogucePostaje.append('---')
+                moguciUredjaji = sorted(list(set(moguciUredjaji)))
+                mogucePostaje = sorted(list(set(mogucePostaje)))
+                self.block_combo_signals()
+                self.comboUredjaj.clear()
+                self.comboPostaja.clear()
+                self.comboUredjaj.addItems(moguciUredjaji)
+                self.comboPostaja.addItems(mogucePostaje)
+                if uredjaj in moguciUredjaji:
+                    self.comboUredjaj.setCurrentIndex(self.comboUredjaj.findText(uredjaj))
+                else:
+                    self.comboUredjaj.setCurrentIndex(self.comboUredjaj.findText('---'))
+                if postaja in mogucePostaje:
+                    self.comboPostaja.setCurrentIndex(self.comboPostaja.findText(postaja))
+                else:
+                    self.comboPostaja.setCurrentIndex(self.comboPostaja.findText('---'))
+                self.unblock_combo_signals()
+            postaja = self.comboPostaja.currentText()
+            uredjaj = self.comboUredjaj.currentText()
+            komponenta = self.comboKomponenta.currentText()
+            self.undoStack.append([postaja, uredjaj, komponenta])
+
+
 class Page3Wizarda(QtGui.QWizardPage):
     def __init__(self, parent = None):
         """

@@ -246,28 +246,35 @@ def priprema_podataka_za_model_stanica_i_uredjaja(devices):
     komponente = set()
     postaje = set()
     output = []
+    noxSet = set(['NOx', 'NO2', 'NO'])
     if devices is None:
         return postaje, uredjaji, komponente, output
     for key in devices:
-        sveKomponente = devices[key]['komponente']
         lokacija = devices[key]['lokacija']
+        sveKomponente = devices[key]['komponente']
         if not sveKomponente:
             continue
-        for komponenta in sveKomponente:
+        if noxSet.issubset(set(sveKomponente)):
             uredjaji.add(key)
-            komponente.add(komponenta)
+            komponente.add('NOx, NO2, NO')
             postaje.add(lokacija)
-            output.append([lokacija, key, komponenta])
+            output.append([lokacija, key, 'NOx, NO2, NO'])
+        for komponenta in sveKomponente:
+            if not komponenta in noxSet:
+                uredjaji.add(key)
+                komponente.add(komponenta)
+                postaje.add(lokacija)
+                output.append([lokacija, key, komponenta])
     return postaje, uredjaji, komponente, output
 
 
-#if __name__ == '__main__':
-#    url1 = 'http://172.20.0.178:8080/SKZ-war/webresources/uredjaj'
-#    url2 = 'http://172.20.0.178:8080/SKZ-war/webresources/drzavna_mreza/postaje'
-#    pos, ure = pripremi_mape_postaja_i_uredjaja(url1, url2)
-#    postaje, uredjaji, komponente, output = priprema_podataka_za_model_stanica_i_uredjaja(ure)
-#    for combo in output:
-#        print(combo)
+if __name__ == '__main__':
+    url1 = 'http://172.20.0.178:8080/SKZ-war/webresources/uredjaj'
+    url2 = 'http://172.20.0.178:8080/SKZ-war/webresources/drzavna_mreza/postaje'
+    pos, ure = pripremi_mape_postaja_i_uredjaja(url1, url2)
+    postaje, uredjaji, komponente, output = priprema_podataka_za_model_stanica_i_uredjaja(ure)
+    for combo in output:
+        print(combo)
 
 
 
