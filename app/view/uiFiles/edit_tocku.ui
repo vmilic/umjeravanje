@@ -64,7 +64,7 @@
          <property name="margin">
           <number>0</number>
          </property>
-         <item row="2" column="2">
+         <item row="3" column="2">
           <widget class="QDoubleSpinBox" name="crefDoubleSpinBox">
            <property name="minimumSize">
             <size>
@@ -80,7 +80,7 @@
            </property>
           </widget>
          </item>
-         <item row="4" column="1">
+         <item row="5" column="1">
           <spacer name="verticalSpacer">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -119,7 +119,7 @@
            </property>
           </widget>
          </item>
-         <item row="3" column="1">
+         <item row="4" column="1">
           <widget class="QPushButton" name="gumbBoja">
            <property name="minimumSize">
             <size>
@@ -132,7 +132,7 @@
            </property>
           </widget>
          </item>
-         <item row="2" column="1">
+         <item row="3" column="1">
           <widget class="QLabel" name="label_3">
            <property name="minimumSize">
             <size>
@@ -192,6 +192,26 @@
             </size>
            </property>
           </spacer>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>broj minutnih podataka :</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2">
+          <widget class="QLabel" name="labelBrojPodataka">
+           <property name="text">
+            <string>n/a</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
