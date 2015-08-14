@@ -5,7 +5,7 @@ Created on Mon May 18 12:02:42 2015
 @author: DHMZ-Milic
 """
 import logging
-
+import pickle
 import copy
 import pandas as pd
 from PyQt4 import QtGui, QtCore, uic
@@ -198,6 +198,8 @@ class GlavniProzor(BASE, FORM):
         """
         self.action_Exit.triggered.connect(self.close)
         self.action_ucitaj_podatke.triggered.connect(self.read_data)
+        self.action_spremi.triggered.connect(self.save_umjeravanje_to_file)
+        self.action_ucitaj.triggered.connect(self.load_umjeravanje_from_file)
 
         self.siroviPodaciView.clicked.connect(self.odaberi_start_umjeravanja)
 
@@ -514,14 +516,38 @@ class GlavniProzor(BASE, FORM):
         else:
             return []
 
+    def blokiraj_signale(self):
+        """
+        blokiranje signala radi izbjegavanja nepotrebnog racunanja
+        """
+        self.siroviPodaciModel.blockSignals(True)
+        self.comboMjerenje.blockSignals(True)
+        self.comboDilucija.blockSignals(True)
+        self.comboZrak.blockSignals(True)
+        self.checkLinearnost.blockSignals(True)
+        self.doubleSpinBoxOpseg.blockSignals(True)
+        self.doubleSpinBoxKoncentracijaCRM.blockSignals(True)
+        self.doubleSpinBoxSljedivostCRM.blockSignals(True)
+
+    def odblokiraj_signale(self):
+        """
+        odblokiranje signala radi omogucavanja racunanja
+        """
+        self.siroviPodaciModel.blockSignals(False)
+        self.comboMjerenje.blockSignals(False)
+        self.comboDilucija.blockSignals(False)
+        self.comboZrak.blockSignals(False)
+        self.checkLinearnost.blockSignals(False)
+        self.doubleSpinBoxOpseg.blockSignals(False)
+        self.doubleSpinBoxKoncentracijaCRM.blockSignals(False)
+        self.doubleSpinBoxSljedivostCRM.blockSignals(False)
+
+
     def save_umjeravanje_to_file(self):
         """
-        pickle se lomi sa QObject...
-        #ucitani podaci
-        - kontrolni elementi (combo, spinbox)
-        - labeli
-        - ...
+        serijalizacija objekata uz pomoc modula pickle u file.
         """
+        #TODO! nadostaje serijalizacija provjere konvertera
         outputMapa = {}
         #tocke
         tocke = copy.deepcopy(self.konfiguracija.umjerneTocke)
@@ -548,28 +574,107 @@ class GlavniProzor(BASE, FORM):
         #izabrani uredjaj
         outputMapa['izabraniUredjaj'] = str(self.labelUredjaj.text())
         # provjera linearnosti
-
+        outputMapa['provjeraLinearnosti'] = self.checkLinearnost.isChecked()
         # combo mjerenje
-
+        mjerenja = list(set(self.uredjaji[str(self.labelUredjaj.text())]['komponente']))
+        mjerenja = [str(mjerenje) for mjerenje in mjerenja]
+        outputMapa['listaMjerenje'] = mjerenja
         # combo dilucija
-
+        outputMapa['listaDilucija'] = self.konfiguracija.get_listu_dilucija()
         # combo cisti zrak
-
+        outputMapa['listaZrak'] = self.konfiguracija.get_listu_cistiZrak()
         #izbor combo mjerenje
-
+        outputMapa['izborMjerenje'] = self.comboMjerenje.currentText()
         #izbor combo dilucija
-
+        outputMapa['izborDilucija'] = self.comboDilucija.currentText()
         #izbor combo cisti zrak
-
+        outputMapa['izborZrak'] = self.comboZrak.currentText()
         # opseg
-
+        outputMapa['opseg'] = self.doubleSpinBoxOpseg.value()
         # koncentracija CRM
-
+        outputMapa['cCRM'] = self.doubleSpinBoxKoncentracijaCRM.value()
         #sljedivost CRM
+        outputMapa['sCRM'] = self.doubleSpinBoxSljedivostCRM.value()
+        #spremanje mape uz pomoc pickle
+        filepath = QtGui.QFileDialog.getSaveFileName(parent=self,
+                                                     caption='Spremi file',
+                                                     filter='Umjeravanje save files (*.usf);;all (*.*)')
+        with open(filepath, mode='wb') as fajl:
+            try:
+                pickle.dump(outputMapa, fajl)
+            except Exception as err:
+                QtGui.QMessageBox.information(self, 'Problem', 'Spremanje datoteke nije uspjelo.')
+                logging.error(str(err), exc_info=True)
 
-        #TODO! pickle to some file
-
-    def load_umjeravanje_from_file(self, file):
-        #TODO! dohvati mapu objekta van!
-    pass
-
+    def load_umjeravanje_from_file(self):
+        """
+        ucitavanje umjeravanja iz filea
+        """
+        filepath = QtGui.QFileDialog.getOpenFileName(parent=self,
+                                                     caption='Ucitaj file',
+                                                     filter='Umjeravanje save files (*.usf);;all (*.*)')
+        with open(filepath, mode='rb') as fajl:
+            try:
+                #block signlale
+                self.blokiraj_signale()
+                outputMapa = pickle.load(fajl)
+                # REST postaje
+                self.postaje = outputMapa['postajeREST']
+                # REST uredjaji
+                self.uredjaji = outputMapa['uredjajiREST']
+                #file path
+                self.labelDatoteka.setText(outputMapa['izabraniFile'])
+                #izabrana postaja
+                self.labelPostaja.setText(outputMapa['izabranaPostaja'])
+                #izabrani uredjaj
+                self.labelUredjaj.setText(outputMapa['izabraniUredjaj'])
+                # combo mjerenje
+                self.comboMjerenje.clear()
+                self.comboMjerenje.addItems(outputMapa['listaMjerenje'])
+                # combo dilucija
+                self.comboDilucija.clear()
+                self.comboDilucija.addItems(outputMapa['listaDilucija'])
+                # combo cisti zrak
+                self.comboZrak.clear()
+                self.comboZrak.addItems(outputMapa['listaZrak'])
+                #tocke
+                tocke = outputMapa['umjerneTocke']
+                outTocke = []
+                for tocka in tocke:
+                    dot = konfig.Tocka()
+                    dot.ime = tocka['ime']
+                    dot.indeksi = tocka['indeksi']
+                    dot.crefFaktor = tocka['crefFaktor']
+                    r, g, b, a = tocka['rgba']
+                    dot.boja = QtGui.QColor(r, g, b, a)
+                    outTocke.append(dot)
+                self.konfiguracija.umjerneTocke = outTocke
+                # ucitani podaci...frejm
+                self.siroviPodaci = outputMapa['frejmPodataka']
+                self.siroviPodaciModel.set_frejm(self.siroviPodaci)
+                self.siroviPodaciModel.set_tocke(self.konfiguracija.umjerneTocke)
+                # start indeks u modelu
+                self.siroviPodaciModel.startIndeks = outputMapa['pocetniIndeks']
+                # provjera linearnosti
+                self.checkLinearnost.setChecked(outputMapa['provjeraLinearnosti'])
+                # opseg
+                self.doubleSpinBoxOpseg.setValue(outputMapa['opseg'])
+                # koncentracija CRM
+                self.doubleSpinBoxKoncentracijaCRM.setValue(outputMapa['cCRM'])
+                #sljedivost CRM
+                self.doubleSpinBoxSljedivostCRM.setValue(outputMapa['sCRM'])
+                #izbor combo mjerenje
+                ind = self.comboMjerenje.findText(outputMapa['izborMjerenje'])
+                self.comboMjerenje.setCurrentIndex(ind)
+                #izbor combo dilucija
+                ind = self.comboDilucija.findText(outputMapa['izborDilucija'])
+                self.comboDilucija.setCurrentIndex(ind)
+                #izbor combo cisti zrak
+                ind = self.comboZrak.findText(outputMapa['izborZrak'])
+                self.comboZrak.setCurrentIndex(ind)
+                #unblock signale i recalculate
+                self.odblokiraj_signale()
+                self.recalculate()
+            except Exception as err:
+                QtGui.QMessageBox.information(self, 'Problem', 'Ucitavanje datoteke nije uspjelo.')
+                logging.error(str(err), exc_info=True)

@@ -877,6 +877,9 @@
     </property>
     <addaction name="action_ucitaj_podatke"/>
     <addaction name="separator"/>
+    <addaction name="action_spremi"/>
+    <addaction name="action_ucitaj"/>
+    <addaction name="separator"/>
     <addaction name="action_Exit"/>
    </widget>
    <addaction name="menu_File"/>
@@ -905,6 +908,22 @@
    </property>
    <property name="toolTip">
     <string>Ucitaj sirove podatke iz datoteke</string>
+   </property>
+  </action>
+  <action name="action_spremi">
+   <property name="text">
+    <string>&amp;Spremi kao...</string>
+   </property>
+   <property name="toolTip">
+    <string>Spremi podatke i rezultate u file</string>
+   </property>
+  </action>
+  <action name="action_ucitaj">
+   <property name="text">
+    <string>&amp;Ucitaj iz...</string>
+   </property>
+   <property name="toolTip">
+    <string>Ucitaj podatke i rezultate iz filea</string>
    </property>
   </action>
  </widget>
