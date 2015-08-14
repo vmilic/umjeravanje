@@ -305,7 +305,7 @@ class RacunUmjeravanja(QtCore.QObject):
             if self.linearnost:
                 zero, span = self.pronadji_zero_span_tocke()
                 if tocka == span:
-                    return np.NaN
+                    return ''
                 elif tocka == zero:
                     c = self._izracunaj_c(tocka)
                     cref = self._izracunaj_cref(tocka)

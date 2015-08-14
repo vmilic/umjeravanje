@@ -5,6 +5,8 @@ Created on Mon May 18 12:02:42 2015
 @author: DHMZ-Milic
 """
 import logging
+
+import copy
 import pandas as pd
 from PyQt4 import QtGui, QtCore, uic
 import app.model.konfig_klase as konfig
@@ -13,7 +15,15 @@ import app.model.frejm_model as modeli
 import app.model.kalkulator as calc
 import app.view.read_file_wizard as datareader
 import app.view.canvas as canvas
+import app.view.dijalog_edit_tocke as dotedit
 
+#TODO! sredi neke boje u konfigu za tocke
+#TODO! neki save/load mehanizam (qt data stream?)
+#TODO! refresh rest data? podatke o uredjajima...gumb? akcija?
+#TODO! treba prilagoditi konverter na nesto smislenije
+#TODO! mjerne jedinice na sve
+#TODO! prilagodi gui da izgleda ako predlozak.
+#TODO! pisanje u template
 
 class TableViewRezultata(QtGui.QTableView):
     """
@@ -133,7 +143,6 @@ class GlavniProzor(BASE, FORM):
         self.rezultatParametriView.setModel(self.rezultatParametriModel)
         self.rezultatParametriView.update()
 
-        #TODO! treba prilagoditi konverter na nesto smislenije
         #definiranje modela tocaka za provjeru konvertera
         self.modelTocakaKonverter = modeli.KonverterTockeModel()
         self.modelTocakaKonverter.set_tocke(self.konfiguracija.konverterTocke)
@@ -241,8 +250,17 @@ class GlavniProzor(BASE, FORM):
         ulazni parametar indeks je indeks pod kojim se ta tocka nalazi
         u listi self.konfiguracija.umjerneTocke
         """
-        #TODO!
-        QtGui.QMessageBox.information(self, 'edit_tocku_dijalog', 'NOT IMPLEMENTED')
+        tocke = copy.deepcopy(self.konfiguracija.umjerneTocke)
+        self.dijalog = dotedit.EditTockuDijalog(indeks=indeks,
+                                                tocke=tocke,
+                                                frejm=self.siroviPodaci,
+                                                start=self.siroviPodaciModel.startIndeks,
+                                                parent=self)
+        if self.dijalog.exec_():
+            tocke = self.dijalog.get_tocke()
+            self.konfiguracija.umjerneTocke = tocke
+            self.recalculate()
+
 
 
     def read_data(self):
@@ -495,3 +513,63 @@ class GlavniProzor(BASE, FORM):
             return out
         else:
             return []
+
+    def save_umjeravanje_to_file(self):
+        """
+        pickle se lomi sa QObject...
+        #ucitani podaci
+        - kontrolni elementi (combo, spinbox)
+        - labeli
+        - ...
+        """
+        outputMapa = {}
+        #tocke
+        tocke = copy.deepcopy(self.konfiguracija.umjerneTocke)
+        outputMapa['umjerneTocke'] = []
+        for tocka in tocke:
+            obj = {}
+            obj['ime'] = tocka.ime
+            obj['indeksi'] = tocka.indeksi
+            obj['crefFaktor'] = tocka.crefFaktor
+            obj['rgba'] = (tocka.boja.red(), tocka.boja.green(), tocka.boja.blue(), tocka.boja.alpha())
+            outputMapa['umjerneTocke'].append(obj)
+        # ucitani podaci...frejm
+        outputMapa['frejmPodataka'] = self.siroviPodaci
+        # start indeks u modelu
+        outputMapa['pocetniIndeks'] = self.siroviPodaciModel.startIndeks
+        # REST postaje
+        outputMapa['postajeREST'] = self.postaje
+        # REST uredjaji
+        outputMapa['uredjajiREST'] = self.uredjaji
+        #file path
+        outputMapa['izabraniFile'] = str(self.labelDatoteka.text())
+        #izabrana postaja
+        outputMapa['izabranaPostaja'] = str(self.labelPostaja.text())
+        #izabrani uredjaj
+        outputMapa['izabraniUredjaj'] = str(self.labelUredjaj.text())
+        # provjera linearnosti
+
+        # combo mjerenje
+
+        # combo dilucija
+
+        # combo cisti zrak
+
+        #izbor combo mjerenje
+
+        #izbor combo dilucija
+
+        #izbor combo cisti zrak
+
+        # opseg
+
+        # koncentracija CRM
+
+        #sljedivost CRM
+
+        #TODO! pickle to some file
+
+    def load_umjeravanje_from_file(self, file):
+        #TODO! dohvati mapu objekta van!
+    pass
+
