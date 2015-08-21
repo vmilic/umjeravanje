@@ -17,13 +17,9 @@ import app.view.read_file_wizard as datareader
 import app.view.canvas as canvas
 import app.view.dijalog_edit_tocke as dotedit
 
-#TODO! sredi neke boje u konfigu za tocke
-#TODO! neki save/load mehanizam (qt data stream?)
 #TODO! refresh rest data? podatke o uredjajima...gumb? akcija?
-#TODO! treba prilagoditi konverter na nesto smislenije
-#TODO! mjerne jedinice na sve
-#TODO! prilagodi gui da izgleda ako predlozak.
 #TODO! pisanje u template
+
 
 class TableViewRezultata(QtGui.QTableView):
     """
@@ -34,6 +30,8 @@ class TableViewRezultata(QtGui.QTableView):
         self.verticalHeader().setVisible(False)
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,
+                                             QtGui.QSizePolicy.Preferred))
         self.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
 
     def contextMenuEvent(self, event):
@@ -104,7 +102,6 @@ class GlavniProzor(BASE, FORM):
             msg = 'Konfig aplikacije ne moze naci trazeni element.'
             logging.error(msg, exc_info=True)
             raise SystemExit('Konfiguracijski file nije ispravan.')
-        # inicijalni setup membera
         ### popunjavanje comboboxeva ###
         self.comboDilucija.addItems(self.konfiguracija.get_listu_dilucija())
         self.comboZrak.addItems(self.konfiguracija.get_listu_cistiZrak())
@@ -112,6 +109,7 @@ class GlavniProzor(BASE, FORM):
         self.checkLinearnost.setChecked(self.konfiguracija.provjeraLinearnosti)
         #definiranje kalkulatora
         self.kalkulator = calc.RacunUmjeravanja(cfg=self.konfiguracija)
+
         # view-ovi
         ### tablica sa ucitanim podacima ###
         self.siroviPodaciView.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
@@ -120,11 +118,18 @@ class GlavniProzor(BASE, FORM):
         self.rezultatView.setMinimumSize(300,250)
         self.rezultatViewLayout.addWidget(self.rezultatView)
         self.rezultatView.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+        ### tablica za prikaz slope i offset###
+        self.slopeOffsetView = QtGui.QTableView()
+        self.slopeOffsetView.setMinimumSize(200, 90)
+        self.slopeOffsetView.setMaximumSize(350, 90)
+        self.rezultatViewLayout.addWidget(self.slopeOffsetView)
+        self.slopeOffsetView.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
         ### tablica sa testom analitickih metoda ###
         self.rezultatParametriView = QtGui.QTableView()
-        self.rezultatParametriView.setMinimumSize(300,250)
+        self.rezultatParametriView.setMinimumSize(350,150)
         self.rezultatViewLayout.addWidget(self.rezultatParametriView)
         self.rezultatParametriView.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+
         # modeli
         ### model za ucitane podatke ###
         self.siroviPodaci = pd.DataFrame()
@@ -142,17 +147,18 @@ class GlavniProzor(BASE, FORM):
         self.rezultatParametriModel = modeli.RezultatParametriModel(lista=initialDefault)
         self.rezultatParametriView.setModel(self.rezultatParametriModel)
         self.rezultatParametriView.update()
-
-        #definiranje modela tocaka za provjeru konvertera
-        self.modelTocakaKonverter = modeli.KonverterTockeModel()
-        self.modelTocakaKonverter.set_tocke(self.konfiguracija.konverterTocke)
-        self.konverterTockeView.setModel(self.modelTocakaKonverter)
-        self.konverterTockeView.update()
+        ### model za prikaz slope/offset, te parametre funkcije prilagodbe (A, B) ###
+        initialDefault = self.kalkulator.get_slope_and_offset_list()
+        self.slopeOffsetModel = modeli.SlopeOffsetABModel(lista=initialDefault)
+        self.slopeOffsetView.setModel(self.slopeOffsetModel)
+        self.slopeOffsetView.update()
 
         #definiranje modela podataka za provjeru konvertera
         self.konverterPodaci = pd.DataFrame()
-        self.konverterPodaciModel = modeli.KonverterFrameModel()
+        self.konverterPodaciModel = modeli.SiroviFrameModel(tocke=self.konfiguracija.konverterTocke)
         self.konverterPodaciView.setModel(self.konverterPodaciModel)
+        self.konverterPodaciView.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+        self.konverterPodaciView.update()
 
         #setup postavki za racunanje konvertera
         self.konverterOpseg.setValue(400.0)
@@ -172,9 +178,17 @@ class GlavniProzor(BASE, FORM):
         # rezultat provjere konvertera
         self.konverterRezultat = pd.DataFrame(columns=['c, R, NOx', 'c, R, NO2', 'c, NO', 'c, NOx'])
         self.konverterRezultatModel = modeli.RezultatModel(tocke=self.konfiguracija.konverterTocke)
-        self.konverterRezultatModel.set_frejm(self.rezultatUmjeravanja)
+        self.konverterRezultatModel.set_frejm(self.konverterRezultat)
         self.konverterRezultatView.setModel(self.konverterRezultatModel)
+        self.konverterRezultatView.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
         self.konverterRezultatView.update()
+
+        ###model za prikaz tablice efikasnosti konvertera###
+        initialDefault = self.konverterKalkulator.get_listu_efikasnosti()
+        self.konverterEfikasnostModel = modeli.EfikasnostKonverteraModel(lista=initialDefault)
+        self.konverterEfikasnostView.setModel(self.konverterEfikasnostModel)
+        self.konverterEfikasnostView.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+        self.konverterEfikasnostView.update()
 
         self.inicijalizacija_grafova()
         self.setup_signal_connections()
@@ -189,8 +203,8 @@ class GlavniProzor(BASE, FORM):
                  'title':'Individualna mjerenja'}
         self.crefCanvas = canvas.Kanvas(meta=meta1)
         self.mjerenjaCanvas = canvas.KanvasMjerenja(meta=meta2)
-        self.grafoviGroupBox.layout().addWidget(self.crefCanvas)
-        self.grafoviGroupBox.layout().addWidget(self.mjerenjaCanvas)
+        self.grafoviLayout.addWidget(self.crefCanvas)
+        self.grafoviLayout.addWidget(self.mjerenjaCanvas)
 
     def setup_signal_connections(self):
         """
@@ -203,7 +217,7 @@ class GlavniProzor(BASE, FORM):
 
         self.siroviPodaciView.clicked.connect(self.odaberi_start_umjeravanja)
 
-        self.comboMjerenje.currentIndexChanged.connect(self.recalculate)
+        self.comboMjerenje.currentIndexChanged.connect(self.promjena_mjerenja)
         self.comboDilucija.currentIndexChanged.connect(self.recalculate)
         self.comboZrak.currentIndexChanged.connect(self.recalculate)
         self.checkLinearnost.toggled.connect(self.recalculate)
@@ -216,14 +230,6 @@ class GlavniProzor(BASE, FORM):
         self.konverterOpseg.valueChanged.connect(self.recalculate_konverter)
         self.cnox50SpinBox.valueChanged.connect(self.recalculate_konverter)
         self.cnox95SpinBox.valueChanged.connect(self.recalculate_konverter)
-
-        self.connect(self.siroviPodaciModel,
-                     QtCore.SIGNAL('promjena_vrijednosti_tocke'),
-                     self.refresh_views)
-
-        self.connect(self.konverterPodaciModel,
-                     QtCore.SIGNAL('promjena_vrijednosti_konverter_tocke'),
-                     self.refresh_views)
 
         self.connect(self.rezultatView,
                      QtCore.SIGNAL('dodaj_tocku'),
@@ -245,6 +251,46 @@ class GlavniProzor(BASE, FORM):
                      QtCore.SIGNAL('edit_tocku(PyQt_PyObject)'),
                      self.edit_tocku_dijalog)
 
+    def update_mjerne_jedinice(self, uredjaj, komponenta):
+        """
+        update mjerne jedinice za zadani uredjaj i komponentu.
+
+        mj-komponenta --> uredjaj[SERIAL]['komponenta'][FORMULA]['mjernaJedinica']
+        mj-analiticka metoda --> uredjaj[SERIAL]['analitickaMetoda'][NAZIV]['mjernaJedinica']
+        """
+        try:
+            mj = self.uredjaji[uredjaj]['komponenta'][komponenta]['mjernaJedinica']
+        except LookupError:
+            print('fail lookup mjerne jedinice komponente, ure={0}, komp={1}'.format(uredjaj, komponenta))
+            mj = '[n/a]'
+        try:
+            mjOpseg = self.uredjaji[uredjaj]['analitickaMetoda']['o']['mjernaJedinica']
+        except LookupError:
+            print('fail lookup mjerne jedinice opsega analitickeMetode, ure={0}, komp={1}'.format(uredjaj, komponenta))
+            mjOpseg = mj
+        self.labelJedinicaOpseg.setText(mjOpseg)
+        self.labelJedinicaCCRM.setText(mjOpseg)
+        self.rezultatModel.set_mjerna_jedinica(mjOpseg)
+        self.rezultatParametriModel.set_mjerna_jedinica(mjOpseg)
+        self.slopeOffsetModel.set_mjerna_jedinica(mjOpseg)
+        self.konverterRezultatModel.set_mjerna_jedinica(mjOpseg)
+
+    def promjena_mjerenja(self, x):
+        """
+        Promjena mjerenja (stupca za racunanje). Prema potrebi se mjenja:
+        - mjerna jedinica
+        - opseg mjerenja
+        """
+        try:
+            self.doubleSpinBoxOpseg.blockSignals(True)
+            uredjaj = self.labelUredjaj.text()
+            opseg = float(self.uredjaji[uredjaj]['analitickaMetoda']['o']['max'])
+            self.doubleSpinBoxOpseg.setValue(opseg)
+        except LookupError:
+            pass
+        finally:
+            self.doubleSpinBoxOpseg.blockSignals(False)
+        self.recalculate()
 
     def edit_tocku_dijalog(self, indeks):
         """
@@ -263,8 +309,6 @@ class GlavniProzor(BASE, FORM):
             self.konfiguracija.umjerneTocke = tocke
             self.recalculate()
 
-
-
     def read_data(self):
         """
         ucitavanje sirovih podataka preko wizarda
@@ -282,6 +326,7 @@ class GlavniProzor(BASE, FORM):
             self.labelPostaja.setText(lokacija)
             self.labelUredjaj.setText(uredjaj)
             self.postavi_sirove_podatke(frejm)
+            self.comboMjerenje.blockSignals(True)
             self.comboMjerenje.clear()
             komponente = set(self.uredjaji[uredjaj]['komponente'])
             komponente.remove('None')
@@ -289,15 +334,18 @@ class GlavniProzor(BASE, FORM):
             if 'NOx' in komponente:
                 ind = self.comboMjerenje.findText('NOx')
                 self.comboMjerenje.setCurrentIndex(ind)
+            self.comboMjerenje.blockSignals(False)
             try:
                 #ako uredjaj ima podatak o opsegu postavi opseg
                 opseg = float(self.uredjaji[uredjaj]['analitickaMetoda']['o']['max'])
+                self.doubleSpinBoxOpseg.blockSignals(True)
                 self.doubleSpinBoxOpseg.setValue(opseg)
             except LookupError:
                 #zanemari gresku (nepostojeci kljuc)
                 pass
+            finally:
+                self.doubleSpinBoxOpseg.blockSignals(False)
             self.recalculate()
-
 
     def postavi_sirove_podatke(self, frejm):
         """
@@ -312,19 +360,17 @@ class GlavniProzor(BASE, FORM):
         testSet = set(['NOx', 'NO', 'NO2'])
         dataSet = set(self.siroviPodaci.columns)
         if testSet.issubset(dataSet):
-            self.konverterPodaci = self.siroviPodaci
+            self.konverterPodaci = self.siroviPodaci.copy()
             self.konverterPodaciModel.set_frejm(self.konverterPodaci)
             self.konverterPodaciModel.set_tocke(self.konfiguracija.konverterTocke)
-            self.modelTocakaKonverter.set_frejm(self.konverterPodaci)
+            self.konverterPodaciView.setModel(self.konverterPodaciModel)
             self.konverterPodaciView.update()
-            self.konverterTockeView.update()
         else:
             self.konverterPodaci = pd.DataFrame()
             self.konverterPodaciModel.set_frejm(self.konverterPodaci)
             self.konverterPodaciModel.set_tocke(self.konfiguracija.konverterTocke)
-            self.modelTocakaKonverter.set_frejm(self.konverterPodaci)
+            self.konverterPodaciView.setModel(self.konverterPodaciModel)
             self.konverterPodaciView.update()
-            self.konverterTockeView.update()
 
     def odaberi_start_umjeravanja(self, x):
         """
@@ -348,19 +394,21 @@ class GlavniProzor(BASE, FORM):
         force refresh modela i view-ova nakon promjene podataka
         """
         # umjeravanje
+        self.rezultatUmjeravanja = self.kalkulator.rezultat
+        self.rezultatModel.set_frejm(self.rezultatUmjeravanja)
         self.siroviPodaciModel.set_tocke(self.konfiguracija.umjerneTocke)
         self.rezultatModel.set_tocke(self.konfiguracija.umjerneTocke)
         self.rezultatParametriModel.set_lista(self.kalkulator.get_provjeru_parametara())
+        self.slopeOffsetModel.set_lista(self.kalkulator.get_slope_and_offset_list())
+        #mjerne jedinice
+        komponenta = self.comboMjerenje.currentText()
+        uredjaj = self.labelUredjaj.text()
+        self.update_mjerne_jedinice(uredjaj, komponenta)
+        #update view-s
         self.siroviPodaciView.update()
         self.rezultatView.update()
         self.rezultatParametriView.update()
-        # konverter
-        self.konverterPodaciModel.set_tocke(self.konfiguracija.konverterTocke)
-        self.modelTocakaKonverter.layoutChanged.emit()
-        self.konverterRezultatModel.set_tocke(self.konfiguracija.konverterTocke)
-        self.konverterPodaciView.update()
-        self.konverterTockeView.update()
-        self.konverterRezultatView.update()
+        self.slopeOffsetView.update()
         # clear and redraw grafove
         self.crefCanvas.clear_graf()
         self.mjerenjaCanvas.clear_graf()
@@ -374,6 +422,7 @@ class GlavniProzor(BASE, FORM):
         try:
             self.kalkulator.set_uredjaj(self.uredjaji[str(self.labelUredjaj.text())])
         except LookupError:
+            QtGui.QMessageBox.warning(self, 'Problem', 'Nedostaju podaci za izabrani uredjaj.')
             logging.debug('Uredjaj nije definiran (n/a)', exc_info=True)
         self.kalkulator.set_linearnost(self.checkLinearnost.isChecked())
         self.kalkulator.set_data(self.siroviPodaci)
@@ -397,83 +446,35 @@ class GlavniProzor(BASE, FORM):
         """
         Pocetna metoda za racunanje i prikaz rezultata umjeravanja.
         """
-        #clear labele
-        self.clear_result_labels()
-        #clear grafove
-        self.crefCanvas.clear_graf()
-        self.mjerenjaCanvas.clear_graf()
         self.setup_kalkulator()
         self.kalkulator.racunaj()
-        self.prikazi_rezultate()
-        self.prikazi_grafove()
         self.refresh_views()
 
     def recalculate_konverter(self):
         """
         Poceta metoda za racunanje i prikaz rezultata provjere konvertera
         """
-        self.clear_konverter_result_labels()
         self.setup_konverter_kalkulator()
         self.konverterKalkulator.racunaj()
-        self.prikazi_rezultate_konvertera()
-        self.refresh_views()
+        self.refresh_konverter_views()
 
-
-    def prikazi_rezultate(self):
+    def refresh_konverter_views(self):
         """
-        Metoda sluzi za prikaz rezultata kalkulatora umjeravanja
+        update rezultata provjere konvertera
         """
-        # set result data to table view
-        self.rezultatUmjeravanja = self.kalkulator.rezultat
-        self.rezultatModel.set_frejm(self.rezultatUmjeravanja)
-        #slope offset i funkcija prilagodbe
-        slope = self.kalkulator.slope
-        if slope is not None:
-            self.labelSlope.setText(str(round(slope, 3)))
-        offset = self.kalkulator.offset
-        if offset is not None:
-            self.labelOffset.setText(str(round(offset, 3)))
-        prilagodbaA = self.kalkulator.prilagodbaA
-        if prilagodbaA is not None:
-            self.labelA.setText(str(round(prilagodbaA, 3)))
-        prilagodbaB = self.kalkulator.prilagodbaB
-        if prilagodbaB is not None:
-            self.labelB.setText(str(round(prilagodbaB, 3)))
-
-    def prikazi_rezultate_konvertera(self):
-        # set result data to table view
         self.konverterRezultat = self.konverterKalkulator.rezultat
         self.konverterRezultatModel.set_frejm(self.konverterRezultat)
-        # postavi labele
-        self.labelEc1.setText(str(self.konverterKalkulator.ec1))
-        self.labelEc2.setText(str(self.konverterKalkulator.ec2))
-        self.labelEc3.setText(str(self.konverterKalkulator.ec3))
-        self.labelEc.setText(str(self.konverterKalkulator.ec))
-
-    def clear_result_labels(self):
-        """
-        clear labele rezultata
-        """
-        self.labelSlope.setText('n/a')
-        self.labelOffset.setText('n/a')
-        self.labelA.setText('n/a')
-        self.labelB.setText('n/a')
-
-    def clear_konverter_result_labels(self):
-        """
-        clear labele rezultata za provjeru konvertera
-        """
-        self.labelEc1.setText('n/a')
-        self.labelEc2.setText('n/a')
-        self.labelEc3.setText('n/a')
-        self.labelEc.setText('n/a')
+        efikasnost = self.konverterKalkulator.get_listu_efikasnosti()
+        self.konverterEfikasnostModel.set_lista(efikasnost)
+        self.konverterRezultatView.update()
+        self.konverterPodaciView.update()
+        self.konverterEfikasnostView.update()
 
     def prikazi_grafove(self):
         """
         Metoda za crtanje grafova
         """
         if len(self.rezultatUmjeravanja) > 0:
-
             x = list(self.rezultatUmjeravanja.loc[:, 'cref'])
             y = list(self.rezultatUmjeravanja.loc[:, 'c'])
             if self.checkLinearnost.isChecked():
@@ -520,7 +521,6 @@ class GlavniProzor(BASE, FORM):
         """
         blokiranje signala radi izbjegavanja nepotrebnog racunanja
         """
-        self.siroviPodaciModel.blockSignals(True)
         self.comboMjerenje.blockSignals(True)
         self.comboDilucija.blockSignals(True)
         self.comboZrak.blockSignals(True)
@@ -533,7 +533,6 @@ class GlavniProzor(BASE, FORM):
         """
         odblokiranje signala radi omogucavanja racunanja
         """
-        self.siroviPodaciModel.blockSignals(False)
         self.comboMjerenje.blockSignals(False)
         self.comboDilucija.blockSignals(False)
         self.comboZrak.blockSignals(False)
@@ -542,12 +541,10 @@ class GlavniProzor(BASE, FORM):
         self.doubleSpinBoxKoncentracijaCRM.blockSignals(False)
         self.doubleSpinBoxSljedivostCRM.blockSignals(False)
 
-
     def save_umjeravanje_to_file(self):
         """
         serijalizacija objekata uz pomoc modula pickle u file.
         """
-        #TODO! nadostaje serijalizacija provjere konvertera
         outputMapa = {}
         #tocke
         tocke = copy.deepcopy(self.konfiguracija.umjerneTocke)
@@ -559,10 +556,22 @@ class GlavniProzor(BASE, FORM):
             obj['crefFaktor'] = tocka.crefFaktor
             obj['rgba'] = (tocka.boja.red(), tocka.boja.green(), tocka.boja.blue(), tocka.boja.alpha())
             outputMapa['umjerneTocke'].append(obj)
+        #konverter tocke
+        konverterTocke = copy.deepcopy(self.konfiguracija.konverterTocke)
+        outputMapa['konverterTocke'] = []
+        for tocka in konverterTocke:
+            obj = {}
+            obj['ime'] = tocka.ime
+            obj['indeksi'] = tocka.indeksi
+            obj['crefFaktor'] = tocka.crefFaktor
+            obj['rgba'] = (tocka.boja.red(), tocka.boja.green(), tocka.boja.blue(), tocka.boja.alpha())
+            outputMapa['konverterTocke'].append(obj)
         # ucitani podaci...frejm
         outputMapa['frejmPodataka'] = self.siroviPodaci
         # start indeks u modelu
         outputMapa['pocetniIndeks'] = self.siroviPodaciModel.startIndeks
+        #start indeks za konverter
+        outputMapa['konverterPocetniIndeks'] = self.konverterPodaciModel.startIndeks
         # REST postaje
         outputMapa['postajeREST'] = self.postaje
         # REST uredjaji
@@ -577,7 +586,7 @@ class GlavniProzor(BASE, FORM):
         outputMapa['provjeraLinearnosti'] = self.checkLinearnost.isChecked()
         # combo mjerenje
         mjerenja = list(set(self.uredjaji[str(self.labelUredjaj.text())]['komponente']))
-        mjerenja = [str(mjerenje) for mjerenje in mjerenja]
+        mjerenja = [str(mjerenje) for mjerenje in mjerenja if str(mjerenje) != 'None']
         outputMapa['listaMjerenje'] = mjerenja
         # combo dilucija
         outputMapa['listaDilucija'] = self.konfiguracija.get_listu_dilucija()
@@ -599,12 +608,13 @@ class GlavniProzor(BASE, FORM):
         filepath = QtGui.QFileDialog.getSaveFileName(parent=self,
                                                      caption='Spremi file',
                                                      filter='Umjeravanje save files (*.usf);;all (*.*)')
-        with open(filepath, mode='wb') as fajl:
-            try:
-                pickle.dump(outputMapa, fajl)
-            except Exception as err:
-                QtGui.QMessageBox.information(self, 'Problem', 'Spremanje datoteke nije uspjelo.')
-                logging.error(str(err), exc_info=True)
+        if filepath:
+            with open(filepath, mode='wb') as fajl:
+                try:
+                    pickle.dump(outputMapa, fajl)
+                except Exception as err:
+                    QtGui.QMessageBox.information(self, 'Problem', 'Spremanje datoteke nije uspjelo.')
+                    logging.error(str(err), exc_info=True)
 
     def load_umjeravanje_from_file(self):
         """
@@ -613,68 +623,84 @@ class GlavniProzor(BASE, FORM):
         filepath = QtGui.QFileDialog.getOpenFileName(parent=self,
                                                      caption='Ucitaj file',
                                                      filter='Umjeravanje save files (*.usf);;all (*.*)')
-        with open(filepath, mode='rb') as fajl:
-            try:
-                #block signlale
-                self.blokiraj_signale()
-                outputMapa = pickle.load(fajl)
-                # REST postaje
-                self.postaje = outputMapa['postajeREST']
-                # REST uredjaji
-                self.uredjaji = outputMapa['uredjajiREST']
-                #file path
-                self.labelDatoteka.setText(outputMapa['izabraniFile'])
-                #izabrana postaja
-                self.labelPostaja.setText(outputMapa['izabranaPostaja'])
-                #izabrani uredjaj
-                self.labelUredjaj.setText(outputMapa['izabraniUredjaj'])
-                # combo mjerenje
-                self.comboMjerenje.clear()
-                self.comboMjerenje.addItems(outputMapa['listaMjerenje'])
-                # combo dilucija
-                self.comboDilucija.clear()
-                self.comboDilucija.addItems(outputMapa['listaDilucija'])
-                # combo cisti zrak
-                self.comboZrak.clear()
-                self.comboZrak.addItems(outputMapa['listaZrak'])
-                #tocke
-                tocke = outputMapa['umjerneTocke']
-                outTocke = []
-                for tocka in tocke:
-                    dot = konfig.Tocka()
-                    dot.ime = tocka['ime']
-                    dot.indeksi = tocka['indeksi']
-                    dot.crefFaktor = tocka['crefFaktor']
-                    r, g, b, a = tocka['rgba']
-                    dot.boja = QtGui.QColor(r, g, b, a)
-                    outTocke.append(dot)
-                self.konfiguracija.umjerneTocke = outTocke
-                # ucitani podaci...frejm
-                self.siroviPodaci = outputMapa['frejmPodataka']
-                self.siroviPodaciModel.set_frejm(self.siroviPodaci)
-                self.siroviPodaciModel.set_tocke(self.konfiguracija.umjerneTocke)
-                # start indeks u modelu
-                self.siroviPodaciModel.startIndeks = outputMapa['pocetniIndeks']
-                # provjera linearnosti
-                self.checkLinearnost.setChecked(outputMapa['provjeraLinearnosti'])
-                # opseg
-                self.doubleSpinBoxOpseg.setValue(outputMapa['opseg'])
-                # koncentracija CRM
-                self.doubleSpinBoxKoncentracijaCRM.setValue(outputMapa['cCRM'])
-                #sljedivost CRM
-                self.doubleSpinBoxSljedivostCRM.setValue(outputMapa['sCRM'])
-                #izbor combo mjerenje
-                ind = self.comboMjerenje.findText(outputMapa['izborMjerenje'])
-                self.comboMjerenje.setCurrentIndex(ind)
-                #izbor combo dilucija
-                ind = self.comboDilucija.findText(outputMapa['izborDilucija'])
-                self.comboDilucija.setCurrentIndex(ind)
-                #izbor combo cisti zrak
-                ind = self.comboZrak.findText(outputMapa['izborZrak'])
-                self.comboZrak.setCurrentIndex(ind)
-                #unblock signale i recalculate
-                self.odblokiraj_signale()
-                self.recalculate()
-            except Exception as err:
-                QtGui.QMessageBox.information(self, 'Problem', 'Ucitavanje datoteke nije uspjelo.')
-                logging.error(str(err), exc_info=True)
+        if filepath:
+            with open(filepath, mode='rb') as fajl:
+                try:
+                    #block signlale
+                    self.blokiraj_signale()
+                    outputMapa = pickle.load(fajl)
+                    # REST postaje
+                    self.postaje = outputMapa['postajeREST']
+                    # REST uredjaji
+                    self.uredjaji = outputMapa['uredjajiREST']
+                    #file path
+                    self.labelDatoteka.setText(outputMapa['izabraniFile'])
+                    #izabrana postaja
+                    self.labelPostaja.setText(outputMapa['izabranaPostaja'])
+                    #izabrani uredjaj
+                    self.labelUredjaj.setText(outputMapa['izabraniUredjaj'])
+                    # combo mjerenje
+                    self.comboMjerenje.clear()
+                    self.comboMjerenje.addItems(outputMapa['listaMjerenje'])
+                    # combo dilucija
+                    self.comboDilucija.clear()
+                    self.comboDilucija.addItems(outputMapa['listaDilucija'])
+                    # combo cisti zrak
+                    self.comboZrak.clear()
+                    self.comboZrak.addItems(outputMapa['listaZrak'])
+                    #tocke
+                    tocke = outputMapa['umjerneTocke']
+                    outTocke = []
+                    for tocka in tocke:
+                        dot = konfig.Tocka()
+                        dot.ime = tocka['ime']
+                        dot.indeksi = tocka['indeksi']
+                        dot.crefFaktor = tocka['crefFaktor']
+                        r, g, b, a = tocka['rgba']
+                        dot.boja = QtGui.QColor(r, g, b, a)
+                        outTocke.append(dot)
+                    self.konfiguracija.umjerneTocke = outTocke
+                    #konverter tocke
+                    konverterTocke = outputMapa['konverterTocke']
+                    outTocke = []
+                    for tocka in konverterTocke:
+                        dot = konfig.Tocka()
+                        dot.ime = tocka['ime']
+                        dot.indeksi = tocka['indeksi']
+                        dot.crefFaktor = tocka['crefFaktor']
+                        r, g, b, a = tocka['rgba']
+                        dot.boja = QtGui.QColor(r, g, b, a)
+                        outTocke.append(dot)
+                    self.konfiguracija.konverterTocke = outTocke
+                    # ucitani podaci (frejm) za umjeravanje i konverter
+                    self.postavi_sirove_podatke(outputMapa['frejmPodataka'])
+                    # start indeks u modelu
+                    self.siroviPodaciModel.set_start(outputMapa['pocetniIndeks'])
+                    #start indeks konverter modela
+                    self.konverterPodaciModel.set_start(outputMapa['konverterPocetniIndeks'])
+                    # provjera linearnosti
+                    self.checkLinearnost.setChecked(outputMapa['provjeraLinearnosti'])
+                    # opseg
+                    self.doubleSpinBoxOpseg.setValue(outputMapa['opseg'])
+                    # koncentracija CRM
+                    self.doubleSpinBoxKoncentracijaCRM.setValue(outputMapa['cCRM'])
+                    #sljedivost CRM
+                    self.doubleSpinBoxSljedivostCRM.setValue(outputMapa['sCRM'])
+                    #izbor combo mjerenje
+                    ind = self.comboMjerenje.findText(outputMapa['izborMjerenje'])
+                    self.comboMjerenje.setCurrentIndex(ind)
+                    #izbor combo dilucija
+                    ind = self.comboDilucija.findText(outputMapa['izborDilucija'])
+                    self.comboDilucija.setCurrentIndex(ind)
+                    #izbor combo cisti zrak
+                    ind = self.comboZrak.findText(outputMapa['izborZrak'])
+                    self.comboZrak.setCurrentIndex(ind)
+                    #unblock signale i recalculate
+                    self.odblokiraj_signale()
+                    self.update_mjerne_jedinice(outputMapa['izabraniUredjaj'],
+                                                outputMapa['izborMjerenje'])
+                    self.recalculate()
+                    self.recalculate_konverter()
+                except Exception as err:
+                    QtGui.QMessageBox.information(self, 'Problem', 'Ucitavanje datoteke nije uspjelo.')
+                    logging.error(str(err), exc_info=True)

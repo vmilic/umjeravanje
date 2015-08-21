@@ -72,6 +72,10 @@ class Kanvas(FigCanvas):
         minimum = minimum - delta
         maksimum = maksimum + delta
         self.axes.set_xlim((minimum, maksimum))
+        allXLabels = self.axes.get_xticklabels(which='both') #dohvati sve labele
+        for label in allXLabels:
+            label.set_rotation(20)
+            label.set_fontsize(8)
         try:
             a = float(self.slope)
             b = float(self.offset)
@@ -97,22 +101,22 @@ class KanvasMjerenja(Kanvas):
         naredba za plot
         """
         self.clear_graf()
+        minlist = []
+        maxlist = []
         for tocka in tocke:
             x, y = self.get_tocke_za_crtanje(frejm, tocka)
+            minlist.append(min(x))
+            maxlist.append(max(x))
             r, g, b, a = tocka.boja.getRgb()
             boja = (r/255, g/255, b/255)
             alpha = a/255
-#            boja = 'b'
-#            alpha = 0.5
             self.axes.scatter(x,
                               y,
                               marker='o',
                               s=10,
                               color=boja,
                               alpha=alpha)
-        xmin, xmax = self.axes.get_xlim()
-        xmin = matplotlib.dates.num2date(xmin)
-        xmax = matplotlib.dates.num2date(xmax)
+        xmin, xmax = min(minlist), max(maxlist)
         delta = datetime.timedelta(minutes=10)
         xmin = xmin - delta
         xmax = xmax + delta
@@ -141,4 +145,3 @@ class KanvasMjerenja(Kanvas):
                 x.append(valueX)
                 y.append(valueY)
         return x, y
-

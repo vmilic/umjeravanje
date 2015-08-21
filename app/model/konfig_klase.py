@@ -44,6 +44,11 @@ class MainKonfig(QtCore.QObject):
                            start=cfg.getint(section, 'startIndeks'),
                            end=cfg.getint(section, 'endIndeks'),
                            cref=cfg.getfloat(section, 'crefFaktor'))
+            r = cfg.getint(section, 'r')
+            g = cfg.getint(section, 'g')
+            b = cfg.getint(section, 'b')
+            a = cfg.getint(section, 'a')
+            objekt.set_konfig_rgba_color(r, g, b, a)
             self.umjerneTocke.append(objekt)
         # tocke za provjeru konvertera
         self.konverterTocke = []
@@ -161,6 +166,10 @@ class Tocka(object):
         self.crefFaktor = cref
         r, g, b = list(np.random.randint(0, high=255, size=3))
         self.boja = QtGui.QColor(r, g, b, 90)
+
+    def set_konfig_rgba_color(self, r, g, b, a):
+        """setter za boju iz konfig filea"""
+        self.boja = QtGui.QColor(r, g, b, a)
 
     def test_indeks_unutar_tocke(self, indeks):
         """Provjera da li je trazeni indeks unutar indeksa tocke."""
