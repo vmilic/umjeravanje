@@ -165,7 +165,7 @@ def get_lokaciju_uredjaja(url, serial):
         r = requests.get(relurl,
                          headers=head,
                          timeout=15.1)
-        if r.ok:
+        if r.ok and r.status_code != 204:
             root = ET.fromstring(r.text)
             lokacija = root.find('nazivPostaje').text
             return str(lokacija)
@@ -271,11 +271,10 @@ def priprema_podataka_za_model_stanica_i_uredjaja(devices):
 if __name__ == '__main__':
     url1 = 'http://172.20.0.178:8080/SKZ-war/webresources/uredjaj'
     url2 = 'http://172.20.0.178:8080/SKZ-war/webresources/drzavna_mreza/postaje'
-    pos, ure = pripremi_mape_postaja_i_uredjaja(url1, url2)
-    postaje, uredjaji, komponente, output = priprema_podataka_za_model_stanica_i_uredjaja(ure)
+    pos, uredjaj = pripremi_mape_postaja_i_uredjaja(url1, url2)
+    postaje, uredjaji, komponente, output = priprema_podataka_za_model_stanica_i_uredjaja(uredjaj)
     for combo in output:
         print(combo)
-
 
 
 

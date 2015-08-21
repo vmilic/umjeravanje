@@ -3,6 +3,7 @@ Thumbs.db
 ehthumbs.db
 
 # Unimportant files
+__pycache__/
 *.csv
 *.pyc
 *.log

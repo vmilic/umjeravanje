@@ -5,6 +5,7 @@ Created on Mon May 18 13:53:03 2015
 @author: DHMZ-Milic
 """
 import pandas as pd
+import numpy as np
 from PyQt4 import QtCore, QtGui
 
 
@@ -167,138 +168,6 @@ class SiroviFrameModel(QtCore.QAbstractTableModel):
                 return str(self.dataFrejm.columns[section])
 
 
-class TockeModel(QtCore.QAbstractTableModel):
-    """
-    Model sa podacima o tockama
-    """
-    def __init__(self, frejm=None, tocke=None, parent=None):
-        QtCore.QAbstractTableModel.__init__(self, parent)
-        if frejm is None:
-            frejm = pd.DataFrame()
-        if tocke is None:
-            tocke = []
-        self.headeri = ['Naziv',
-                        'Cref [0,1]',
-                        'Pocetni indeks',
-                        'Zavrsni indeks',
-                        'Broj minutnih podataka',
-                        'Broj tocaka',
-                        'Boja']
-        self.set_frejm(frejm)
-        self.set_tocke(tocke)
-
-    def set_frejm(self, frejm):
-        """Setter za frejm sirovih podataka."""
-        self.dataFrejm = frejm
-        self.layoutChanged.emit()
-
-    def set_tocke(self, tocke):
-        """Setter za listu umjernih tocaka."""
-        self.tocke = tocke
-        self.layoutChanged.emit()
-
-    def rowCount(self, parent=QtCore.QModelIndex()):
-        """
-        MUST BE IMPLEMENTED.
-        Return number of rows of pandas dataframe
-        """
-        return len(self.tocke)
-
-    def columnCount(self, parent=QtCore.QModelIndex()):
-        """
-        MUST BE IMPLEMENTED
-        Return number of columns of pandas dataframe. (add one for time index)
-        """
-        return len(self.headeri)
-
-    def flags(self, index):
-        """
-        Flags each item in table as enabled and selectable
-        """
-        if index.isValid():
-            col = index.column()
-            if col in [0, 1, 6]:
-                return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable
-            else:
-                return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
-
-    def data(self, index, role):
-        """
-        MUST BE IMPLEMENTED.
-        Return value for each index and role
-        """
-        if not index.isValid():
-            return None
-        row = index.row()
-        col = index.column()
-        if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
-            if col == 0:
-                return str(self.tocke[row])
-            elif col == 1:
-                return round(self.tocke[row].crefFaktor, 3)
-            elif col == 2:
-                start = min(self.tocke[row].indeksi)
-                try:
-                    return str(self.dataFrejm.index[start].time())
-                except LookupError:
-                    return 'Izvan granica'
-            elif col == 3:
-                kraj = max(self.tocke[row].indeksi)
-                try:
-                    return str(self.dataFrejm.index[kraj].time())
-                except LookupError:
-                    return 'Izvan granica'
-            elif col == 4:
-                return len(self.tocke[row].indeksi)
-            elif col == 5:
-                value = int(len(self.tocke[row].indeksi)/3)
-                if value >= 5:
-                    return value
-                else:
-                    return 'Nedovoljan broj tocaka'
-        if role == QtCore.Qt.BackgroundColorRole:
-            return QtGui.QBrush(self.tocke[row].boja)
-
-    def setData(self, index, value, role=QtCore.Qt.EditRole):
-        """
-        Metoda zaduzena za postavljanje novih vrijednosti u model(editable).
-        """
-        if not index.isValid():
-            return False
-
-        if role == QtCore.Qt.EditRole:
-            row = index.row()
-            col = index.column()
-            if col == 0:
-                self.tocke[row].ime = str(value)
-                self.emit(QtCore.SIGNAL('promjena_vrijednosti_tocke'))
-                return True
-            elif col == 1:
-                try:
-                    v = float(value)
-                except Exception:
-                    return False
-                if v >= 0.0 and v <= 1.0:
-                    self.tocke[row].crefFaktor = v
-                    self.emit(QtCore.SIGNAL('promjena_vrijednosti_tocke'))
-                    return True
-                else:
-                    return False
-            else:
-                return False
-        else:
-            return False
-
-
-    def headerData(self, section, orientation, role):
-        """
-        Sets the headers of the table...
-        """
-        if orientation == QtCore.Qt.Horizontal:
-            if role == QtCore.Qt.DisplayRole:
-                return str(self.headeri[section])
-
-
 class RezultatModel(QtCore.QAbstractTableModel):
     """
     Model tablica za rezultate umjeeravanja
@@ -313,6 +182,14 @@ class RezultatModel(QtCore.QAbstractTableModel):
         else:
             self.dataFrejm = frejm
         self.tocke = tocke
+        self.jedinica = '[n/a]'
+
+    def set_mjerna_jedinica(self, jedinica):
+        """
+        setter mjerne jedinice
+        """
+        self.jedinica = "".join(['[', str(jedinica), ']'])
+        self.layoutChanged.emit()
 
     def set_frejm(self, frejm):
         """
@@ -360,8 +237,13 @@ class RezultatModel(QtCore.QAbstractTableModel):
         col = index.column()
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             value = self.dataFrejm.iloc[row, col]
+            if np.isnan(value) and col >= 1:
+                return '' #ne prikazuj nan vrijednosti za sve osim cref
             if not isinstance(value, str):
                 value = round(value, 3)
+            # zero tocka ima apsolutno odstupanje, dodaj mjernu jedinicu
+            if col == 4 and  self.dataFrejm.iloc[row, 0] == 0:
+                value = " ".join([str(value), self.jedinica])
             return str(value)
         if role == QtCore.Qt.BackgroundColorRole:
             return self.tocke[row].boja
@@ -375,7 +257,14 @@ class RezultatModel(QtCore.QAbstractTableModel):
                 return str(self.dataFrejm.index[section])
         if orientation == QtCore.Qt.Horizontal:
             if role == QtCore.Qt.DisplayRole:
-                return str(self.dataFrejm.columns[section])
+                # display mjernih jedinica u headerima
+                value = str(self.dataFrejm.columns[section])
+                if section in [4, 5]:
+                    out = " ".join([value, '[%]'])
+                    return out
+                else:
+                    out = " ".join([value, self.jedinica])
+                    return out
 
 
 class RezultatParametriModel(QtCore.QAbstractTableModel):
@@ -388,10 +277,102 @@ class RezultatParametriModel(QtCore.QAbstractTableModel):
         """
         QtCore.QAbstractTableModel.__init__(self, parent)
         self.headeri = ['Naziv',
-                        'Min. granica',
                         'Vrijednost',
                         'Max. granica']
         self.set_lista(lista)
+        self.jedinica = '[n/a]'
+
+    def set_mjerna_jedinica(self, jedinica):
+        """
+        setter mjerne jedinice
+        """
+        self.jedinica = "".join(['[', str(jedinica), ']'])
+        self.layoutChanged.emit()
+
+    def set_lista(self, lista):
+        """
+        seter za podatke
+        """
+        self.lista = lista
+        self.layoutChanged.emit()
+
+    def rowCount(self, parent=QtCore.QModelIndex()):
+        """
+        broj redova tablice
+        """
+        return len(self.lista)
+
+    def columnCount(self, parent=QtCore.QModelIndex()):
+        """
+        Broj stupaca tablice
+        """
+        return 3
+
+    def flags(self, index):
+        """
+        Flagovi celija, enabled i selectable
+        """
+        if index.isValid():
+            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+
+    def data(self, index, role):
+        """
+        Return value for each index and role
+        """
+        if not index.isValid():
+            return None
+        row = index.row()
+        col = index.column()
+        if role == QtCore.Qt.DisplayRole:
+            value = self.lista[row][col]
+            if not isinstance(value, str):
+                value = round(value, 3)
+            value = str(value)
+            # set mjerne jedinice
+            if row in [0,1,2] and col != 0:
+                return " ".join([value, self.jedinica])
+            elif row == 3 and col != 0:
+                return " ".join([value, '[%]'])
+            else:
+                return value
+        if role == QtCore.Qt.ToolTipRole:
+            return str(self.lista[row][col])
+        if role == QtCore.Qt.BackgroundColorRole:
+            test = self.lista[row][3]
+            if test:
+                return QtGui.QBrush(QtGui.QColor(0, 255, 0, 90))
+            else:
+                return QtGui.QBrush(QtGui.QColor(255, 0, 0, 90))
+
+    def headerData(self, section, orientation, role):
+        """
+        Sets the headers of the table...
+        """
+        if role == QtCore.Qt.DisplayRole:
+            if orientation == QtCore.Qt.Horizontal:
+                return str(self.headeri[section])
+
+
+class SlopeOffsetABModel(QtCore.QAbstractTableModel):
+    """
+    Model za prikaz podataka sa slope, offset, prilagodba A i prilagodba B
+    """
+    def __init__(self, lista=None, parent=None):
+        """
+        Initialize with pandas dataframe
+        """
+        QtCore.QAbstractTableModel.__init__(self, parent)
+        self.headeri = ['linearna regresija', 'funkcija prilagodbe']
+        self.indeksi = ['slope', 'offset']
+        self.set_lista(lista)
+        self.jedinica = '[n/a]'
+
+    def set_mjerna_jedinica(self, jedinica):
+        """
+        setter mjerne jedinice
+        """
+        self.jedinica = "".join(['[', str(jedinica), ']'])
+        self.layoutChanged.emit()
 
     def set_lista(self, lista):
         """
@@ -405,14 +386,14 @@ class RezultatParametriModel(QtCore.QAbstractTableModel):
         MUST BE IMPLEMENTED.
         Return number of rows of pandas dataframe
         """
-        return len(self.lista)
+        return 2
 
     def columnCount(self, parent=QtCore.QModelIndex()):
         """
         MUST BE IMPLEMENTED
         Return number of columns of pandas dataframe. (add one for time index)
         """
-        return 4
+        return 2
 
     def flags(self, index):
         """
@@ -431,18 +412,27 @@ class RezultatParametriModel(QtCore.QAbstractTableModel):
         row = index.row()
         col = index.column()
         if role == QtCore.Qt.DisplayRole:
-            value = self.lista[row][col]
+            if row == 0 and col == 0:
+                #slope
+                value = self.lista[0]
+            elif row == 1 and col == 0:
+                #offset
+                value = self.lista[1]
+            elif row == 0 and col == 1:
+                #prilagodba A
+                value = self.lista[2]
+            elif row == 1 and col == 1:
+                #prilagodba B
+                value = self.lista[3]
+
             if not isinstance(value, str):
                 value = round(value, 3)
-            return str(value)
-        if role == QtCore.Qt.ToolTipRole:
-            return str(self.lista[row][col])
-        if role == QtCore.Qt.BackgroundColorRole:
-            test = self.lista[row][4]
-            if test:
-                return QtGui.QBrush(QtGui.QColor(0, 255, 0, 90))
+            value = str(value)
+            # set mjerne jedinice
+            if row == 1:
+                return " ".join([value, self.jedinica])
             else:
-                return QtGui.QBrush(QtGui.QColor(255, 0, 0, 90))
+                return value
 
     def headerData(self, section, orientation, role):
         """
@@ -451,123 +441,8 @@ class RezultatParametriModel(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.DisplayRole:
             if orientation == QtCore.Qt.Horizontal:
                 return str(self.headeri[section])
-
-
-class KonverterTockeModel(QtCore.QAbstractTableModel):
-    """
-    Model sa podacima o tockama
-    """
-    def __init__(self, frejm=None, tocke=None, parent=None):
-        QtCore.QAbstractTableModel.__init__(self, parent)
-        if frejm is None:
-            frejm = pd.DataFrame()
-        if tocke is None:
-            tocke = []
-        self.headeri = ['Naziv',
-                        'Pocetni indeks',
-                        'Zavrsni indeks',
-                        'Broj minutnih podataka',
-                        'Broj tocaka',
-                        'Boja']
-        self.set_frejm(frejm)
-        self.set_tocke(tocke)
-
-    def set_frejm(self, frejm):
-        """Setter za frejm sirovih podataka."""
-        self.dataFrejm = frejm
-        self.layoutChanged.emit()
-
-    def set_tocke(self, tocke):
-        """Setter za listu umjernih tocaka."""
-        self.tocke = tocke
-        self.layoutChanged.emit()
-
-    def rowCount(self, parent=QtCore.QModelIndex()):
-        """
-        MUST BE IMPLEMENTED.
-        Return number of rows of pandas dataframe
-        """
-        return len(self.tocke)
-
-    def columnCount(self, parent=QtCore.QModelIndex()):
-        """
-        MUST BE IMPLEMENTED
-        Return number of columns of pandas dataframe. (add one for time index)
-        """
-        return len(self.headeri)
-
-    def flags(self, index):
-        """
-        Flags each item in table as enabled and selectable
-        """
-        if index.isValid():
-            col = index.column()
-            if col in [0, 5]:
-                return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable
-            else:
-                return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
-
-    def data(self, index, role):
-        """
-        MUST BE IMPLEMENTED.
-        Return value for each index and role
-        """
-        if not index.isValid():
-            return None
-        row = index.row()
-        col = index.column()
-        if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
-            if col == 0:
-                return str(self.tocke[row])
-            elif col == 1:
-                start = min(self.tocke[row].indeksi)
-                try:
-                    return str(self.dataFrejm.index[start].time())
-                except LookupError:
-                    return 'Izvan granica'
-            elif col == 2:
-                kraj = max(self.tocke[row].indeksi)
-                try:
-                    return str(self.dataFrejm.index[kraj].time())
-                except LookupError:
-                    return 'Izvan granica'
-            elif col == 3:
-                return len(self.tocke[row].indeksi)
-            elif col == 4:
-                value = int(len(self.tocke[row].indeksi)/3)
-                if value >= 5:
-                    return value
-                else:
-                    return 'Nedovoljan broj tocaka'
-        if role == QtCore.Qt.BackgroundColorRole:
-            return QtGui.QBrush(self.tocke[row].boja)
-
-    def setData(self, index, value, role=QtCore.Qt.EditRole):
-        """
-        Metoda zaduzena za postavljanje novih vrijednosti u model(editable).
-        """
-        if not index.isValid():
-            return False
-
-        if role == QtCore.Qt.EditRole:
-            row = index.row()
-            col = index.column()
-            if col == 0:
-                self.tocke[row].ime = str(value)
-                self.emit(QtCore.SIGNAL('promjena_vrijednosti_konverter_tocke'))
-                return True
-            else:
-                return False
-        else:
-            return False
-
-    def headerData(self, section, orientation, role):
-        """
-        Sets the headers of the table...
-        """
-        if orientation == QtCore.Qt.Horizontal:
-            if role == QtCore.Qt.DisplayRole:
-                return str(self.headeri[section])
+            elif orientation == QtCore.Qt.Vertical:
+                return str(self.indeksi[section])
 
 
 class KonverterFrameModel(QtCore.QAbstractTableModel):
@@ -760,37 +635,74 @@ class BaseFrejmModel(QtCore.QAbstractTableModel):
             if role == QtCore.Qt.DisplayRole:
                 return str(self.dataFrejm.columns[section])
 
-
-class PostajaUredjajKomponentaModel(QtCore.QAbstractTableModel):
+class EfikasnostKonverteraModel(QtCore.QAbstractTableModel):
+    """
+    Model za prikaz podataka sa slope, offset, prilagodba A i prilagodba B
+    """
     def __init__(self, lista=None, parent=None):
+        """
+        Initialize with pandas dataframe
+        """
         QtCore.QAbstractTableModel.__init__(self, parent)
-        self.headeri = ['Postaja', 'Uredjaj', 'Komponenta']
+        self.indeksi = ['Ec1', 'Ec2', 'Ec3', 'Ec']
         self.set_lista(lista)
+        self.jedinica = '[%]'
 
-    def set_lista(self, x):
-        self.lista = x
+    def set_mjerna_jedinica(self, jedinica):
+        """
+        setter mjerne jedinice
+        """
+        self.jedinica = "".join(['[', str(jedinica), ']'])
+        self.layoutChanged.emit()
+
+    def set_lista(self, lista):
+        """
+        seter za podatke
+        """
+        self.lista = lista
         self.layoutChanged.emit()
 
     def rowCount(self, parent=QtCore.QModelIndex()):
-        return len(self.lista)
+        """
+        MUST BE IMPLEMENTED.
+        Return number of rows of pandas dataframe
+        """
+        return 4
 
     def columnCount(self, parent=QtCore.QModelIndex()):
-        return 3
+        """
+        MUST BE IMPLEMENTED
+        Return number of columns of pandas dataframe. (add one for time index)
+        """
+        return 1
 
     def flags(self, index):
+        """
+        Flags each item in table as enabled and selectable
+        """
         if index.isValid():
             return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
     def data(self, index, role):
+        """
+        MUST BE IMPLEMENTED.
+        Return value for each index and role
+        """
         if not index.isValid():
             return None
         row = index.row()
-        col = index.column()
         if role == QtCore.Qt.DisplayRole:
-            return str(self.lista[row][col])
+            value = self.lista[row]
+            if not isinstance(value, str):
+                value = round(value, 3)
+            return str(value)
 
     def headerData(self, section, orientation, role):
-        if orientation == QtCore.Qt.Horizontal:
-            if role == QtCore.Qt.DisplayRole:
-                return str(self.headeri[section])
-
+        """
+        Sets the headers of the table...
+        """
+        if role == QtCore.Qt.DisplayRole:
+            if orientation == QtCore.Qt.Vertical:
+                value = str(self.indeksi[section])
+                out = " ".join([value, self.jedinica])
+                return out

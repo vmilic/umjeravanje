@@ -107,16 +107,16 @@ class RacunUmjeravanja(QtCore.QObject):
         Reset membera koji sadrze rezultate na defaultnu pocetnu vrijednost
         prije racunanja.
         """
-        #TODO!
         self.rezultat = pd.DataFrame()
         self.prilagodbaA = np.NaN
         self.prilagodbaB = np.NaN
         self.slope = np.NaN
         self.offset = np.NaN
-        self.srz = ['Srz', np.NaN, np.NaN, np.NaN, False]
-        self.srs = ['Srs', np.NaN, np.NaN, np.NaN, False]
-        self.rz = ['rz', np.NaN, np.NaN, np.NaN, False]
-        self.rmax = ['rmax', np.NaN, np.NaN, np.NaN, False]
+        self.srz = ['Srz', np.NaN, np.NaN, False]
+        self.srs = ['Srs', np.NaN, np.NaN, False]
+        self.rz = ['rz', np.NaN, np.NaN, False]
+        self.rmax = ['rmax', np.NaN, np.NaN, False]
+
         logging.debug('All result members reset to np.NaN')
 
     def get_provjeru_parametara(self):
@@ -126,6 +126,12 @@ class RacunUmjeravanja(QtCore.QObject):
         [naziv, min granica, vrijednost, max granica, test]
         """
         return [self.srz, self.srs, self.rz, self.rmax]
+
+    def get_slope_and_offset_list(self):
+        """
+        Metoda vraca listu [slope, offset, prilagodbaA, prilagodbaB]
+        """
+        return [self.slope, self.offset, self.prilagodbaA, self.prilagodbaB]
 
     def dohvati_slajs_tocke(self, tocka, stupac):
         """
@@ -186,14 +192,7 @@ class RacunUmjeravanja(QtCore.QObject):
         Racunanje cref, za datu tocku umjeravanja.
         """
         try:
-            if not self.linearnost:
-                zero, span = self.pronadji_zero_span_tocke()
-                if tocka == zero or tocka == span:
-                    return tocka.crefFaktor * self.opseg
-                else:
-                    return np.NaN
-            else:
-                return tocka.crefFaktor * self.opseg
+            return tocka.crefFaktor * self.opseg
         except Exception as err:
             logging.error(str(err), exc_info=True)
             return np.NaN
@@ -305,7 +304,7 @@ class RacunUmjeravanja(QtCore.QObject):
             if self.linearnost:
                 zero, span = self.pronadji_zero_span_tocke()
                 if tocka == span:
-                    return ''
+                    return np.NaN
                 elif tocka == zero:
                     c = self._izracunaj_c(tocka)
                     cref = self._izracunaj_cref(tocka)
@@ -454,12 +453,12 @@ class RacunUmjeravanja(QtCore.QObject):
             zero, span = self.pronadji_zero_span_tocke()
             value = self._izracunaj_sr(zero)
             if value < normMax and value >= normMin:
-                return [naziv, normMin, value, normMax, True]
+                return [naziv, value, normMax, True]
             else:
-                return [naziv, normMin, value, normMax, False]
+                return [naziv, value, normMax, False]
         except Exception as err1:
             logging.debug(str(err1), exc_info=True)
-            return ['Srz', np.NaN, np.NaN, np.Nan, False]
+            return ['Srz', np.NaN, np.NaN, False]
 
     def _provjeri_ponovljivost_stdev_za_vrijednost(self):
         """
@@ -474,12 +473,12 @@ class RacunUmjeravanja(QtCore.QObject):
             zero, span = self.pronadji_zero_span_tocke()
             value = self._izracunaj_sr(span)
             if value < normMax and value >= normMin:
-                return [naziv, normMin, value, normMax, True]
+                return [naziv, value, normMax, True]
             else:
-                return [naziv, normMin, value, normMax, False]
+                return [naziv, value, normMax, False]
         except Exception as err1:
             logging.debug(str(err1), exc_info=True)
-            return ['Srs', np.NaN, np.NaN, np.Nan, False]
+            return ['Srs', np.NaN, np.NaN, False]
 
     def _provjeri_odstupanje_od_linearnosti_u_nuli(self):
         """
@@ -494,12 +493,12 @@ class RacunUmjeravanja(QtCore.QObject):
             zero, span = self.pronadji_zero_span_tocke()
             value = self._izracunaj_r(zero)
             if value < normMax and value >= normMin:
-                return [naziv, normMin, value, normMax, True]
+                return [naziv, value, normMax, True]
             else:
-                return [naziv, normMin, value, normMax, False]
+                return [naziv, value, normMax, False]
         except Exception as err1:
             logging.debug(str(err1), exc_info=True)
-            return ['rz', np.NaN, np.NaN, np.Nan, False]
+            return ['rz', np.NaN, np.NaN, False]
 
     def _provjeri_maksimalno_relativno_odstupanje_od_linearnosti(self):
         """
@@ -516,12 +515,12 @@ class RacunUmjeravanja(QtCore.QObject):
             r = [self._izracunaj_r(tocka) for tocka in dots]
             value = max(r)
             if value < normMax and value >= normMin:
-                return [naziv, normMin, value, normMax, True]
+                return [naziv, value, normMax, True]
             else:
-                return [naziv, normMin, value, normMax, False]
+                return [naziv, value, normMax, False]
         except Exception as err1:
             logging.debug(str(err1), exc_info=True)
-            return ['rmax', np.NaN, np.NaN, np.Nan, False]
+            return ['rmax', np.NaN, np.NaN, False]
 
     def pronadji_zero_span(self):
         """
@@ -600,11 +599,18 @@ class ProvjeraKonvertera(object):
         prije racunanja.
         """
         self.rezultat = pd.DataFrame()
-        self.ec1 = 'n/a'
-        self.ec2 = 'n/a'
-        self.ec3 = 'n/a'
-        self.ec = 'n/a'
-        logging.debug('All result members reset to "n/a"')
+        self.ec1 = np.NaN
+        self.ec2 = np.NaN
+        self.ec3 = np.NaN
+        self.ec = np.NaN
+        self.ec_list = [self.ec1, self.ec2, self.ec3, self.ec]
+        logging.debug('All result members reset to np.NaN')
+
+    def get_listu_efikasnosti(self):
+        """
+        vrati listu provjere efikasnosti, [self.ec1, self.ec2, self.ec3, self.ec]
+        """
+        return self.ec_list
 
     def provjeri_parametre_prije_racunanja(self):
         """
@@ -657,6 +663,7 @@ class ProvjeraKonvertera(object):
             self._izracunaj_ec2()
             self._izracunaj_ec3()
             self._izracunaj_ec()
+        self.ec_list = [self.ec1, self.ec2, self.ec3, self.ec]
 
     def _izracunaj_crNOX(self, tocka):
         """
@@ -668,7 +675,6 @@ class ProvjeraKonvertera(object):
             return 0
         else:
             value = self.opseg / 2
-            value = round(value, 3)
             return value
 
     def _izracunaj_crNO2(self, tocka):
@@ -678,9 +684,9 @@ class ProvjeraKonvertera(object):
         imena = [str(dot) for dot in self.konfig.konverterTocke]
         ind = imena.index(str(tocka))
         if ind == 1:
-            return round(float(self.cnox50), 3)
+            return self.cnox50
         elif ind == 4:
-            return round(float(self.cnox95), 3)
+            return self.cnox95
         else:
             return 0
 
@@ -709,7 +715,7 @@ class ProvjeraKonvertera(object):
         """
         try:
             podaci = list(self.dohvati_slajs_tocke(tocka, 'NO'))
-            return round(np.average(podaci), 3)
+            return np.average(podaci)
         except Exception as err:
             logging.error(str(err), exc_info=True)
             return np.NaN
@@ -720,47 +726,46 @@ class ProvjeraKonvertera(object):
         """
         try:
             podaci = list(self.dohvati_slajs_tocke(tocka, 'NOx'))
-            return round(np.average(podaci), 3)
+            return np.average(podaci)
         except Exception as err:
             logging.error(str(err), exc_info=True)
             return np.NaN
 
     def _izracunaj_ec1(self):
         """funckija racuna ec1"""
-        numerator = 1 -(self.rezultat.iloc[3, 3] - self.rezultat.iloc[4, 3])
+        numerator = self.rezultat.iloc[3, 3] - self.rezultat.iloc[4, 3]
         denominator = self.rezultat.iloc[3, 2] - self.rezultat.iloc[4, 2]
         try:
-            value = numerator / denominator
-            value = round(float(value), 3)
-            self.ec1 = str(value)
+            value = 1 - (numerator / denominator)
+            self.ec1 = value * 100
         except ZeroDivisionError:
-            self.ec1 = 'n/a'
+            self.ec1 = np.NaN
 
     def _izracunaj_ec2(self):
         """funckija racuna ec2"""
-        numerator = 1 -(self.rezultat.iloc[0, 3] - self.rezultat.iloc[1, 3])
+        numerator = self.rezultat.iloc[0, 3] - self.rezultat.iloc[1, 3]
         denominator = self.rezultat.iloc[0, 2] - self.rezultat.iloc[1, 2]
         try:
-            value = numerator / denominator
-            value = round(float(value), 3)
-            self.ec2 = str(value)
+            value = 1 - (numerator / denominator)
+            self.ec2 = value * 100
         except ZeroDivisionError:
-            self.ec2 = 'n/a'
+            self.ec2 = np.NaN
 
     def _izracunaj_ec3(self):
         """funckija racuna ec3"""
-        numerator = 1 -(self.rezultat.iloc[4, 3] - self.rezultat.iloc[5, 3])
+        numerator = self.rezultat.iloc[4, 3] - self.rezultat.iloc[5, 3]
         denominator = self.rezultat.iloc[4, 2] - self.rezultat.iloc[5, 2]
         try:
-            value = numerator / denominator
-            value = round(float(value), 3)
-            self.ec3 = str(value)
+            value = 1 - (numerator / denominator)
+            self.ec3 = value * 100
         except ZeroDivisionError:
-            self.ec3 = 'n/a'
+            self.ec3 = np.NaN
 
     def _izracunaj_ec(self):
         """ funkcija vraca najmanji od svih ec-ova"""
-        out = set([self.ec1, self.ec2, self.ec3])
-        out.discard('NaN')
-        out = [float(i) for i in list(out)]
-        self.ec = str(min(out))
+        out = [self.ec1, self.ec2, self.ec3]
+        out = [i for i in out if not np.isnan(i)]
+        if len(out):
+            self.ec = min(out)
+        else:
+            self.ec = np.NaN
