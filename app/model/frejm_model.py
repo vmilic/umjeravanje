@@ -138,7 +138,7 @@ class SiroviFrameModel(QtCore.QAbstractTableModel):
         row = index.row()
         col = index.column()
         if role == QtCore.Qt.DisplayRole:
-            return round(float(self.dataFrejm.iloc[row, col]), 2)
+            return round(float(self.dataFrejm.iloc[row, col]), 1)
         if role == QtCore.Qt.BackgroundColorRole:
             for tocka in self.tocke:
                 if tocka.test_indeks_unutar_tocke(row):
@@ -182,13 +182,13 @@ class RezultatModel(QtCore.QAbstractTableModel):
         else:
             self.dataFrejm = frejm
         self.tocke = tocke
-        self.jedinica = '[n/a]'
+        self.jedinica = 'n/a'
 
     def set_mjerna_jedinica(self, jedinica):
         """
         setter mjerne jedinice
         """
-        self.jedinica = "".join(['[', str(jedinica), ']'])
+        self.jedinica = str(jedinica)
         self.layoutChanged.emit()
 
     def set_frejm(self, frejm):
@@ -235,14 +235,16 @@ class RezultatModel(QtCore.QAbstractTableModel):
             return None
         row = index.row()
         col = index.column()
+        if role == QtCore.Qt.TextAlignmentRole:
+            return QtCore.Qt.AlignCenter
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             value = self.dataFrejm.iloc[row, col]
             if np.isnan(value) and col >= 1:
                 return '' #ne prikazuj nan vrijednosti za sve osim cref
             if not isinstance(value, str):
-                value = round(value, 3)
+                value = round(value, 1)
             # zero tocka ima apsolutno odstupanje, dodaj mjernu jedinicu
-            if col == 4 and  self.dataFrejm.iloc[row, 0] == 0:
+            if col == 5 and  self.dataFrejm.iloc[row, 0] == 0:
                 value = " ".join([str(value), self.jedinica])
             return str(value)
         if role == QtCore.Qt.BackgroundColorRole:
@@ -252,18 +254,19 @@ class RezultatModel(QtCore.QAbstractTableModel):
         """
         Sets the headers of the table...
         """
-        if orientation == QtCore.Qt.Vertical:
-            if role == QtCore.Qt.DisplayRole:
-                return str(self.dataFrejm.index[section])
-        if orientation == QtCore.Qt.Horizontal:
-            if role == QtCore.Qt.DisplayRole:
+        if role == QtCore.Qt.DisplayRole:
+            if orientation == QtCore.Qt.Vertical:
+                return str(section+1)
+                    #return str(self.dataFrejm.index[section])
+            elif orientation == QtCore.Qt.Horizontal:
                 # display mjernih jedinica u headerima
                 value = str(self.dataFrejm.columns[section])
-                if section in [4, 5]:
-                    out = " ".join([value, '[%]'])
+                if section in [1, 5]:
+                    out = " ".join([value, '\n(%)'])
                     return out
                 else:
-                    out = " ".join([value, self.jedinica])
+                    mj = "".join(['\n', '(', self.jedinica, ')'])
+                    out = " ".join([value, mj])
                     return out
 
 
@@ -272,21 +275,20 @@ class RezultatParametriModel(QtCore.QAbstractTableModel):
     Model tablica za rezultate umjeeravanja
     """
     def __init__(self, lista=None, parent=None):
-        """
-        Initialize with pandas dataframe
-        """
         QtCore.QAbstractTableModel.__init__(self, parent)
-        self.headeri = ['Naziv',
-                        'Vrijednost',
-                        'Max. granica']
+        self.headeri = ['Naziv kriterija',
+                        'Rezultati',
+                        '   ',
+                        'Uvijet prihvatljivosti',
+                        'Ispunjeno']
         self.set_lista(lista)
-        self.jedinica = '[n/a]'
+        self.jedinica = 'n/a'
 
     def set_mjerna_jedinica(self, jedinica):
         """
         setter mjerne jedinice
         """
-        self.jedinica = "".join(['[', str(jedinica), ']'])
+        self.jedinica = str(jedinica)
         self.layoutChanged.emit()
 
     def set_lista(self, lista):
@@ -300,13 +302,13 @@ class RezultatParametriModel(QtCore.QAbstractTableModel):
         """
         broj redova tablice
         """
-        return len(self.lista)
+        return 5
 
     def columnCount(self, parent=QtCore.QModelIndex()):
         """
         Broj stupaca tablice
         """
-        return 3
+        return 5
 
     def flags(self, index):
         """
@@ -323,23 +325,34 @@ class RezultatParametriModel(QtCore.QAbstractTableModel):
             return None
         row = index.row()
         col = index.column()
+        if role == QtCore.Qt.TextAlignmentRole:
+            return QtCore.Qt.AlignCenter
         if role == QtCore.Qt.DisplayRole:
             value = self.lista[row][col]
             if not isinstance(value, str):
-                value = round(value, 3)
+                if np.isnan(value):
+                    return 'n/p'
+                value = round(value, 1)
             value = str(value)
             # set mjerne jedinice
-            if row in [0,1,2] and col != 0:
-                return " ".join([value, self.jedinica])
-            elif row == 3 and col != 0:
-                return " ".join([value, '[%]'])
+            if col == 3:
+                if row in (0,1):
+                    return " ".join(['<', value, self.jedinica])
+                elif row == 2:
+                    return " ".join([u'\u2264', value, self.jedinica])
+                else:
+                    return " ".join([u'\u2264', value, '%'])
+            elif col == 4:
+                if self.lista[row][col]:
+                    return 'DA'
+                else:
+                    return 'NE'
             else:
                 return value
         if role == QtCore.Qt.ToolTipRole:
             return str(self.lista[row][col])
         if role == QtCore.Qt.BackgroundColorRole:
-            test = self.lista[row][3]
-            if test:
+            if self.lista[row][4]:
                 return QtGui.QBrush(QtGui.QColor(0, 255, 0, 90))
             else:
                 return QtGui.QBrush(QtGui.QColor(255, 0, 0, 90))
@@ -351,6 +364,8 @@ class RezultatParametriModel(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.DisplayRole:
             if orientation == QtCore.Qt.Horizontal:
                 return str(self.headeri[section])
+            if orientation == QtCore.Qt.Vertical:
+                return str(section+1)
 
 
 class SlopeOffsetABModel(QtCore.QAbstractTableModel):
@@ -362,16 +377,18 @@ class SlopeOffsetABModel(QtCore.QAbstractTableModel):
         Initialize with pandas dataframe
         """
         QtCore.QAbstractTableModel.__init__(self, parent)
-        self.headeri = ['linearna regresija', 'funkcija prilagodbe']
-        self.indeksi = ['slope', 'offset']
+        self.naslovTop = 'Funkcija prilagodbe'
+        self.naslovBottom = 'C = A * Cm + B'
+#        self.headeri = ['linearna regresija', 'funkcija prilagodbe']
+#        self.indeksi = ['slope', 'offset']
         self.set_lista(lista)
-        self.jedinica = '[n/a]'
+        self.jedinica = 'n/a'
 
     def set_mjerna_jedinica(self, jedinica):
         """
         setter mjerne jedinice
         """
-        self.jedinica = "".join(['[', str(jedinica), ']'])
+        self.jedinica = str(jedinica)
         self.layoutChanged.emit()
 
     def set_lista(self, lista):
@@ -386,14 +403,15 @@ class SlopeOffsetABModel(QtCore.QAbstractTableModel):
         MUST BE IMPLEMENTED.
         Return number of rows of pandas dataframe
         """
-        return 2
+        return 3
 
     def columnCount(self, parent=QtCore.QModelIndex()):
         """
         MUST BE IMPLEMENTED
         Return number of columns of pandas dataframe. (add one for time index)
         """
-        return 2
+        #return 2
+        return 4
 
     def flags(self, index):
         """
@@ -407,42 +425,71 @@ class SlopeOffsetABModel(QtCore.QAbstractTableModel):
         MUST BE IMPLEMENTED.
         Return value for each index and role
         """
+        #TODO!
         if not index.isValid():
             return None
         row = index.row()
         col = index.column()
+        if role == QtCore.Qt.TextAlignmentRole:
+            return QtCore.Qt.AlignCenter
         if role == QtCore.Qt.DisplayRole:
-            if row == 0 and col == 0:
-                #slope
-                value = self.lista[0]
-            elif row == 1 and col == 0:
-                #offset
-                value = self.lista[1]
-            elif row == 0 and col == 1:
-                #prilagodba A
-                value = self.lista[2]
-            elif row == 1 and col == 1:
-                #prilagodba B
-                value = self.lista[3]
-
-            if not isinstance(value, str):
-                value = round(value, 3)
-            value = str(value)
-            # set mjerne jedinice
-            if row == 1:
-                return " ".join([value, self.jedinica])
+            if row == 0:
+                return self.naslovTop
+            elif row == 1:
+                return self.naslovBottom
             else:
+                if col == 0:
+                    value = 'A ='
+                elif col == 1:
+                    value = self.lista[2]
+                    return str(round(value, 1))
+                elif col == 2:
+                    value = 'B ='
+                elif col == 3:
+                    value = self.lista[3]
+                else:
+                    value = 'n/p'
+                if not isinstance(value, str):
+                    value = round(value, 1)
+                value = str(value)
                 return value
+#        if not index.isValid():
+#            return None
+#        row = index.row()
+#        col = index.column()
+#        if role == QtCore.Qt.DisplayRole:
+#            if row == 0 and col == 0:
+#                #slope
+#                value = self.lista[0]
+#            elif row == 1 and col == 0:
+#                #offset
+#                value = self.lista[1]
+#            elif row == 0 and col == 1:
+#                #prilagodba A
+#                value = self.lista[2]
+#            elif row == 1 and col == 1:
+#                #prilagodba B
+#                value = self.lista[3]
+#
+#            if not isinstance(value, str):
+#                value = round(value, 1)
+#            value = str(value)
+#            # set mjerne jedinice
+#            if row == 1:
+#                return " ".join([value, self.jedinica])
+#            else:
+#                return value
 
     def headerData(self, section, orientation, role):
         """
         Sets the headers of the table...
         """
         if role == QtCore.Qt.DisplayRole:
-            if orientation == QtCore.Qt.Horizontal:
-                return str(self.headeri[section])
-            elif orientation == QtCore.Qt.Vertical:
-                return str(self.indeksi[section])
+            return str(section)
+#            if orientation == QtCore.Qt.Horizontal:
+#                return str(self.headeri[section])
+#            elif orientation == QtCore.Qt.Vertical:
+#                return str(self.indeksi[section])
 
 
 class KonverterFrameModel(QtCore.QAbstractTableModel):
@@ -510,7 +557,7 @@ class KonverterFrameModel(QtCore.QAbstractTableModel):
         row = index.row()
         col = index.column()
         if role == QtCore.Qt.DisplayRole:
-            return round(float(self.dataFrejm.iloc[row, col]), 2)
+            return round(float(self.dataFrejm.iloc[row, col]), 1)
         if role == QtCore.Qt.BackgroundColorRole:
             for tocka in self.tocke:
                 if tocka.test_indeks_unutar_tocke(row):
@@ -619,7 +666,7 @@ class BaseFrejmModel(QtCore.QAbstractTableModel):
                 return self.cols[col]
         else:
             if role == QtCore.Qt.DisplayRole:
-                return round(float(self.dataFrejm.iloc[row-1, col]),2)
+                return round(float(self.dataFrejm.iloc[row-1, col]), 1)
 
     def headerData(self, section, orientation, role):
         """

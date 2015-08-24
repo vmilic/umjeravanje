@@ -21,18 +21,71 @@ import app.view.dijalog_edit_tocke as dotedit
 #TODO! pisanje u template
 
 
+class TableViewParametri(QtGui.QTableView):
+    """
+    view za rezultate...podrska za kontekstni menu
+    """
+    def __init__(self, parent=None):
+        QtGui.QTableView.__init__(self, parent=parent)
+        self.setMinimumSize(618,176)
+        self.setMaximumSize(618,176)
+
+    def reset_column_widths(self):
+        self.setWordWrap(True)
+        self.horizontalHeader().setResizeMode(QtGui.QHeaderView.Fixed)
+        self.horizontalHeader().resizeSection(0,300)
+        self.horizontalHeader().resizeSection(1,60)
+        self.horizontalHeader().resizeSection(2,60)
+        self.horizontalHeader().resizeSection(3,120)
+        self.horizontalHeader().resizeSection(4,60)
+
+class TableViewPrilagodba(QtGui.QTableView):
+    """
+    view za rezultate...podrska za kontekstni menu
+    """
+    def __init__(self, parent=None):
+        QtGui.QTableView.__init__(self, parent=parent)
+        #self.verticalHeader().setVisible(False)
+        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.verticalHeader().setVisible(False)
+        self.horizontalHeader().setVisible(False)
+
+        self.setMinimumSize(242,93)
+        self.setMaximumSize(242,93)
+
+    def reset_column_widths(self):
+        self.setWordWrap(True)
+        #TODO! centrirati display...
+        self.setSpan(1,0,1,4)
+        self.setSpan(0,0,1,4)
+        self.horizontalHeader().setResizeMode(QtGui.QHeaderView.Fixed)
+        self.horizontalHeader().resizeSection(0,60)
+        self.horizontalHeader().resizeSection(1,60)
+        self.horizontalHeader().resizeSection(2,60)
+        self.horizontalHeader().resizeSection(3,60)
+
 class TableViewRezultata(QtGui.QTableView):
     """
     view za rezultate...podrska za kontekstni menu
     """
     def __init__(self, parent=None):
         QtGui.QTableView.__init__(self, parent=parent)
-        self.verticalHeader().setVisible(False)
+        #self.verticalHeader().setVisible(False)
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,
-                                             QtGui.QSizePolicy.Preferred))
-        self.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+
+        self.setMinimumSize(518,191)
+        self.setMaximumSize(518,191)
+
+    def reset_column_widths(self):
+        self.setWordWrap(True)
+        self.horizontalHeader().setResizeMode(QtGui.QHeaderView.Fixed)
+        self.horizontalHeader().resizeSection(0,80)
+        self.horizontalHeader().resizeSection(1,80)
+        self.horizontalHeader().resizeSection(2,80)
+        self.horizontalHeader().resizeSection(3,80)
+        self.horizontalHeader().resizeSection(4,80)
 
     def contextMenuEvent(self, event):
         """
@@ -115,20 +168,19 @@ class GlavniProzor(BASE, FORM):
         self.siroviPodaciView.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
         ### tablica rezultata ###
         self.rezultatView = TableViewRezultata()
-        self.rezultatView.setMinimumSize(300,250)
         self.rezultatViewLayout.addWidget(self.rezultatView)
-        self.rezultatView.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
-        ### tablica za prikaz slope i offset###
-        self.slopeOffsetView = QtGui.QTableView()
-        self.slopeOffsetView.setMinimumSize(200, 90)
-        self.slopeOffsetView.setMaximumSize(350, 90)
-        self.rezultatViewLayout.addWidget(self.slopeOffsetView)
-        self.slopeOffsetView.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+        #XXX! label sa opisom * hardcoded za sada
+        self.starLabel = QtGui.QLabel('* Prosirena mjerna nesigurnost uz k=2 izracunata prema RU-5.5.1.11')
+        font = QtGui.QFont('Arial', pointSize=7)
+        self.starLabel.setFont(font)
+        self.rezultatViewLayout.addWidget(self.starLabel)
         ### tablica sa testom analitickih metoda ###
-        self.rezultatParametriView = QtGui.QTableView()
-        self.rezultatParametriView.setMinimumSize(350,150)
+        self.rezultatParametriView = TableViewParametri()
         self.rezultatViewLayout.addWidget(self.rezultatParametriView)
-        self.rezultatParametriView.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+        ### tablica za prikaz slope i offset###
+        #TODO! tablica
+        self.slopeOffsetView = TableViewPrilagodba()
+        self.rezultatViewLayout.addWidget(self.slopeOffsetView)
 
         # modeli
         ### model za ucitane podatke ###
@@ -137,7 +189,7 @@ class GlavniProzor(BASE, FORM):
         self.siroviPodaciView.setModel(self.siroviPodaciModel)
         self.siroviPodaciView.update()
         ### model za rezultate ###
-        self.rezultatUmjeravanja = pd.DataFrame(columns=['cref', 'c', 'sr', 'r', 'UR'])
+        self.rezultatUmjeravanja = pd.DataFrame(columns=['cref', 'U*', 'c', u'\u0394', 'sr', 'r'])
         self.rezultatModel = modeli.RezultatModel(tocke=self.konfiguracija.umjerneTocke)
         self.rezultatModel.set_frejm(self.rezultatUmjeravanja)
         self.rezultatView.setModel(self.rezultatModel)
@@ -190,6 +242,10 @@ class GlavniProzor(BASE, FORM):
         self.konverterEfikasnostView.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
         self.konverterEfikasnostView.update()
 
+        #TODO!
+        self.slopeOffsetView.reset_column_widths()
+        self.rezultatView.reset_column_widths()
+        self.rezultatParametriView.reset_column_widths()
         self.inicijalizacija_grafova()
         self.setup_signal_connections()
 
