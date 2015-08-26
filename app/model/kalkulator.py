@@ -112,10 +112,11 @@ class RacunUmjeravanja(QtCore.QObject):
         self.prilagodbaB = np.NaN
         self.slope = np.NaN
         self.offset = np.NaN
-        self.srz = ['Srz', np.NaN, np.NaN, False]
-        self.srs = ['Srs', np.NaN, np.NaN, False]
-        self.rz = ['rz', np.NaN, np.NaN, False]
-        self.rmax = ['rmax', np.NaN, np.NaN, False]
+        self.srz = ['Srz', 'Srz =', np.NaN, np.NaN, False]
+        self.srs = ['Srs', 'Sr,ct = ', np.NaN, np.NaN, False]
+        self.rz = ['rz', 'r,z =', np.NaN, np.NaN, False]
+        self.rmax = ['rmax', 'rz,rel =', np.NaN, np.NaN, False]
+        self.ec = [np.NaN, 'Ec =', np.NaN, np.NaN, False] #placehodler za efikasnost konvertera
 
         logging.debug('All result members reset to np.NaN')
 
@@ -125,7 +126,7 @@ class RacunUmjeravanja(QtCore.QObject):
         Svaki element liste je lista sa elemetima :
         [naziv, min granica, vrijednost, max granica, test]
         """
-        return [self.srz, self.srs, self.rz, self.rmax]
+        return [self.srz, self.srs, self.rz, self.rmax, self.ec]
 
     def get_slope_and_offset_list(self):
         """
@@ -410,12 +411,18 @@ class RacunUmjeravanja(QtCore.QObject):
         """
         # napravi indekse i stupce za rezultantni frejm
         indeks = [str(tocka) for tocka in tocke]
+#        columns = ['cref',
+#                   'c',
+#                   'delta',
+#                   'sr',
+#                   'r',
+#                   'UR']
         columns = ['cref',
+                   'U*',
                    'c',
-                   'delta',
+                   u'\u0394',
                    'sr',
-                   'r',
-                   'UR']
+                   'r']
         # stvaranje output frejma za tablicu
         self.rezultat = pd.DataFrame(columns=columns, index=indeks)
         # prvo izracunajmo slope i offset jer su te vrijednosti potrebne za racunanje
@@ -429,10 +436,18 @@ class RacunUmjeravanja(QtCore.QObject):
             row = str(tocka)
             self.rezultat.loc[row, 'cref'] = self._izracunaj_cref(tocka)
             self.rezultat.loc[row, 'c'] = self._izracunaj_c(tocka)
-            self.rezultat.loc[row, 'delta'] = self._izracunaj_delta(tocka)
+            self.rezultat.loc[row, u'\u0394'] = self._izracunaj_delta(tocka)
             self.rezultat.loc[row, 'sr'] = self._izracunaj_sr(tocka)
             self.rezultat.loc[row, 'r'] = self._izracunaj_r(tocka)
-            self.rezultat.loc[row, 'UR'] = self._izracunaj_UR(tocka)
+            self.rezultat.loc[row, 'U*'] = self._izracunaj_UR(tocka)
+
+#            self.rezultat.loc[row, 'cref'] = self._izracunaj_cref(tocka)
+#            self.rezultat.loc[row, 'c'] = self._izracunaj_c(tocka)
+#            self.rezultat.loc[row, 'delta'] = self._izracunaj_delta(tocka)
+#            self.rezultat.loc[row, 'sr'] = self._izracunaj_sr(tocka)
+#            self.rezultat.loc[row, 'r'] = self._izracunaj_r(tocka)
+#            self.rezultat.loc[row, 'UR'] = self._izracunaj_UR(tocka)
+
 
         # provjera ispravnosti parametara umjeravanja u odnosu na normu
         self.srz = self._provjeri_ponovljivost_stdev_u_nuli()
@@ -446,19 +461,19 @@ class RacunUmjeravanja(QtCore.QObject):
 
         rezultat je lista [naziv, min granica, vrijednost, max granica, test]
         """
+        naziv = 'Ponovljivost standardne devijacije u nuli'
         try:
             normMin = float(self.uredjaj['analitickaMetoda']['Srz']['min'])
             normMax = float(self.uredjaj['analitickaMetoda']['Srz']['max'])
-            naziv = str(self.uredjaj['analitickaMetoda']['Srz']['naziv'])
             zero, span = self.pronadji_zero_span_tocke()
             value = self._izracunaj_sr(zero)
             if value < normMax and value >= normMin:
-                return [naziv, value, normMax, True]
+                return [naziv, 'Srz =', value, normMax, True]
             else:
-                return [naziv, value, normMax, False]
+                return [naziv, 'Srz =', value, normMax, False]
         except Exception as err1:
             logging.debug(str(err1), exc_info=True)
-            return ['Srz', np.NaN, np.NaN, False]
+            return [naziv, 'Srz =', value, normMax, False]
 
     def _provjeri_ponovljivost_stdev_za_vrijednost(self):
         """
@@ -466,19 +481,19 @@ class RacunUmjeravanja(QtCore.QObject):
 
         rezultat je lista [naziv, min granica, vrijednost, max granica, test]
         """
+        naziv = 'Ponovljivost standardne devijacije pri koncentraciji ct'
         try:
             normMin = float(self.uredjaj['analitickaMetoda']['Srs']['min'])
             normMax = float(self.uredjaj['analitickaMetoda']['Srs']['max'])
-            naziv = str(self.uredjaj['analitickaMetoda']['Srs']['naziv'])
             zero, span = self.pronadji_zero_span_tocke()
             value = self._izracunaj_sr(span)
             if value < normMax and value >= normMin:
-                return [naziv, value, normMax, True]
+                return [naziv, 'Sr,ct', value, normMax, True]
             else:
-                return [naziv, value, normMax, False]
+                return [naziv, 'Sr,ct', value, normMax, False]
         except Exception as err1:
             logging.debug(str(err1), exc_info=True)
-            return ['Srs', np.NaN, np.NaN, False]
+            return [naziv, 'Sr,ct', value, normMax, False]
 
     def _provjeri_odstupanje_od_linearnosti_u_nuli(self):
         """
@@ -486,19 +501,19 @@ class RacunUmjeravanja(QtCore.QObject):
 
         rezultat je lista [naziv, min granica, vrijednost, max granica, test]
         """
+        naziv = 'Odstupanje od linearnosti u nuli'
         try:
             normMin = float(self.uredjaj['analitickaMetoda']['rz']['min'])
             normMax = float(self.uredjaj['analitickaMetoda']['rz']['max'])
-            naziv = str(self.uredjaj['analitickaMetoda']['rz']['naziv'])
             zero, span = self.pronadji_zero_span_tocke()
             value = self._izracunaj_r(zero)
-            if value < normMax and value >= normMin:
-                return [naziv, value, normMax, True]
+            if value <= normMax and value >= normMin:
+                return [naziv, 'r,z = ', value, normMax, True]
             else:
-                return [naziv, value, normMax, False]
+                return [naziv, 'r,z = ', value, normMax, False]
         except Exception as err1:
             logging.debug(str(err1), exc_info=True)
-            return ['rz', np.NaN, np.NaN, False]
+            return [naziv, 'r,z = ', value, normMax, False]
 
     def _provjeri_maksimalno_relativno_odstupanje_od_linearnosti(self):
         """
@@ -506,21 +521,21 @@ class RacunUmjeravanja(QtCore.QObject):
 
         rezultat je lista [naziv, min granica, vrijednost, max granica, test]
         """
+        naziv = 'Maksimalno relativno odstupanje od linearnosti'
         try:
             normMin = float(self.uredjaj['analitickaMetoda']['rmax']['min'])
             normMax = float(self.uredjaj['analitickaMetoda']['rmax']['max'])
-            naziv = str(self.uredjaj['analitickaMetoda']['rmax']['naziv'])
             zero, span = self.pronadji_zero_span_tocke()
             dots = [tocka for tocka in self.konfig.umjerneTocke if (tocka != zero and tocka != span)]
             r = [self._izracunaj_r(tocka) for tocka in dots]
             value = max(r)
-            if value < normMax and value >= normMin:
-                return [naziv, value, normMax, True]
+            if value <= normMax and value >= normMin:
+                return [naziv, 'rz,rel =', value, normMax, True]
             else:
-                return [naziv, value, normMax, False]
+                return [naziv, 'rz,rel =', value, normMax, False]
         except Exception as err1:
             logging.debug(str(err1), exc_info=True)
-            return ['rmax', np.NaN, np.NaN, False]
+            return [naziv, 'rz,rel =', value, normMax, False]
 
     def pronadji_zero_span(self):
         """
