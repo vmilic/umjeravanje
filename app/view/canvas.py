@@ -26,7 +26,8 @@ class Kanvas(FigCanvas):
         self.setParent(parent)
         FigCanvas.setSizePolicy(self,
                                 QtGui.QSizePolicy.MinimumExpanding,
-                                QtGui.QSizePolicy.MinimumExpanding)
+                                QtGui.QSizePolicy.Fixed)
+
         FigCanvas.updateGeometry(self)
         self.meta = meta
         self.setup_labels()
