@@ -27,12 +27,19 @@ class RichTextDelegate(QtGui.QStyledItemDelegate):
         #painter.setBackgroundMode(QtCore.Qt.OpaqueMode)
         red = index.row()
         testzaboju = index.model().lista[red][4]
-        if testzaboju:
-            painter.fillRect(option.rect, QtGui.QBrush(QtGui.QColor(0, 255, 0, 90)))
-            #painter.setBackground(QtGui.QBrush(QtGui.QColor(0, 255, 0, 90)))
+        #TODO! problem kod selektiranja... ovarloadao sam paint metodu pa se ne iscrtava selection.
+        if option.state & QtGui.QStyle.State_Selected:
+            #TODO! trebam naci istu nijansu boje za select
+            #TODO! trebam prebaciti boju za tekst u bijelu
+            painter.fillRect(option.rect, QtGui.QBrush(QtCore.Qt.blue))
+            painter.setPen(QtGui.QPen(QtCore.Qt.white))
         else:
-            painter.fillRect(option.rect, QtGui.QBrush(QtGui.QColor(255, 0, 0, 90)))
-            #painter.setBackground(QtGui.QBrush(QtGui.QColor(255, 0, 0, 90)))
+            if testzaboju:
+                painter.fillRect(option.rect, QtGui.QBrush(QtGui.QColor(0, 255, 0, 90)))
+                #painter.setBackground(QtGui.QBrush(QtGui.QColor(0, 255, 0, 90)))
+            else:
+                painter.fillRect(option.rect, QtGui.QBrush(QtGui.QColor(255, 0, 0, 90)))
+                #painter.setBackground(QtGui.QBrush(QtGui.QColor(255, 0, 0, 90)))
         painter.translate(option.rect.topLeft());
         painter.setClipRect(option.rect.translated(-option.rect.topLeft()))
         dl = doc.documentLayout()

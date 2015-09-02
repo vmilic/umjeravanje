@@ -87,6 +87,22 @@ class Kanvas(FigCanvas):
         if a is not None and b is not None:
             xos = [minimum, maksimum]
             yos = [(a*minimum)+b, (a*maksimum)+b]
+            #korelacija i slope/offset labeli
+            korelacija = np.corrcoef(x, y)[0][1]
+            if b > 0:
+                tekstl1 = 'pravac: c={0}*cref+{1}'.format(str(round(a, 2)), str(round(b, 2)))
+            else:
+                tekstl1 = 'pravac: c={0}*cref{1}'.format(str(round(a, 2)), str(round(b, 2)))
+            tekstl2 = 'korelacija = {0}'.format(str(round(korelacija, 3))) #round i ne radi ok...
+            tekst = "\n".join([tekstl1, tekstl2])
+            self.axes.text(0.8,
+                           0.2,
+                           tekst,
+                           horizontalalignment='center',
+                           verticalalignment='center',
+                           fontsize=8,
+                           transform = self.axes.transAxes,
+                           bbox=dict(facecolor='blue', alpha=0.2))
             self.axes.plot(xos,
                            yos,
                            'k-')
