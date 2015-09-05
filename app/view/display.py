@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon May 18 12:02:42 2015
+Created on Fri Aug 28 09:41:20 2015
 
 @author: DHMZ-Milic
 """
@@ -10,172 +10,14 @@ import copy
 import pandas as pd
 import numpy as np
 from PyQt4 import QtGui, QtCore, uic
+import app.view.canvas as canvas
+import app.view.pomocni as view_helpers
+import app.view.read_file_wizard as datareader
+import app.view.dijalog_edit_tocke as dotedit
 import app.model.konfig_klase as konfig
 import app.model.pomocne_funkcije as helperi
-import app.model.frejm_model as modeli
 import app.model.kalkulator as calc
-import app.view.read_file_wizard as datareader
-import app.view.canvas as canvas
-import app.view.dijalog_edit_tocke as dotedit
-
-#TODO! refresh rest data? podatke o uredjajima...gumb? akcija?
-#TODO! pisanje u template
-
-
-class TableViewParametri(QtGui.QTableView):
-    """
-    view za rezultate...podrska za kontekstni menu
-    """
-    def __init__(self, parent=None):
-        QtGui.QTableView.__init__(self, parent=parent)
-        self.setMinimumSize(630,90)
-        self.setMaximumSize(630,90)
-
-    def modify_table_size(self, x):
-        """
-        promjena velicina tablice ovisno o boolean parametru x
-        """
-        if x:
-            self.setMinimumSize(640,150)
-            self.setMaximumSize(640,150)
-        else:
-            self.setMinimumSize(640,90)
-            self.setMaximumSize(640,90)
-
-    def reset_column_widths(self):
-        self.setWordWrap(True)
-        self.horizontalHeader().setResizeMode(QtGui.QHeaderView.Fixed)
-        self.horizontalHeader().setStretchLastSection(True)
-        self.horizontalHeader().resizeSection(0,300)
-        self.horizontalHeader().resizeSection(1,60)
-        self.horizontalHeader().resizeSection(2,60)
-        self.horizontalHeader().resizeSection(3,120)
-
-class TableViewPrilagodba(QtGui.QTableView):
-    """
-    view za rezultate...podrska za kontekstni menu
-    """
-    #TODO! preko grid layouta i labela?
-    def __init__(self, parent=None):
-        QtGui.QTableView.__init__(self, parent=parent)
-        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        self.verticalHeader().setVisible(False)
-        self.horizontalHeader().setVisible(False)
-
-        self.setMinimumSize(242,93)
-        self.setMaximumSize(242,93)
-
-    def reset_column_widths(self):
-        self.setWordWrap(True)
-        self.setSpan(1,0,1,4)
-        self.setSpan(0,0,1,4)
-        self.horizontalHeader().setResizeMode(QtGui.QHeaderView.Fixed)
-        self.horizontalHeader().resizeSection(0,60)
-        self.horizontalHeader().resizeSection(1,60)
-        self.horizontalHeader().resizeSection(2,60)
-        self.horizontalHeader().resizeSection(3,60)
-
-class TableViewRezultataKonvertera(QtGui.QTableView):
-    """
-    view za rezultate...podrska za kontekstni menu
-    """
-    def __init__(self, parent=None):
-        QtGui.QTableView.__init__(self, parent=parent)
-        self.setMinimumSize(355,220)
-        self.setMaximumSize(355,220)
-
-    def reset_column_widths(self):
-        self.setWordWrap(True)
-        self.horizontalHeader().setResizeMode(QtGui.QHeaderView.Fixed)
-        self.horizontalHeader().setStretchLastSection(True)
-        self.horizontalHeader().resizeSection(0,80)
-        self.horizontalHeader().resizeSection(1,80)
-        self.horizontalHeader().resizeSection(2,80)
-
-class TableViewEfikasnostKonvertera(QtGui.QTableView):
-    """
-    view za rezultate...podrska za kontekstni menu
-    """
-    def __init__(self, parent=None):
-        QtGui.QTableView.__init__(self, parent=parent)
-        self.setMinimumSize(130,161)
-        self.setMaximumSize(130,161)
-
-    def reset_column_widths(self):
-        self.setWordWrap(True)
-        self.horizontalHeader().setResizeMode(QtGui.QHeaderView.Fixed)
-        self.horizontalHeader().setStretchLastSection(True)
-
-
-class TableViewRezultata(QtGui.QTableView):
-    """
-    view za rezultate...podrska za kontekstni menu
-    """
-    def __init__(self, parent=None):
-        QtGui.QTableView.__init__(self, parent=parent)
-        #self.verticalHeader().setVisible(False)
-        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-
-        self.setMinimumSize(535,210)
-        self.setMaximumSize(535,210)
-
-    def reset_column_widths(self):
-        self.setWordWrap(True)
-        self.horizontalHeader().setResizeMode(QtGui.QHeaderView.Fixed)
-        self.horizontalHeader().setStretchLastSection(True)
-        self.horizontalHeader().resizeSection(0,80)
-        self.horizontalHeader().resizeSection(1,80)
-        self.horizontalHeader().resizeSection(2,80)
-        self.horizontalHeader().resizeSection(3,80)
-
-    def contextMenuEvent(self, event):
-        """
-        event koji definira kontekstni menu..
-        """
-        self.selected = self.selectionModel().selection().indexes()
-        #define context menu items
-        menu = QtGui.QMenu()
-        dodaj = QtGui.QAction('Dodaj tocku', self)
-        makni = QtGui.QAction('Makni tocku', self)
-        postavke = QtGui.QAction('Postavke tocke', self)
-        menu.addAction(dodaj)
-        menu.addAction(makni)
-        menu.addSeparator()
-        menu.addAction(postavke)
-        #connect context menu items
-        dodaj.triggered.connect(self.emit_add)
-        makni.triggered.connect(self.emit_remove)
-        postavke.triggered.connect(self.emit_edit)
-        #display context menu
-        menu.exec_(self.mapToGlobal(event.pos()))
-
-    def emit_add(self, x):
-        """
-        Metoda emitira zahtjev za dodavanjem nove tocke
-        """
-        #za sada nemam pametniju ideju
-        if len(self.model().dataFrejm):
-            self.emit(QtCore.SIGNAL('dodaj_tocku'))
-
-    def emit_remove(self, x):
-        """
-        Metoda emitira zahtjev za brisanjem tocke
-        """
-        selektirani = self.selectedIndexes()
-        if selektirani:
-            indeks = selektirani[0].row()
-            self.emit(QtCore.SIGNAL('makni_tocku(PyQt_PyObject)'), indeks)
-
-    def emit_edit(self, x):
-        """
-        Metoda salje zahtjev za promjenom parametara selektirane tocke
-        """
-        selektirani = self.selectedIndexes()
-        if selektirani:
-            indeks = selektirani[0].row()
-            self.emit(QtCore.SIGNAL('edit_tocku(PyQt_PyObject)'), indeks)
+import app.model.frejm_model as modeli
 
 
 BASE, FORM = uic.loadUiType('./app/view/uiFiles/display.ui')
@@ -186,84 +28,32 @@ class GlavniProzor(BASE, FORM):
     def __init__(self, cfg=None, parent=None):
         super(BASE, self).__init__(parent)
         self.setupUi(self)
+
+        self.rezultatView = view_helpers.TableViewRezultata()
+        self.tablicaPrilagodba = view_helpers.TablicaFunkcijePrilagodbe()
+        self.tablicaParametri = view_helpers.TablicaUmjeravanjeKriterij()
+        self.konverterRezultatView = view_helpers.TableViewRezultataKonvertera()
+        self.tablicaKonverter = view_helpers.TablicaKonverterParametri()
+        self.trenutnaMjernaJedinica = 'n/a'
         self.uredjaji = {}
         self.postaje = {}
-        #citanje podataka iz konfiga
         try:
             self.konfiguracija = konfig.MainKonfig(cfg=cfg)
             self.postaje, self.uredjaji = helperi.pripremi_mape_postaja_i_uredjaja(
                 self.konfiguracija.uredjajUrl,
                 self.konfiguracija.postajeUrl)
-        except (TypeError, AttributeError):
-            msg = 'Konfig aplikacije ne moze naci trazeni element.'
-            logging.error(msg, exc_info=True)
+        except Exception as err:
+            logging.error(str(err), exc_info=True)
             raise SystemExit('Konfiguracijski file nije ispravan.')
-        ### popunjavanje comboboxeva ###
+
+        ### objekti koji racunaju ###
+        self.kalkulator = calc.RacunUmjeravanja(cfg=self.konfiguracija)
+        self.konverterKalkulator = calc.ProvjeraKonvertera(cfg=self.konfiguracija)
+
+        ### setup kontrolnih elementia gui-a (comboboxevi, checkboxevi...) ###
         self.comboDilucija.addItems(self.konfiguracija.get_listu_dilucija())
         self.comboZrak.addItems(self.konfiguracija.get_listu_cistiZrak())
-        ### stanje checkboxeva ###
         self.checkLinearnost.setChecked(self.konfiguracija.provjeraLinearnosti)
-        #definiranje kalkulatora
-        self.kalkulator = calc.RacunUmjeravanja(cfg=self.konfiguracija)
-
-        # view-ovi
-        ### tablica sa ucitanim podacima ###
-        self.siroviPodaciView.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
-        ### tablica rezultata ###
-        self.rezultatView = TableViewRezultata()
-        self.tab1RezultatLayout.addWidget(self.rezultatView) #prvi element u horizontalnom layoutu
-        ### tablica za prikaz slope i offset###
-        self.slopeOffsetView = TableViewPrilagodba() #tableview widget
-        self.slopeOffsetLayout = QtGui.QVBoxLayout() #definiranje layouta
-        self.slopeOffsetLayout.addWidget(self.slopeOffsetView) #postavljanje viewa u layout
-        self.slopeOffsetLayout.insertStretch(-1) #insert spacera na kraj radi poravnavanja
-        self.tab1RezultatLayout.addLayout(self.slopeOffsetLayout) #insert layouta na drugo mjesto u horizontalnom layoutu
-        self.tab1RezultatLayout.insertStretch(-1) #insert spacera na kraj horizontalnog layouta
-        ### tablica sa testom analitickih metoda ###
-        self.rezultatParametriView = TableViewParametri()
-        self.tab1ParametriLayout.addWidget(self.rezultatParametriView)
-        self.tab1ParametriLayout.insertStretch(-1) #insert spacera na kraj radi poravnavanja
-        self.textDelegat = modeli.RichTextDelegate()
-        self.rezultatParametriView.setItemDelegateForColumn(1, self.textDelegat)
-        ### view za rezultate provjere konvertera ###
-        self.konverterRezultatView = TableViewRezultataKonvertera()
-        self.rezultatKonverterLayout.addWidget(self.konverterRezultatView)
-        ### view za efikasnost konvertera ###
-        self.konverterEfikasnostView = TableViewEfikasnostKonvertera()
-        self.rezultatKonverterLayout.addWidget(self.konverterEfikasnostView)
-        self.rezultatKonverterLayout.insertStretch(-1)
-        # modeli
-        ### model za ucitane podatke ###
-        self.siroviPodaci = pd.DataFrame()
-        self.siroviPodaciModel = modeli.SiroviFrameModel()
-        self.siroviPodaciView.setModel(self.siroviPodaciModel)
-        self.siroviPodaciView.update()
-        ### model za rezultate ###
-        self.rezultatUmjeravanja = pd.DataFrame(columns=['cref', 'U*', 'c', u'\u0394', 'sr', 'r'])
-        self.rezultatModel = modeli.RezultatModel(tocke=self.konfiguracija.umjerneTocke)
-        self.rezultatModel.set_frejm(self.rezultatUmjeravanja)
-        self.rezultatView.setModel(self.rezultatModel)
-        self.rezultatView.update()
-        ### model za test analitickih metoda ###
-        initialDefault = self.kalkulator.get_provjeru_parametara()
-        self.rezultatParametriModel = modeli.RezultatParametriModel(lista=initialDefault)
-        self.rezultatParametriView.setModel(self.rezultatParametriModel)
-        self.rezultatParametriView.update()
-        ### model za prikaz slope/offset, te parametre funkcije prilagodbe (A, B) ###
-        initialDefault = self.kalkulator.get_slope_and_offset_list()
-        self.slopeOffsetModel = modeli.SlopeOffsetABModel(lista=initialDefault)
-        self.slopeOffsetView.setModel(self.slopeOffsetModel)
-        self.slopeOffsetView.update()
-
-        #definiranje modela podataka za provjeru konvertera
-        self.konverterPodaci = pd.DataFrame()
-        self.konverterPodaciModel = modeli.SiroviFrameModel(tocke=self.konfiguracija.konverterTocke)
-        self.konverterPodaciView.setModel(self.konverterPodaciModel)
-        self.konverterPodaciView.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
-        self.konverterPodaciView.update()
-
-        #setup postavki za racunanje konvertera
-        self.konverterOpseg.setValue(400.0)
         try:
             c50 = float(self.konfiguracija.get_konfig_element('KONVERTER_META','cNOX50'))
             c95 = float(self.konfiguracija.get_konfig_element('KONVERTER_META','cNOX95'))
@@ -274,28 +64,54 @@ class GlavniProzor(BASE, FORM):
             self.cnox50SpinBox.setValue(200.0)
             self.cnox95SpinBox.setValue(180.0)
 
-        #kalkulator za provjeru konvertera
-        self.konverterKalkulator = calc.ProvjeraKonvertera(cfg=self.konfiguracija)
+        self.rezultatUmjeravanja = pd.DataFrame(columns=['cref', 'U*', 'c', u'\u0394', 'sr', 'r'])
+        self.rezultatModel = modeli.RezultatModel(tocke=self.konfiguracija.umjerneTocke)
+        self.rezultatModel.set_frejm(self.rezultatUmjeravanja)
+        self.rezultatView.setModel(self.rezultatModel)
 
-        # rezultat provjere konvertera
+        self.siroviPodaci = pd.DataFrame()
+        self.siroviPodaciModel = modeli.SiroviFrameModel()
+        self.siroviPodaciView.setModel(self.siroviPodaciModel)
+        self.siroviPodaciView.horizontalHeader().setStretchLastSection(True)
+
         self.konverterRezultat = pd.DataFrame(columns=['c, R, NOx', 'c, R, NO2', 'c, NO', 'c, NOx'])
         self.konverterRezultatModel = modeli.KonverterRezultatModel(tocke=self.konfiguracija.konverterTocke)
         self.konverterRezultatModel.set_frejm(self.konverterRezultat)
         self.konverterRezultatView.setModel(self.konverterRezultatModel)
-        self.konverterRezultatView.update()
 
-        ###model za prikaz tablice efikasnosti konvertera###
-        initialDefault = self.konverterKalkulator.get_listu_efikasnosti()
-        self.konverterEfikasnostModel = modeli.EfikasnostKonverteraModel(lista=initialDefault)
-        self.konverterEfikasnostView.setModel(self.konverterEfikasnostModel)
-        self.konverterEfikasnostView.update()
+        self.konverterPodaci = pd.DataFrame()
+        self.konverterPodaciModel = modeli.SiroviFrameModel(tocke=self.konfiguracija.konverterTocke)
+        self.konverterPodaciView.setModel(self.konverterPodaciModel)
+        self.konverterPodaciView.horizontalHeader().setStretchLastSection(True)
+
+        ### postavljanje elemenate u layout gui-a ###
+        #grafovi
+        self.inicijalizacija_grafova()
+        #umjeravanje rezultati
+        self.layoutRezultati.addWidget(self.rezultatView)
+        #umjeravanje prilagodba
+        self.layoutPrilagodba = QtGui.QVBoxLayout()
+        self.layoutPrilagodba.addWidget(self.tablicaPrilagodba)
+        self.layoutPrilagodba.addStretch(-1)
+        self.layoutRezultati.addLayout(self.layoutPrilagodba)
+        self.layoutRezultati.addStretch(-1)
+        #umjeravanje kriterij prihvatljivosti
+        self.layoutParametri.addWidget(self.tablicaParametri)
+        self.layoutParametri.addStretch(-1)
+        #vertikalni spacer za scroll area layout
+        self.layoutUmjeravanje.addStretch(-1)
+        #konverter rezultati
+        self.layoutKonverterRezultati.addWidget(self.konverterRezultatView)
+        self.layoutKonverterRezultati.addStretch(-1)
+        #konverter kriterij prihvatljivosti
+        self.layoutKonverterParametri.addWidget(self.tablicaKonverter)
+        self.layoutKonverterParametri.addStretch(-1)
+        #vertikalni spacer za scroll area layout
+        self.konverterRezultatiLayout.addStretch(-1)
 
         self.konverterRezultatView.reset_column_widths()
-        self.slopeOffsetView.reset_column_widths()
         self.rezultatView.reset_column_widths()
-        self.rezultatParametriView.reset_column_widths()
 
-        self.inicijalizacija_grafova()
         self.setup_signal_connections()
 
     def inicijalizacija_grafova(self):
@@ -308,8 +124,9 @@ class GlavniProzor(BASE, FORM):
                  'title':'Individualna mjerenja'}
         self.crefCanvas = canvas.Kanvas(meta=meta1)
         self.mjerenjaCanvas = canvas.KanvasMjerenja(meta=meta2)
-        self.grafoviLayout.addWidget(self.crefCanvas)
-        self.grafoviLayout.addWidget(self.mjerenjaCanvas)
+        self.layoutGrafovi.addWidget(self.crefCanvas)
+        self.layoutGrafovi.addWidget(self.mjerenjaCanvas)
+
 
     def setup_signal_connections(self):
         """
@@ -359,45 +176,13 @@ class GlavniProzor(BASE, FORM):
                      QtCore.SIGNAL('edit_tocku(PyQt_PyObject)'),
                      self.edit_tocku_dijalog)
 
-        self.checkBoxKonverter.toggled.connect(self.toggle_konverter_rezultat)
-
     def toggle_linearnost(self, x):
         """
         intercept za recalculate koji sluzi za update i promjenu displaya
         rezultata umjeravanja ovisno o umjeravanju
         """
-        self.rezultatParametriView.modify_table_size(x)
-        self.rezultatParametriModel.set_linearnost(x)
+        self.tablicaParametri.toggle_linearnost(x)
         self.recalculate()
-
-    def toggle_konverter_rezultat(self, x):
-        """
-        prikaz podataka o efikasnosti konvertera u tablici sa rezultatima
-        umjeravanja.
-        """
-        try:
-            uredjaj = str(self.labelUredjaj.text())
-            mingranica = self.uredjaji[uredjaj]['analitickaMetoda']['Ec']['min']
-            maxgranica = self.uredjaji[uredjaj]['analitickaMetoda']['Ec']['max']
-            naziv = self.uredjaji[uredjaj]['analitickaMetoda']['Ec']['naziv']
-            ec = self.konverterKalkulator.get_listu_efikasnosti()[-1] #zadnji element liste je Ec
-            kriterij = "\u2264".join([
-                str(mingranica)+'%',
-                'E',
-                str(maxgranica)+'%'])
-            ispravnost = (ec >= float(mingranica) and ec <= float(maxgranica))
-            out = [naziv, 'E<sub>c</sub> = ', ec, kriterij, ispravnost]
-            if self.checkBoxKonverter.isChecked():
-                self.rezultatParametriModel.set_rezultat_efikasnosti_konvertera(out)
-            else:
-                out = [np.NaN, 'E<sub>c</sub> =', np.NaN, np.NaN, False]
-                self.rezultatParametriModel.set_rezultat_efikasnosti_konvertera(out)
-        except Exception as err:
-            logging.error(str(err), exc_info=True)
-            QtGui.QMessageBox.information(self, 'Pogreska', 'Doslo je do pogreske prilikom prikaza efikasnosti konvertera. Provjerite log za detalje.')
-            out = [np.NaN, 'E<sub>c</sub> =', np.NaN, np.NaN, False]
-            self.rezultatParametriModel.set_rezultat_efikasnosti_konvertera(out)
-
 
     def update_mjerne_jedinice(self, uredjaj, komponenta):
         """
@@ -416,14 +201,13 @@ class GlavniProzor(BASE, FORM):
         except LookupError:
             print('fail lookup mjerne jedinice opsega analitickeMetode, ure={0}, komp={1}'.format(uredjaj, komponenta))
             mjOpseg = mj
+        self.trenutnaMjernaJedinica = mjOpseg
         self.labelJedinicaOpseg.setText(mjOpseg)
         self.labelJedinicaCCRM.setText(mjOpseg)
         self.labelKonverterOpseg.setText(mjOpseg)
         self.labelKonverter50.setText(mjOpseg)
         self.labelKonverter95.setText(mjOpseg)
         self.rezultatModel.set_mjerna_jedinica(mjOpseg)
-        self.rezultatParametriModel.set_mjerna_jedinica(mjOpseg)
-        self.slopeOffsetModel.set_mjerna_jedinica(mjOpseg)
         self.konverterRezultatModel.set_mjerna_jedinica(mjOpseg)
 
     def promjena_mjerenja(self, x):
@@ -434,13 +218,16 @@ class GlavniProzor(BASE, FORM):
         """
         try:
             self.doubleSpinBoxOpseg.blockSignals(True)
+            self.konverterOpseg.blockSignals(True)
             uredjaj = self.labelUredjaj.text()
             opseg = float(self.uredjaji[uredjaj]['analitickaMetoda']['o']['max'])
             self.doubleSpinBoxOpseg.setValue(opseg)
+            self.konverterOpseg.setValue(opseg)
         except LookupError:
             pass
         finally:
             self.doubleSpinBoxOpseg.blockSignals(False)
+            self.konverterOpseg.blockSignals(False)
         self.recalculate()
 
     def edit_tocku_dijalog(self, indeks):
@@ -490,12 +277,15 @@ class GlavniProzor(BASE, FORM):
                 #ako uredjaj ima podatak o opsegu postavi opseg
                 opseg = float(self.uredjaji[uredjaj]['analitickaMetoda']['o']['max'])
                 self.doubleSpinBoxOpseg.blockSignals(True)
+                self.konverterOpseg.blockSignals(True)
                 self.doubleSpinBoxOpseg.setValue(opseg)
+                self.konverterOpseg.setValue(opseg)
             except LookupError:
                 #zanemari gresku (nepostojeci kljuc)
                 pass
             finally:
                 self.doubleSpinBoxOpseg.blockSignals(False)
+                self.konverterOpseg.blockSignals(False)
             self.recalculate()
 
     def postavi_sirove_podatke(self, frejm):
@@ -540,6 +330,65 @@ class GlavniProzor(BASE, FORM):
         self.konverterPodaciModel.set_start(x)
         self.recalculate_konverter()
 
+    def prilagodba_rezultata_za_prikaz_u_tablicama(self):
+        """
+        helper funkcija za postavljanje podataka u tablice
+        """
+        srz, srs, rz, rmax = self.kalkulator.get_provjeru_parametara()
+        parametriPrilagodbe = self.kalkulator.get_slope_and_offset_list()
+        prilagodbaA = parametriPrilagodbe[2]
+        prilagodbaB = parametriPrilagodbe[3]
+
+        out = {}
+        out['srz'] = self.pripremi_redak_za_prikaz(
+            lista=srz,
+            znak='<',
+            jedinica=self.trenutnaMjernaJedinica)
+        out['srs'] = self.pripremi_redak_za_prikaz(
+            lista=srs,
+            znak='<',
+            jedinica=self.trenutnaMjernaJedinica)
+        out['rz'] = self.pripremi_redak_za_prikaz(
+            lista=rz,
+            jedinica=self.trenutnaMjernaJedinica)
+        out['rmax'] = self.pripremi_redak_za_prikaz(
+            lista=rmax,
+            jedinica='%')
+
+        if not np.isnan(prilagodbaA):
+            prilagodbaA = round(prilagodbaA, 1)
+        if not np.isnan(prilagodbaB):
+            prilagodbaB = round(prilagodbaB, 1)
+        prilagodba = [str(prilagodbaA), str(prilagodbaB)]
+
+        return out, prilagodba
+
+    def pripremi_redak_za_prikaz(self, lista=None, rnd=1, znak='\u2264', jedinica='n/a'):
+        """
+        helper funkcija koja pretvra numericke i boolean vrijednosti u string za prikaz
+        u tablici. output je lista dobro formatiranih stringova
+        """
+        if lista == None:
+            return ['n/a', 'n/a', 'Ne']
+
+        value = lista[0]
+        if not np.isnan(value):
+            value = round(value, rnd)
+        value = str(value)
+
+        limit = lista[1]
+        if not np.isnan(limit):
+            limit = round(limit, rnd)
+        limit = " ".join([str(znak), str(limit), str(jedinica)])
+
+        ispravan = lista[2]
+        if ispravan:
+            ispravan = 'Da'
+        else:
+            ispravan = 'Ne'
+
+        return [value, limit, ispravan]
+
     def refresh_views(self):
         """
         force refresh modela i view-ova nakon promjene podataka
@@ -549,17 +398,18 @@ class GlavniProzor(BASE, FORM):
         self.rezultatModel.set_frejm(self.rezultatUmjeravanja)
         self.siroviPodaciModel.set_tocke(self.konfiguracija.umjerneTocke)
         self.rezultatModel.set_tocke(self.konfiguracija.umjerneTocke)
-        self.rezultatParametriModel.set_lista(self.kalkulator.get_provjeru_parametara())
-        self.slopeOffsetModel.set_lista(self.kalkulator.get_slope_and_offset_list())
         #mjerne jedinice
         komponenta = self.comboMjerenje.currentText()
         uredjaj = self.labelUredjaj.text()
         self.update_mjerne_jedinice(uredjaj, komponenta)
+        parametri, prilagodba = self.prilagodba_rezultata_za_prikaz_u_tablicama()
+        self.tablicaParametri.set_values(parametri)
+        self.tablicaParametri.toggle_linearnost(self.checkLinearnost.isChecked())
+        self.tablicaPrilagodba.set_values(prilagodba)
+
         #update view-s
         self.siroviPodaciView.update()
         self.rezultatView.update()
-        self.rezultatParametriView.update()
-        self.slopeOffsetView.update()
         # clear and redraw grafove
         self.crefCanvas.clear_graf()
         self.mjerenjaCanvas.clear_graf()
@@ -616,10 +466,10 @@ class GlavniProzor(BASE, FORM):
         self.konverterRezultat = self.konverterKalkulator.rezultat
         self.konverterRezultatModel.set_frejm(self.konverterRezultat)
         efikasnost = self.konverterKalkulator.get_listu_efikasnosti()
-        self.konverterEfikasnostModel.set_lista(efikasnost)
+        strEfikasnost = [str(round(i, 1)) for i in efikasnost]
+        self.tablicaKonverter.set_values(strEfikasnost)
         self.konverterRezultatView.update()
         self.konverterPodaciView.update()
-        self.konverterEfikasnostView.update()
 
     def prikazi_grafove(self):
         """
@@ -677,6 +527,7 @@ class GlavniProzor(BASE, FORM):
         self.comboZrak.blockSignals(True)
         self.checkLinearnost.blockSignals(True)
         self.doubleSpinBoxOpseg.blockSignals(True)
+        self.konverterOpseg.blockSignals(True)
         self.doubleSpinBoxKoncentracijaCRM.blockSignals(True)
         self.doubleSpinBoxSljedivostCRM.blockSignals(True)
 
@@ -689,6 +540,7 @@ class GlavniProzor(BASE, FORM):
         self.comboZrak.blockSignals(False)
         self.checkLinearnost.blockSignals(False)
         self.doubleSpinBoxOpseg.blockSignals(False)
+        self.konverterOpseg.blockSignals(False)
         self.doubleSpinBoxKoncentracijaCRM.blockSignals(False)
         self.doubleSpinBoxSljedivostCRM.blockSignals(False)
 
@@ -833,6 +685,7 @@ class GlavniProzor(BASE, FORM):
                     self.checkLinearnost.setChecked(outputMapa['provjeraLinearnosti'])
                     # opseg
                     self.doubleSpinBoxOpseg.setValue(outputMapa['opseg'])
+                    self.konverterOpseg.setValue(outputMapa['opseg'])
                     # koncentracija CRM
                     self.doubleSpinBoxKoncentracijaCRM.setValue(outputMapa['cCRM'])
                     #sljedivost CRM

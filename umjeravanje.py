@@ -54,6 +54,7 @@ def main():
     #setup logging
     setup_logging(file=filename, mode=filemode, lvl=level)
     aplikacija = QtGui.QApplication(sys.argv)
+    #TODO!
     mainwindow = display.GlavniProzor(cfg=config)
     mainwindow.show()
     sys.exit(aplikacija.exec_())
