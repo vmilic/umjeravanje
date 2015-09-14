@@ -5,6 +5,9 @@ Created on Fri Aug 28 10:40:16 2015
 @author: DHMZ-Milic
 """
 from PyQt4 import QtGui, QtCore
+import numpy as np
+import pandas as pd
+
 
 class TableViewRezultata(QtGui.QTableView):
     """
@@ -458,10 +461,182 @@ class TablicaKonverterParametri(QtGui.QWidget):
         self.valueEc.setText('n/a')
 
 
+class CustomLabelContext(CustomLabel):
+    """
+    custom label sa podrskom za kontekstni meni
+    """
+    def __init__(self, tekst='n/a', center=False, parent=None):
+        CustomLabel.__init__(self, tekst=tekst, center=center, parent=parent)
+        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
 
 
+class TablicaUmjeravanje(QtGui.QWidget):
+    def __init__(self, tocke=None, data=None, jedinica=None, parent=None):
+        """
+        Widget sa tablicom za prikaz rezultata umjeravanja.
 
+        inicijalizacija sa tockama umjeravanja, pandas datafrejmom sa rezultatima
+        umjeravanja i stringom mjerne jedinice
+        """
+        QtGui.QWidget.__init__(self, parent=parent)
+        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        #bitni memberi
+        self.tocke = tocke #tocke umjeravanja
+        self.data = data #pandas datafrejm rezultata umjeravanja
+        self.jedinica = jedinica #string mjerne jedinice
+        assert self.tocke != None , 'Nisu zadane tocke umjeravanja'
+        assert isinstance(self.data, pd.core.frame.DataFrame), 'Rezultati umjeravanja nisu pandas dataframe'
+        assert self.jedinica != None , 'Nije zadana mjerna jedinica'
+        assert len(self.tocke) == len(self.data), 'Broj tocaka ne odgovara broju rezultata'
 
+        self.sastavi_tablicu()
 
+        self.setLayout(self.gridLayout)
 
+    def sastavi_tablicu(self):
+        """
+        sastavljanje output tablice.
+        """
+        #definiranje grid layouta
+        self.gridLayout = QtGui.QGridLayout()
+        self.gridLayout.setHorizontalSpacing(1)
+        self.gridLayout.setVerticalSpacing(1)
+        self.gridLayout.setContentsMargins(0,0,0,0)
+        #headeri
+        self.redniBroj = CustomLabelContext(tekst='#', center=True)
+        self.redniBroj.customContextMenuRequested.connect(self.contextMenuEvent)
+        t = "".join(['cref\n(', self.jedinica, ')'])
+        self.cref = CustomLabelContext(tekst=t, center=True)
+        #self.cref.customContextMenuRequested.connect(self.contextMenuEvent)
+        self.U = CustomLabelContext(tekst='U\n(%)', center=True)
+        #self.U.customContextMenuRequested.connect(self.contextMenuEvent)
+        t = "".join(['c\n(', self.jedinica, ')'])
+        self.c = CustomLabelContext(tekst='c', center=True)
+        #self.c.customContextMenuRequested.connect(self.contextMenuEvent)
+        t = "".join(['\u0394\n(', self.jedinica, ')'])
+        self.delta = CustomLabelContext(tekst=t, center=True)
+        #self.delta.customContextMenuRequested.connect(self.contextMenuEvent)
+        t = "".join(['sr\n(', self.jedinica, ')'])
+        self.sr = CustomLabelContext(tekst=t, center=True)
+        #self.sr.customContextMenuRequested.connect(self.contextMenuEvent)
+        self.r = CustomLabelContext(tekst='r\n(%)', center=True)
+        #self.r.customContextMenuRequested.connect(self.contextMenuEvent)
+        #dodavanje headera u layout
+        self.gridLayout.addWidget(self.redniBroj, 0, 0, 1, 1)
+        self.gridLayout.addWidget(self.cref, 0, 1, 1, 1)
+        self.gridLayout.addWidget(self.U, 0, 2, 1, 1)
+        self.gridLayout.addWidget(self.c, 0, 3, 1, 1)
+        self.gridLayout.addWidget(self.delta, 0, 4, 1, 1)
+        self.gridLayout.addWidget(self.sr, 0, 5, 1, 1)
+        self.gridLayout.addWidget(self.r, 0, 6, 1, 1)
+        #podesavanje horizontalnih dimenzija labela u layoutu za pojedine stupce
+        self.set_minimum_width_for_column(0, 30)
+        self.set_minimum_width_for_column(1, 75)
+        self.set_minimum_width_for_column(2, 75)
+        self.set_minimum_width_for_column(3, 75)
+        self.set_minimum_width_for_column(4, 75)
+        self.set_minimum_width_for_column(5, 75)
+        self.set_minimum_width_for_column(6, 75)
+        #dodavanje labela sa rezultatima u layout
+        for i in range(len(self.tocke)):
+            #TODO!
+            self.set_minimum_height_for_row(i+1, 30)
+            tocka = self.tocke[i]
+            for j in range(7):
+                #zapis rednog broja podatka
+                if j == 0:
+                    txt = str(i+1)
+                else:
+                    podatak = self.data.iloc[i, j-1] #trazeni element u frejmu
+                    podatak = round(podatak, 2)
+                    if np.isnan(podatak):
+                        #nan slucaj
+                        txt = ""
+                    elif j == 6 and self.data.iloc[i, 0] == 0:
+                        #zero slucaj kod racunanja r
+                        txt = " ".join([str(podatak), self.jedinica])
+                    else:
+                        #normalni slucaj
+                        txt = str(podatak)
+                lab = CustomLabelContext(tekst=txt)
+                #connect signal za custom menu
+                lab.customContextMenuRequested.connect(self.contextMenuEvent)
+                #boja
+                lab.set_color(tocka.boja)
+                #postavljanje labela u layout
+                self.gridLayout.addWidget(lab, i+1, j, 1, 1)
+
+    def set_minimum_width_for_column(self, col, size):
+        """
+        odredjivanje minimalne sirine stupca
+        """
+        self.gridLayout.setColumnMinimumWidth(col, size)
+
+    def set_minimum_height_for_row(self, row, size):
+        """
+        odredjivanje minimalne visine redka
+        """
+        self.gridLayout.setRowMinimumHeight(row, size)
+
+    def contextMenuEvent(self, position):
+        """
+        Prikaz kontekstnog menija
+        """
+        snd = self.sender()
+        self.redak, self.stupac = self.find_location_of_sender(snd)
+        menu = QtGui.QMenu()
+        dodaj = QtGui.QAction('Dodaj tocku', self)
+        makni = QtGui.QAction('Makni tocku', self)
+        postavke = QtGui.QAction('Postavke tocke', self)
+        nred = self.gridLayout.rowCount()
+        if nred > 3:
+            menu.addAction(dodaj)
+            menu.addAction(makni)
+            menu.addSeparator()
+            menu.addAction(postavke)
+            #connect context menu items
+            dodaj.triggered.connect(self.emit_add)
+            makni.triggered.connect(self.emit_remove)
+            postavke.triggered.connect(self.emit_edit)
+        else:
+            menu.addAction(dodaj)
+            menu.addSeparator()
+            menu.addAction(postavke)
+            #connect context menu items
+            dodaj.triggered.connect(self.emit_add)
+            postavke.triggered.connect(self.emit_edit)
+        #display context menu
+        menu.exec_(self.sender().mapToGlobal(position))
+
+    def find_location_of_sender(self, ref):
+        """
+        funkcija vraca redak i stupac gdje se nalazi widget koji je pozvao kontekstni
+        menu
+        """
+        rows = self.gridLayout.rowCount()
+        cols = self.gridLayout.columnCount()
+        for i in range(rows):
+            for j in range(cols):
+                item = self.gridLayout.itemAtPosition(i, j).widget()
+                if item == ref:
+                    return i, j
+        return None, None
+
+    def emit_add(self, x):
+        """
+        Metoda emitira zahtjev za dodavanjem nove tocke
+        """
+        self.emit(QtCore.SIGNAL('addrow'))
+
+    def emit_remove(self, x):
+        """
+        Metoda emitira zahtjev za brisanjem tocke
+        """
+        self.emit(QtCore.SIGNAL('removerow(PyQt_PyObject)'), self.redak)
+
+    def emit_edit(self, x):
+        """
+        Metoda salje zahtjev za promjenom parametara selektirane tocke
+        """
+        self.emit(QtCore.SIGNAL('editrow(PyQt_PyObject)'), self.redak)
 

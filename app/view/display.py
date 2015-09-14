@@ -29,7 +29,7 @@ class GlavniProzor(BASE, FORM):
         super(BASE, self).__init__(parent)
         self.setupUi(self)
 
-        self.rezultatView = view_helpers.TableViewRezultata()
+        self.tablicaRezultataUmjeravanja = QtGui.QWidget() #placeholder za tablicu
         self.tablicaPrilagodba = view_helpers.TablicaFunkcijePrilagodbe()
         self.tablicaParametri = view_helpers.TablicaUmjeravanjeKriterij()
         self.konverterRezultatView = view_helpers.TableViewRezultataKonvertera()
@@ -64,10 +64,8 @@ class GlavniProzor(BASE, FORM):
             self.cnox50SpinBox.setValue(200.0)
             self.cnox95SpinBox.setValue(180.0)
 
-        self.rezultatUmjeravanja = pd.DataFrame(columns=['cref', 'U*', 'c', u'\u0394', 'sr', 'r'])
-        self.rezultatModel = modeli.RezultatModel(tocke=self.konfiguracija.umjerneTocke)
-        self.rezultatModel.set_frejm(self.rezultatUmjeravanja)
-        self.rezultatView.setModel(self.rezultatModel)
+        self.rezultatUmjeravanja = self.generiraj_nan_frejm()
+        self.gereriraj_tablicu_rezultata_umjeravanja()
 
         self.siroviPodaci = pd.DataFrame()
         self.siroviPodaciModel = modeli.SiroviFrameModel()
@@ -88,7 +86,7 @@ class GlavniProzor(BASE, FORM):
         #grafovi
         self.inicijalizacija_grafova()
         #umjeravanje rezultati
-        self.layoutRezultati.addWidget(self.rezultatView)
+        self.layoutRezultati.addWidget(self.tablicaRezultataUmjeravanja)
         #umjeravanje prilagodba
         self.layoutPrilagodba = QtGui.QVBoxLayout()
         self.layoutPrilagodba.addWidget(self.tablicaPrilagodba)
@@ -110,7 +108,6 @@ class GlavniProzor(BASE, FORM):
         self.konverterRezultatiLayout.addStretch(-1)
 
         self.konverterRezultatView.reset_column_widths()
-        self.rezultatView.reset_column_widths()
 
         self.setup_signal_connections()
 
@@ -156,25 +153,9 @@ class GlavniProzor(BASE, FORM):
         self.doubleSpinBoxOpseg.valueChanged.connect(self.konverterOpseg.setValue)
         self.konverterOpseg.valueChanged.connect(self.doubleSpinBoxOpseg.setValue)
 
-        self.connect(self.rezultatView,
-                     QtCore.SIGNAL('dodaj_tocku'),
-                     self.konfiguracija.dodaj_tocku)
-
         self.connect(self.konfiguracija,
                      QtCore.SIGNAL('promjena_umjernih_tocaka'),
                      self.recalculate)
-
-        self.connect(self.rezultatView,
-                     QtCore.SIGNAL('makni_tocku(PyQt_PyObject)'),
-                     self.konfiguracija.makni_tocku)
-
-        self.connect(self.konfiguracija,
-                     QtCore.SIGNAL('promjena_umjernih_tocaka'),
-                     self.recalculate)
-
-        self.connect(self.rezultatView,
-                     QtCore.SIGNAL('edit_tocku(PyQt_PyObject)'),
-                     self.edit_tocku_dijalog)
 
     def toggle_linearnost(self, x):
         """
@@ -207,7 +188,6 @@ class GlavniProzor(BASE, FORM):
         self.labelKonverterOpseg.setText(mjOpseg)
         self.labelKonverter50.setText(mjOpseg)
         self.labelKonverter95.setText(mjOpseg)
-        self.rezultatModel.set_mjerna_jedinica(mjOpseg)
         self.konverterRezultatModel.set_mjerna_jedinica(mjOpseg)
 
     def promjena_mjerenja(self, x):
@@ -237,13 +217,17 @@ class GlavniProzor(BASE, FORM):
         u listi self.konfiguracija.umjerneTocke
         """
         tocke = copy.deepcopy(self.konfiguracija.umjerneTocke)
+        podaci = self.siroviPodaci.copy()
         self.dijalog = dotedit.EditTockuDijalog(indeks=indeks,
                                                 tocke=tocke,
-                                                frejm=self.siroviPodaci,
+                                                frejm=podaci,
                                                 start=self.siroviPodaciModel.startIndeks,
-                                                parent=self)
+                                                parent=None)
         if self.dijalog.exec_():
-            tocke = self.dijalog.get_tocke()
+            dots = self.dijalog.get_tocke()
+            self.konfiguracija.umjerneTocke = dots
+            self.recalculate()
+        else:
             self.konfiguracija.umjerneTocke = tocke
             self.recalculate()
 
@@ -389,19 +373,84 @@ class GlavniProzor(BASE, FORM):
 
         return [value, limit, ispravan]
 
+    def generiraj_nan_frejm(self):
+        """
+        metoda generira datafrejm sa 6 stupaca i n redaka (n je broj umjernih
+        tocaka prezuetih iz konfiga), radi inicijalnog prikaza tablice
+        rezultata umjeravanja. Sve vrijednosti tog datafrejma su np.NaN
+        """
+        frejm = pd.DataFrame(
+            columns=['cref', 'U*', 'c', u'\u0394', 'sr', 'r'],
+            index=list(range(len(self.konfiguracija.umjerneTocke))))
+        return frejm
+
+    def gereriraj_tablicu_rezultata_umjeravanja(self):
+        """
+        metoda koja generira tablicu umjeravanja i postavlja je u specificno mjesto
+        u layoutu.
+        Dolazi do lagane komplikacije u nacinu rada metode zbog parent-child
+        odnosa izmedju widgeta i layouta u njemu.
+        """
+        #korak 1, maknuti widget iz layouta
+        self.layoutRezultati.removeWidget(self.tablicaRezultataUmjeravanja)
+        #korak 2, moram zatvoriti widget (garbage collection...)
+        self.tablicaRezultataUmjeravanja.close()
+        #korak 3, stvaram novi widget (tablicu) i dodjelujem je istom imenu
+        try:
+            self.tablicaRezultataUmjeravanja = view_helpers.TablicaUmjeravanje(
+                tocke=self.konfiguracija.umjerneTocke,
+                data=self.rezultatUmjeravanja,
+                jedinica=self.trenutnaMjernaJedinica,
+                parent=None)
+        except Exception as err:
+            logging.error(str(err), exc_info=True)
+            frejm = self.generiraj_nan_frejm()
+            self.tablicaRezultataUmjeravanja = view_helpers.TablicaUmjeravanje(
+                tocke=self.konfiguracija.umjerneTocke,
+                data=frejm,
+                jedinica=self.trenutnaMjernaJedinica,
+                parent=None)
+        #korak 4, insert novog widgeta na isto mjesto u layout
+        self.layoutRezultati.insertWidget(0,self.tablicaRezultataUmjeravanja)
+        #korak 5, update layouta
+        self.layoutRezultati.update()
+        #korak 6, spajanje signala iz kontekstnog menija sa metodama za
+        #dodavanje, editiranje i brisanje tocaka
+        self.connect(self.tablicaRezultataUmjeravanja,
+                     QtCore.SIGNAL('addrow'),
+                     self.add_red_umjeravanje)
+
+        self.connect(self.tablicaRezultataUmjeravanja,
+                     QtCore.SIGNAL('removerow(PyQt_PyObject)'),
+                     self.remove_red_umjeravanje)
+
+        self.connect(self.tablicaRezultataUmjeravanja,
+                     QtCore.SIGNAL('editrow(PyQt_PyObject)'),
+                     self.edit_red_umjeravanje)
+
+    def add_red_umjeravanje(self):
+        self.konfiguracija.dodaj_tocku()
+
+    def remove_red_umjeravanje(self, x):
+        self.konfiguracija.makni_tocku(x-1) #korekcija za zero based indexing
+
+    def edit_red_umjeravanje(self, x):
+        self.edit_tocku_dijalog(x-1) #korekcija za zero based indexing
+
+
     def refresh_views(self):
         """
         force refresh modela i view-ova nakon promjene podataka
         """
         # umjeravanje
         self.rezultatUmjeravanja = self.kalkulator.rezultat
-        self.rezultatModel.set_frejm(self.rezultatUmjeravanja)
         self.siroviPodaciModel.set_tocke(self.konfiguracija.umjerneTocke)
-        self.rezultatModel.set_tocke(self.konfiguracija.umjerneTocke)
         #mjerne jedinice
         komponenta = self.comboMjerenje.currentText()
         uredjaj = self.labelUredjaj.text()
         self.update_mjerne_jedinice(uredjaj, komponenta)
+        #tablica rezultata umjeravanja
+        self.gereriraj_tablicu_rezultata_umjeravanja()
         parametri, prilagodba = self.prilagodba_rezultata_za_prikaz_u_tablicama()
         self.tablicaParametri.set_values(parametri)
         self.tablicaParametri.toggle_linearnost(self.checkLinearnost.isChecked())
@@ -409,7 +458,6 @@ class GlavniProzor(BASE, FORM):
 
         #update view-s
         self.siroviPodaciView.update()
-        self.rezultatView.update()
         # clear and redraw grafove
         self.crefCanvas.clear_graf()
         self.mjerenjaCanvas.clear_graf()
