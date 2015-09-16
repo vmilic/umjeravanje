@@ -43,13 +43,12 @@ class ReportGenerator(object):
         """
         PAGE_WIDTH, PAGE_HEIGHT = A4
 
-        pdfmetrics.registerFont(TTFont('arial', 'arial.ttf'))
-        pdfmetrics.registerFont(TTFont('arial-bold', 'arialbd.ttf'))
-        pdfmetrics.registerFont(TTFont('arial-bold-italic', 'arialbi.ttf'))
-        pdfmetrics.registerFont(TTFont('arial-italic', 'ariali.ttf'))
-        pdfmetrics.registerFont(TTFont('arial-thick', 'ariblk.ttf'))
+        pdfmetrics.registerFont(TTFont('FreeSans', './freefont-20120503/FreeSans.ttf'))
+        pdfmetrics.registerFont(TTFont('FreeSansBold', './freefont-20120503/FreeSansBold.ttf'))
+        pdfmetrics.registerFont(TTFont('FreeSansBoldOblique', './freefont-20120503/FreeSansBoldOblique.ttf'))
+        pdfmetrics.registerFont(TTFont('FreeSansOblique', './freefont-20120503/FreeSansOblique.ttf'))
 
-    def generate_paragraph_style(self, font='arial', align=TA_LEFT, size=10):
+    def generate_paragraph_style(self, font='FreeSans', align=TA_LEFT, size=10):
         """
         Metoda generira stil paragrafa. Default je: arial, left aligned, size 10
         """
@@ -68,10 +67,10 @@ class ReportGenerator(object):
             argmap = {}
 
         stil1 = self.generate_paragraph_style(align=TA_CENTER, size=11)
-        stil2 = self.generate_paragraph_style(font='arial-bold', align=TA_CENTER, size=14)
-        stil3 = self.generate_paragraph_style(font='arial', align=TA_CENTER, size=10)
-        stil4 = self.generate_paragraph_style(font='arial-bold', align=TA_CENTER, size=12)
-        stil5 = self.generate_paragraph_style(font='arial-bold', align=TA_CENTER, size=10)
+        stil2 = self.generate_paragraph_style(font='FreeSansBold', align=TA_CENTER, size=14)
+        stil3 = self.generate_paragraph_style(align=TA_CENTER, size=10)
+        stil4 = self.generate_paragraph_style(font='FreeSansBold', align=TA_CENTER, size=12)
+        stil5 = self.generate_paragraph_style(font='FreeSansBold', align=TA_CENTER, size=10)
 
         #defaultne vrijednosti polja iz mape - isti kljuc je string unutar []
         stranica = str(stranica)
@@ -135,7 +134,7 @@ class ReportGenerator(object):
             argmap = {}
 
         stil1 = self.generate_paragraph_style()
-        stil2 = self.generate_paragraph_style(font='arial-bold')
+        stil2 = self.generate_paragraph_style(font='FreeSansBold')
 
         #defaultne vrijednosti polja iz mape - isti kljuc je string unutar []
         oznaka_izvjesca = '[oznaka_izvjesca]'
@@ -185,18 +184,11 @@ class ReportGenerator(object):
         stil_tablice = TableStyle(
             [
             ('SPAN', (1, 0), (-1, 0)),
-            ('BACKGROUND', (1, 0), (-1, 0), colors.HexColor('#83caff')),
             ('SPAN', (0, 1), (-1, 1)),
             ('SPAN', (1, 2), (-1, 2)),
-            ('BACKGROUND', (1, 2), (-1, 2), colors.HexColor('#83caff')),
-            ('BACKGROUND', (1, 3), (1, 3), colors.HexColor('#83caff')),
-            ('BACKGROUND', (-1, 3), (-1, 3), colors.HexColor('#83caff')),
             ('SPAN', (1, 4), (-1, 4)),
-            ('BACKGROUND', (1, 4), (-1, 4), colors.HexColor('#83caff')),
             ('SPAN', (1, 5), (-1, 5)),
-            ('BACKGROUND', (1, 5), (-1, 5), colors.HexColor('#83caff')),
             ('SPAN', (1, 6), (-1, 6)),
-            ('BACKGROUND', (1, 6), (-1, 6), colors.HexColor('#83caff')),
             ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
             ('BOX', (0, 0), (-1, -1), 1, colors.black),
             ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
@@ -219,8 +211,8 @@ class ReportGenerator(object):
         if argmap == None:
             argmap = {}
 
-        stil1 = self.generate_paragraph_style(font='arial-bold', align=TA_CENTER)
-        stil2 = self.generate_paragraph_style(font='arial-bold')
+        stil1 = self.generate_paragraph_style(font='FreeSansBold', align=TA_CENTER)
+        stil2 = self.generate_paragraph_style(font='FreeSansBold')
         stil3 = self.generate_paragraph_style()
 
         #defaultne vrijednosti polja iz mape - isti kljuc je string unutar []
@@ -276,8 +268,8 @@ class ReportGenerator(object):
         if argmap == None:
             argmap = {}
 
-        stil1 = self.generate_paragraph_style(font='arial-bold', align=TA_CENTER)
-        stil2 = self.generate_paragraph_style(font='arial-bold')
+        stil1 = self.generate_paragraph_style(font='FreeSansBold', align=TA_CENTER)
+        stil2 = self.generate_paragraph_style(font='FreeSansBold')
         stil3 = self.generate_paragraph_style()
 
         #defaultne vrijednosti polja iz mape - isti kljuc je string unutar []
@@ -332,8 +324,8 @@ class ReportGenerator(object):
         if argmap == None:
             argmap = {}
 
-        stil1 = self.generate_paragraph_style(font='arial-bold', align=TA_CENTER)
-        stil2 = self.generate_paragraph_style(font='arial-bold')
+        stil1 = self.generate_paragraph_style(font='FreeSansBold', align=TA_CENTER)
+        stil2 = self.generate_paragraph_style(font='FreeSansBold')
         stil3 = self.generate_paragraph_style()
 
         #defaultne vrijednosti polja iz mape - isti kljuc je string unutar []
@@ -388,7 +380,7 @@ class ReportGenerator(object):
         if argmap == None:
             argmap = {}
 
-        stil1 = self.generate_paragraph_style(font='arial-bold')
+        stil1 = self.generate_paragraph_style(font='FreeSansBold')
         stil2 = self.generate_paragraph_style()
 
         #defaultne vrijednosti polja iz mape - isti kljuc je string unutar []
@@ -435,8 +427,8 @@ class ReportGenerator(object):
         if argmap == None:
             argmap = {}
 
-        stil1 = self.generate_paragraph_style(font='arial-bold', align=TA_CENTER)
-        stil2 = self.generate_paragraph_style(font='arial-bold')
+        stil1 = self.generate_paragraph_style(font='FreeSansBold', align=TA_CENTER)
+        stil2 = self.generate_paragraph_style(font='FreeSansBold')
         stil3 = self.generate_paragraph_style()
 
         #defaultne vrijednosti polja iz mape - isti kljuc je string unutar []
@@ -478,12 +470,8 @@ class ReportGenerator(object):
         stil_tablice = TableStyle(
             [
             ('SPAN', (0, 0), (-1, 0)),
-            ('BACKGROUND', (1, 1), (1, 1), colors.HexColor('#83caff')),
-            ('BACKGROUND', (1, 2), (1, 2), colors.HexColor('#83caff')),
-            ('BACKGROUND', (1, 3), (1, 3), colors.HexColor('#83caff')),
             ('SPAN', (0, 4), (-1, 4)),
             ('SPAN', (0, 5), (-1, 5)),
-            ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor('#83caff')),
             ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
             ('BOX', (0, 0), (-1, -1), 1, colors.black),
             ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
@@ -542,8 +530,8 @@ class ReportGenerator(object):
         if argmap == None:
             argmap = {}
 
-        stil1 = self.generate_paragraph_style(font='arial-bold', align=TA_CENTER)
-        stil2 = self.generate_paragraph_style(font='arial-bold')
+        stil1 = self.generate_paragraph_style(font='FreeSansBold', align=TA_CENTER)
+        stil2 = self.generate_paragraph_style(font='FreeSansBold')
 
         ocjena_umjeravanja = False
 
@@ -788,9 +776,9 @@ class ReportGenerator(object):
         if argmap == None:
             argmap = {}
 
-        stil1 = self.generate_paragraph_style(font='arial-bold', align=TA_CENTER)
+        stil1 = self.generate_paragraph_style(font='FreeSansBold', align=TA_CENTER)
         stil2 = self.generate_paragraph_style(align=TA_CENTER)
-        stil3 = self.generate_paragraph_style(font='arial-bold')
+        stil3 = self.generate_paragraph_style(font='FreeSansBold')
         stil4 = self.generate_paragraph_style()
 
         prilagodbaA = ''
@@ -911,7 +899,7 @@ class ReportGenerator(object):
         tabla9 = self.generiraj_tablicu_rezultata_umjeravanja(argmap=argmap)
         parts.append(tabla9)
 
-        annotation1_stil = self.generate_paragraph_style(font='arial-italic', size=8)
+        annotation1_stil = self.generate_paragraph_style(font='FreeSansOblique', size=8)
         annotation1 = Paragraph('* Proširena mjerna nesigurnost uz k=2 izračunata prema RU-5.5.1.11', annotation1_stil)
         parts.append(annotation1)
 
