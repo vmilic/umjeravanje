@@ -9,75 +9,75 @@ import numpy as np
 import pandas as pd
 
 
-class TableViewRezultata(QtGui.QTableView):
-    """
-    view za rezultate umjeravanja po tockama. podrska za kontekstni menu
-    """
-    def __init__(self, parent=None):
-        QtGui.QTableView.__init__(self, parent=parent)
-        #self.verticalHeader().setVisible(False)
-        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        self.setMinimumSize(535,210)
-        self.setMaximumSize(535,210)
-
-    def reset_column_widths(self):
-        """
-        metoda resizea tablicu
-        """
-        self.setWordWrap(True)
-        self.horizontalHeader().setStretchLastSection(True)
-        self.horizontalHeader().resizeSection(0,80)
-        self.horizontalHeader().resizeSection(1,80)
-        self.horizontalHeader().resizeSection(2,80)
-        self.horizontalHeader().resizeSection(3,80)
-
-    def contextMenuEvent(self, event):
-        """
-        event koji definira kontekstni menu..
-        """
-        self.selected = self.selectionModel().selection().indexes()
-        #define context menu items
-        menu = QtGui.QMenu()
-        dodaj = QtGui.QAction('Dodaj tocku', self)
-        makni = QtGui.QAction('Makni tocku', self)
-        postavke = QtGui.QAction('Postavke tocke', self)
-        menu.addAction(dodaj)
-        menu.addAction(makni)
-        menu.addSeparator()
-        menu.addAction(postavke)
-        #connect context menu items
-        dodaj.triggered.connect(self.emit_add)
-        makni.triggered.connect(self.emit_remove)
-        postavke.triggered.connect(self.emit_edit)
-        #display context menu
-        menu.exec_(self.mapToGlobal(event.pos()))
-
-    def emit_add(self, x):
-        """
-        Metoda emitira zahtjev za dodavanjem nove tocke
-        """
-        #za sada nemam pametniju ideju
-        if len(self.model().dataFrejm):
-            self.emit(QtCore.SIGNAL('dodaj_tocku'))
-
-    def emit_remove(self, x):
-        """
-        Metoda emitira zahtjev za brisanjem tocke
-        """
-        selektirani = self.selectedIndexes()
-        if selektirani:
-            indeks = selektirani[0].row()
-            self.emit(QtCore.SIGNAL('makni_tocku(PyQt_PyObject)'), indeks)
-
-    def emit_edit(self, x):
-        """
-        Metoda salje zahtjev za promjenom parametara selektirane tocke
-        """
-        selektirani = self.selectedIndexes()
-        if selektirani:
-            indeks = selektirani[0].row()
-            self.emit(QtCore.SIGNAL('edit_tocku(PyQt_PyObject)'), indeks)
+#class TableViewRezultata(QtGui.QTableView):
+#    """
+#    view za rezultate umjeravanja po tockama. podrska za kontekstni menu
+#    """
+#    def __init__(self, parent=None):
+#        QtGui.QTableView.__init__(self, parent=parent)
+#        #self.verticalHeader().setVisible(False)
+#        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+#        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+#        self.setMinimumSize(535,210)
+#        self.setMaximumSize(535,210)
+#
+#    def reset_column_widths(self):
+#        """
+#        metoda resizea tablicu
+#        """
+#        self.setWordWrap(True)
+#        self.horizontalHeader().setStretchLastSection(True)
+#        self.horizontalHeader().resizeSection(0,80)
+#        self.horizontalHeader().resizeSection(1,80)
+#        self.horizontalHeader().resizeSection(2,80)
+#        self.horizontalHeader().resizeSection(3,80)
+#
+#    def contextMenuEvent(self, event):
+#        """
+#        event koji definira kontekstni menu..
+#        """
+#        self.selected = self.selectionModel().selection().indexes()
+#        #define context menu items
+#        menu = QtGui.QMenu()
+#        dodaj = QtGui.QAction('Dodaj tocku', self)
+#        makni = QtGui.QAction('Makni tocku', self)
+#        postavke = QtGui.QAction('Postavke tocke', self)
+#        menu.addAction(dodaj)
+#        menu.addAction(makni)
+#        menu.addSeparator()
+#        menu.addAction(postavke)
+#        #connect context menu items
+#        dodaj.triggered.connect(self.emit_add)
+#        makni.triggered.connect(self.emit_remove)
+#        postavke.triggered.connect(self.emit_edit)
+#        #display context menu
+#        menu.exec_(self.mapToGlobal(event.pos()))
+#
+#    def emit_add(self, x):
+#        """
+#        Metoda emitira zahtjev za dodavanjem nove tocke
+#        """
+#        #za sada nemam pametniju ideju
+#        if len(self.model().dataFrejm):
+#            self.emit(QtCore.SIGNAL('dodaj_tocku'))
+#
+#    def emit_remove(self, x):
+#        """
+#        Metoda emitira zahtjev za brisanjem tocke
+#        """
+#        selektirani = self.selectedIndexes()
+#        if selektirani:
+#            indeks = selektirani[0].row()
+#            self.emit(QtCore.SIGNAL('makni_tocku(PyQt_PyObject)'), indeks)
+#
+#    def emit_edit(self, x):
+#        """
+#        Metoda salje zahtjev za promjenom parametara selektirane tocke
+#        """
+#        selektirani = self.selectedIndexes()
+#        if selektirani:
+#            indeks = selektirani[0].row()
+#            self.emit(QtCore.SIGNAL('edit_tocku(PyQt_PyObject)'), indeks)
 
 
 class TableViewRezultataKonvertera(QtGui.QTableView):
@@ -640,3 +640,74 @@ class TablicaUmjeravanje(QtGui.QWidget):
         """
         self.emit(QtCore.SIGNAL('editrow(PyQt_PyObject)'), self.redak)
 
+class TablicaKonverterRezultati():
+
+    def __init__(self, parent=None):
+        """
+        Widget sa tablicom za prikaz rezultata provjere konvertera.
+        """
+        QtGui.QWidget.__init__(self, parent=parent)
+        #bitni memberi
+        self.tocke = [] #tocke umjeravanja
+        self.data = [] #pandas datafrejm rezultata umjeravanja
+        self.jedinica = 'n/a' #string mjerne jedinice
+
+        self.sastavi_inicijalnu_tablicu()
+
+    def set_minimum_width_for_column(self, col, size):
+        """
+        odredjivanje minimalne sirine stupca
+        """
+        self.gridLayout.setColumnMinimumWidth(col, size)
+
+    def set_minimum_height_for_row(self, row, size):
+        """
+        odredjivanje minimalne visine redka
+        """
+        self.gridLayout.setRowMinimumHeight(row, size)
+
+    def set_mjerna_jedinica(self, jednica):
+        """
+        setter za mjernu jedinicu
+        """
+        self.jedinica = jednica
+        self.header1.setText("".join(['c, R, NOx\n(', str(self.jedinica), ')']))
+        self.header2.setText("".join(['c, R, NO2\n(', str(self.jedinica), ')']))
+        self.header3.setText("".join(['c, NO\n(', str(self.jedinica), ')']))
+        self.header4.setText("".join(['c, NOx\n(', str(self.jedinica), ')']))
+
+    def set_tocke(self, tocke):
+        """
+        setter za tocke umjeravanja
+        """
+        self.tocke = tocke
+
+    def sastavi_inicijalnu_tablicu(self):
+        """
+        sastavljanje output tablice.
+        """
+        #definiranje grid layouta
+        self.gridLayout = QtGui.QGridLayout()
+        self.gridLayout.setHorizontalSpacing(1)
+        self.gridLayout.setVerticalSpacing(1)
+        self.gridLayout.setContentsMargins(0,0,0,0)
+        #headeri
+        self.header0 = CustomLabel(tekst='#', center=True)
+        self.header1 = CustomLabel(tekst="".join(['c, R, NOx\n(', str(self.jedinica), ')']), center=True)
+        self.header2 = CustomLabel(tekst="".join(['c, R, NO2\n(', str(self.jedinica), ')']), center=True)
+        self.header3 = CustomLabel(tekst="".join(['c, NO\n(', str(self.jedinica), ')']), center=True)
+        self.header4 = CustomLabel(tekst="".join(['c, NOx\n(', str(self.jedinica), ')']), center=True)
+        #dodavanje headera u layout
+        self.gridLayout.addWidget(self.header0, 0, 0, 1, 1)
+        self.gridLayout.addWidget(self.header1, 0, 1, 1, 1)
+        self.gridLayout.addWidget(self.header2, 0, 2, 1, 1)
+        self.gridLayout.addWidget(self.header3, 0, 3, 1, 1)
+        self.gridLayout.addWidget(self.header4, 0, 4, 1, 1)
+        #podesavanje horizontalnih dimenzija labela u layoutu za pojedine stupce
+        self.set_minimum_width_for_column(0, 30)
+        self.set_minimum_width_for_column(1, 75)
+        self.set_minimum_width_for_column(2, 75)
+        self.set_minimum_width_for_column(3, 75)
+        self.set_minimum_width_for_column(4, 75)
+        #dodavanje labela sa rezultatima u layout
+        #TODO! finish
