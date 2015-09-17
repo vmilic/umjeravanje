@@ -32,7 +32,7 @@ class GlavniProzor(BASE, FORM):
         self.tablicaRezultataUmjeravanja = QtGui.QWidget() #placeholder za tablicu
         self.tablicaPrilagodba = view_helpers.TablicaFunkcijePrilagodbe()
         self.tablicaParametri = view_helpers.TablicaUmjeravanjeKriterij()
-        self.konverterRezultatView = view_helpers.TableViewRezultataKonvertera()
+        self.konverterRezultatView = view_helpers.TablicaKonverterRezultati()
         self.tablicaKonverter = view_helpers.TablicaKonverterParametri()
         self.trenutnaMjernaJedinica = 'n/a'
         self.uredjaji = {}
@@ -72,10 +72,10 @@ class GlavniProzor(BASE, FORM):
         self.siroviPodaciView.setModel(self.siroviPodaciModel)
         self.siroviPodaciView.horizontalHeader().setStretchLastSection(True)
 
-        self.konverterRezultat = pd.DataFrame(columns=['c, R, NOx', 'c, R, NO2', 'c, NO', 'c, NOx'])
-        self.konverterRezultatModel = modeli.KonverterRezultatModel(tocke=self.konfiguracija.konverterTocke)
-        self.konverterRezultatModel.set_frejm(self.konverterRezultat)
-        self.konverterRezultatView.setModel(self.konverterRezultatModel)
+        self.konverterRezultat = pd.DataFrame(columns=['c, R, NOx', 'c, R, NO2', 'c, NO', 'c, NOx'], index=[1,2,3,4,5,6])
+        self.konverterRezultatView.set_mjerna_jedinica(self.trenutnaMjernaJedinica)
+        self.konverterRezultatView.set_tocke(self.konfiguracija.konverterTocke)
+        self.konverterRezultatView.set_data(self.konverterRezultat)
 
         self.konverterPodaci = pd.DataFrame()
         self.konverterPodaciModel = modeli.SiroviFrameModel(tocke=self.konfiguracija.konverterTocke)
@@ -106,8 +106,6 @@ class GlavniProzor(BASE, FORM):
         self.layoutKonverterParametri.addStretch(-1)
         #vertikalni spacer za scroll area layout
         self.konverterRezultatiLayout.addStretch(-1)
-
-        self.konverterRezultatView.reset_column_widths()
 
         self.setup_signal_connections()
 
@@ -188,7 +186,7 @@ class GlavniProzor(BASE, FORM):
         self.labelKonverterOpseg.setText(mjOpseg)
         self.labelKonverter50.setText(mjOpseg)
         self.labelKonverter95.setText(mjOpseg)
-        self.konverterRezultatModel.set_mjerna_jedinica(mjOpseg)
+        self.konverterRezultatView.set_mjerna_jedinica(mjOpseg)
 
     def promjena_mjerenja(self, x):
         """
@@ -340,7 +338,7 @@ class GlavniProzor(BASE, FORM):
             jedinica='%')
 
         if not np.isnan(prilagodbaA):
-            prilagodbaA = round(prilagodbaA, 1)
+            prilagodbaA = round(prilagodbaA, 3)
         if not np.isnan(prilagodbaB):
             prilagodbaB = round(prilagodbaB, 1)
         prilagodba = [str(prilagodbaA), str(prilagodbaB)]
@@ -437,7 +435,6 @@ class GlavniProzor(BASE, FORM):
     def edit_red_umjeravanje(self, x):
         self.edit_tocku_dijalog(x-1) #korekcija za zero based indexing
 
-
     def refresh_views(self):
         """
         force refresh modela i view-ova nakon promjene podataka
@@ -512,7 +509,10 @@ class GlavniProzor(BASE, FORM):
         update rezultata provjere konvertera
         """
         self.konverterRezultat = self.konverterKalkulator.rezultat
-        self.konverterRezultatModel.set_frejm(self.konverterRezultat)
+        self.konverterRezultatView.set_mjerna_jedinica(self.trenutnaMjernaJedinica)
+        self.konverterRezultatView.set_tocke(self.konfiguracija.konverterTocke)
+        self.konverterRezultatView.set_data(self.konverterRezultat)
+
         efikasnost = self.konverterKalkulator.get_listu_efikasnosti()
         strEfikasnost = [str(round(i, 1)) for i in efikasnost]
         self.tablicaKonverter.set_values(strEfikasnost)
@@ -726,9 +726,9 @@ class GlavniProzor(BASE, FORM):
                     # ucitani podaci (frejm) za umjeravanje i konverter
                     self.postavi_sirove_podatke(outputMapa['frejmPodataka'])
                     # start indeks u modelu
-                    self.siroviPodaciModel.set_start(outputMapa['pocetniIndeks'])
+                    self.siroviPodaciModel.set_start_prilikom_loada(outputMapa['pocetniIndeks'])
                     #start indeks konverter modela
-                    self.konverterPodaciModel.set_start(outputMapa['konverterPocetniIndeks'])
+                    self.konverterPodaciModel.set_start_prilikom_loada(outputMapa['konverterPocetniIndeks'])
                     # provjera linearnosti
                     self.checkLinearnost.setChecked(outputMapa['provjeraLinearnosti'])
                     # opseg

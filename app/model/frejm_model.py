@@ -132,6 +132,19 @@ class SiroviFrameModel(QtCore.QAbstractTableModel):
         self.tocke = tocke
         self.layoutChanged.emit()
 
+    def set_start_prilikom_loada(self, indeks):
+        """
+        metoda sluzi da se postavi pocetak umjeravanja prilikom loadanja iz
+        spremljenog filea. Problem nastaje jer se indeksi u tockama ne smiju
+        pomicati...
+        """
+        if isinstance(indeks, QtCore.QModelIndex):
+            n = int(indeks.row()) #redni broj indeksa
+        else:
+            n = indeks
+        self.startIndeks = n
+        self.layoutChanged.emit()
+
     def set_start(self, indeks):
         """Setter pocetka umjeravanja, integer"""
         if isinstance(indeks, QtCore.QModelIndex):
@@ -232,9 +245,25 @@ class KonverterFrameModel(QtCore.QAbstractTableModel):
         self.tocke = tocke
         self.layoutChanged.emit()
 
+    def set_start_prilikom_loada(self, indeks):
+        """
+        metoda sluzi da se postavi pocetak umjeravanja prilikom loadanja iz
+        spremljenog filea. Problem nastaje jer se indeksi u tockama ne smiju
+        pomicati...
+        """
+        if isinstance(indeks, QtCore.QModelIndex):
+            n = int(indeks.row()) #redni broj indeksa
+        else:
+            n = indeks
+        self.startIndeks = n
+        self.layoutChanged.emit()
+
     def set_start(self, indeks):
         """Setter pocetka umjeravanja, integer"""
-        n = int(indeks.row()) #redni broj indeksa
+        if isinstance(indeks, QtCore.QModelIndex):
+            n = int(indeks.row()) #redni broj indeksa
+        else:
+            n = indeks
         delta = n - self.startIndeks #odmak od prijasnjeg starta
         for tocka in self.tocke:
             value = set([ind + delta for ind in list(tocka.indeksi)])
