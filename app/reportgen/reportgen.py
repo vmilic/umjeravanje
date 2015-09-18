@@ -640,7 +640,7 @@ class ReportGenerator(object):
         """
         metoda generira tablicu sa kriterijima umjeravanja
         7stupaca (n + bitni stupci)
-        6redaka (header + 5)
+        ? redaka (header + 2 do 7 redaka)
         """
         if argmap == None:
             argmap = {}
@@ -648,25 +648,12 @@ class ReportGenerator(object):
         stil1 = self.generate_paragraph_style(align=TA_CENTER)
         stil2 = self.generate_paragraph_style()
 
-        parametri = {
-            'srz':['', '', ''],
-            'srs':['', '', ''],
-            'rz':['', '', ''],
-            'rmax':['', '', '']}
-        konverter_parametri = ['', '', '']
-        linearnost = False
-        konverter = False
-
+        parametri = []
         try:
             parametri = argmap['parametri_umjeravanja']
-            linearnost = argmap['provjera_linearnosti']
-            konverter_parametri = argmap['parametri_konvertera']
-            konverter = argmap['provjera_konvertera']
         except LookupError as err:
             logging.error(str(err), exc_info=True)
             pass
-
-        prazanParagraf = Paragraph('', stil1)
 
         a2 = Paragraph('Naziv kriterija', stil1)
         a3 = Paragraph('Točka norme', stil1)
@@ -674,68 +661,20 @@ class ReportGenerator(object):
         a6 = Paragraph('Uvijeti prihvatljivosti', stil1)
         a7 = Paragraph('Ispunjeno', stil1)
 
-        b2 = Paragraph('Ponovljivost standardne devijacije u nuli', stil2)
-        b3 = Paragraph('9.5.1', stil1)
-        b4 = Paragraph('S<sub>r,z</sub> =', stil1)
+        headeri = ['', a2, a3, a4, '', a6, a7]
 
-        c2 = Paragraph('Ponovljivost standardne devijacije pri koncentraciji ct', stil2)
-        c3 = Paragraph('9.5.1', stil1)
-        c4 = Paragraph('S<sub>r,ct</sub> =', stil1)
+        layout_tablice = []
+        layout_tablice.append(headeri)
 
-        d2 = Paragraph('Odstupanje od linearnosti u nuli', stil2)
-        d3 = Paragraph('9.6.2', stil1)
-        d4 = Paragraph('r<sub>z</sub> =', stil1)
-
-        e2 = Paragraph('Maksimalno relativno odstupanje od linearnosti', stil2)
-        e3 = Paragraph('9.6.2', stil1)
-        e4 = Paragraph('r<sub>z,rel</sub> =', stil1)
-
-        f2 = Paragraph('Efikasnost konvertera dušikovih oksida', stil2)
-        f3 = Paragraph('9.6.2', stil1)
-        f4 = Paragraph('E<sub>c</sub> =', stil1)
-
-        #podaci
-        b5 = Paragraph(parametri['srz'][0], stil1)
-        b6 = Paragraph(parametri['srz'][1], stil1)
-        b7 = Paragraph(parametri['srz'][2], stil1)
-
-        c5 = Paragraph(parametri['srs'][0], stil1)
-        c6 = Paragraph(parametri['srs'][1], stil1)
-        c7 = Paragraph(parametri['srs'][2], stil1)
-
-        if linearnost:
-            d5 = Paragraph(parametri['rz'][0], stil1)
-            d6 = Paragraph(parametri['rz'][1], stil1)
-            d7 = Paragraph(parametri['rz'][2], stil1)
-
-            e5 = Paragraph(parametri['rmax'][0], stil1)
-            e6 = Paragraph(parametri['rmax'][1], stil1)
-            e7 = Paragraph(parametri['rmax'][2], stil1)
-        else:
-            d5 = prazanParagraf
-            d6 = prazanParagraf
-            d7 = prazanParagraf
-
-            e5 = prazanParagraf
-            e6 = prazanParagraf
-            e7 = prazanParagraf
-
-        if konverter:
-            f5 = Paragraph(konverter_parametri[0], stil1)
-            f6 = Paragraph(konverter_parametri[1], stil1)
-            f7 = Paragraph(konverter_parametri[2], stil1)
-        else:
-            f5 = prazanParagraf
-            f6 = prazanParagraf
-            f7 = prazanParagraf
-
-        layout_tablice = [
-            ['', a2, a3, a4, '', a6, a7],
-            [Paragraph('1', stil1), b2, b3, b4, b5, b6, b7],
-            [Paragraph('2', stil1), c2, c3, c4, c5, c6, c7],
-            [Paragraph('3', stil1), d2, d3, d4, d5, d6, d7],
-            [Paragraph('4', stil1), e2, e3, e4, e5, e6, e7],
-            [Paragraph('5', stil1), f2, f3, f4, f5, f6, f7]]
+        for i in range(len(parametri)):
+            red = []
+            red.append(Paragraph(str(i+1), stil1))
+            for j in range(6): #elementi reda iz parametara (bez rednog broja)
+                if j == 0:
+                    red.append(Paragraph(parametri[i][j], stil2))
+                else:
+                    red.append(Paragraph(parametri[i][j], stil1))
+            layout_tablice.append(red)
 
         stil_tablice = TableStyle(
             [
@@ -754,12 +693,7 @@ class ReportGenerator(object):
                           1.725*inch,
                           0.8*inch]
 
-        visina_stupaca = [0.5*inch,
-                          0.5*inch,
-                          0.5*inch,
-                          0.5*inch,
-                          0.5*inch,
-                          0.5*inch]
+        visina_stupaca = [0.5*inch for i in range(len(parametri)+1)]
 
         tablica = Table(layout_tablice,
                         colWidths=sirina_stupaca,
@@ -925,21 +859,23 @@ class ReportGenerator(object):
 if __name__ == '__main__':
     ime = 'example_report.pdf'
     import random
-    c1 = pd.Series([random.randint(1,100) for i in range(5)])
-    c2 = pd.Series([random.randint(1,100) for i in range(5)])
-    c3 = pd.Series([random.randint(1,100) for i in range(5)])
-    c4 = pd.Series([random.randint(1,100) for i in range(5)])
-    c5 = pd.Series([random.randint(1,100) for i in range(5)])
-    c6 = pd.Series([random.randint(1,100) for i in range(5)])
+    c1 = pd.Series([random.randint(1,10) for i in range(8)])
+    c2 = pd.Series([random.randint(11,20) for i in range(8)])
+    c3 = pd.Series([random.randint(21,30) for i in range(8)])
+    c4 = pd.Series([random.randint(31,40) for i in range(8)])
+    c5 = pd.Series([random.randint(41,50) for i in range(8)])
+    c6 = pd.Series([random.randint(51,60) for i in range(8)])
     mockfrejm = pd.DataFrame({'c1':c1, 'c2':c2, 'c3':c3, 'c4':c4, 'c5':c5, 'c6':c6})
 
-    mockparametri ={
-        'srs':['1.7', '< 1.5 nmol/mol', 'Ne'],
-        'srz':['0.2', '< 1.0 nmol/mol', 'Da'],
-        'rz':['1.4', '≤ 5.0 nmol/mol', 'Da'],
-        'rmax':['2.1', '≤ 4.0 %', 'Da']}
+    p1 = ['Ponovljivost standardne devijacije u nuli', '9.5.1', 'S<sub>r,z</sub> =', '0.2', '< 1.0 nmol/mol', 'Da']
+    p2 = ['Ponovljivost standardne devijacije pri koncentraciji ct', '9.5.1', 'S<sub>r,ct</sub> =', '1.7', '< 1.5 nmol/mol', 'Ne']
+    p3 = ['Odstupanje od linearnosti u nuli', '9.6.2', 'r<sub>z</sub> =', '1.4', '≤ 5.0 nmol/mol', 'Da']
+    p4 = ['Maksimalno relativno odstupanje od linearnosti', '9.6.2', 'r<sub>z,rel</sub> =', '2.1', '≤ 4.0 %', 'Da']
+    p5 = ['Efikasnost konvertera dušikovih oksida', '9.6.2', 'E<sub>c</sub> =', '50', '95 % ≤ E<sub>c</sub> ≤ 105 %', 'Ne']
+    p6 = ['Nešto bezveze radi testiranja', '1.1.1', 'N<sup>o</sup> =', '32.1', '≤ 12.0 %', 'Ne']
 
-    mockkonverter = ['50', '95 % ≤ E<sub>c</sub> ≤ 105 %', 'Ne']
+
+    mockparametri = [p1, p2, p3, p4, p5, p6]
 
     mapa = {
         'norma':'HRN EN 14212:2012 Vanjski zrak – Standardna metoda za mjerenje koncentracije sumporova dioksida u zraku ultraljubičastom fluorescencijom',
@@ -971,9 +907,6 @@ if __name__ == '__main__':
         'rezultati_umjeravanja':mockfrejm,
         'mjerna_jedinica':'nmol/mol',
         'parametri_umjeravanja':mockparametri,
-        'parametri_konvertera':mockkonverter,
-        'provjera_linearnosti':True,
-        'provjera_konvertera':False,
         'prilagodbaA':'1.05',
         'prilagodbaB':'0.12'
         }
