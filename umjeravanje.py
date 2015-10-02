@@ -4,6 +4,11 @@
 Created on Mon May 18 12:21:15 2015
 
 @author: DHMZ-Milic
+
+#TODO!
+- redizajn sa dokumentom..
+- dijalog za edit tocke ne provjerava granice prilikom postavljanja vrijednosti
+- treba spojiti dijalog za report u app
 """
 import sys
 import logging
@@ -43,7 +48,7 @@ def main():
     """Pokretac aplikacije"""
     config = configparser.ConfigParser()
     try:
-        config.read('umjeravanje_konfig.cfg')
+        config.read('umjeravanje_konfig.cfg', encoding='utf-8')
     except OSError:
         logging.error('Pogreska prilikom ucitavanja konfiguracije.', exc_info=True)
         raise SystemExit('Kriticna pogreska, izlaz iz aplikacije.')

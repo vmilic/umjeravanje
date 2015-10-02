@@ -122,22 +122,24 @@ class KanvasMjerenja(Kanvas):
         maxlist = []
         for tocka in tocke:
             x, y = self.get_tocke_za_crtanje(frejm, tocka)
-            minlist.append(min(x))
-            maxlist.append(max(x))
-            r, g, b, a = tocka.boja.getRgb()
-            boja = (r/255, g/255, b/255)
-            alpha = a/255
-            self.axes.scatter(x,
-                              y,
-                              marker='o',
-                              s=10,
-                              color=boja,
-                              alpha=alpha)
-        xmin, xmax = min(minlist), max(maxlist)
-        delta = datetime.timedelta(minutes=10)
-        xmin = xmin - delta
-        xmax = xmax + delta
-        self.axes.set_xlim((xmin, xmax))
+            if x != [] and y != []:
+                minlist.append(min(x))
+                maxlist.append(max(x))
+                r, g, b, a = tocka.boja.getRgb()
+                boja = (r/255, g/255, b/255)
+                alpha = a/255
+                self.axes.scatter(x,
+                                  y,
+                                  marker='o',
+                                  s=10,
+                                  color=boja,
+                                  alpha=alpha)
+        if minlist != [] and maxlist != []:
+            xmin, xmax = min(minlist), max(maxlist)
+            delta = datetime.timedelta(minutes=10)
+            xmin = xmin - delta
+            xmax = xmax + delta
+            self.axes.set_xlim((xmin, xmax))
         allXLabels = self.axes.get_xticklabels(which='both') #dohvati sve labele
         for label in allXLabels:
             label.set_rotation(20)

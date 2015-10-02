@@ -39,17 +39,14 @@ class CustomLabel(QtGui.QLabel):
         stil = "QLabel {background-color: rgba(" +"{0},{1},{2},{3}%)".format(r, g, b, a)+"}"
         self.setStyleSheet(stil)
 
-
 class TablicaUmjeravanjeKriterij(QtGui.QWidget):
     """
-    Tablica za parametre umjeravanja, Srs, Srz, rz, rmax
+    Tablica za parametre umjeravanja (kriterij prihvatljivosti)
+    [Srs, Srz, rz, rmax, ec]
+    ulazni parametrar je nested lista
     """
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent=parent)
-        self.setter_podataka = {'srs':self.set_srs_values,
-                                'srz':self.set_srz_values,
-                                'rz':self.set_rz_values,
-                                'rmax':self.set_rmax_values}
         # definicija layouta
         self.gridLayout = QtGui.QGridLayout()
         self.gridLayout.setHorizontalSpacing(1)
@@ -59,66 +56,83 @@ class TablicaUmjeravanjeKriterij(QtGui.QWidget):
         # red 0 i granice
         self.pos00 = CustomLabel(tekst='')
         self.pos01 = CustomLabel(tekst='<b> Naziv kriterija </b>', center=True)
-        self.pos02 = CustomLabel(tekst='<b> Rezultati </b>', center=True)
-        self.pos03 = CustomLabel(tekst='')
-        self.pos04 = CustomLabel(tekst='<b> Uvijet prihvatljivosti </b>', center=True)
-        self.pos05 = CustomLabel(tekst='<b> Ispunjeno </b>', center=True)
+        self.pos02 = CustomLabel(tekst='<b> Točka norme </b>', center=True)
+        self.pos03 = CustomLabel(tekst='<b> Rezultati </b>', center=True)
+        self.pos04 = CustomLabel(tekst='')
+        self.pos05 = CustomLabel(tekst='<b> Uvijet prihvatljivosti </b>', center=True)
+        self.pos06 = CustomLabel(tekst='<b> Ispunjeno </b>', center=True)
         self.pos10 = CustomLabel(tekst='<b> 1 </b>', center=True)
         self.pos20 = CustomLabel(tekst='<b> 2 </b>', center=True)
         self.pos30 = CustomLabel(tekst='<b> 3 </b>', center=True)
         self.pos40 = CustomLabel(tekst='<b> 4 </b>', center=True)
+        self.pos50 = CustomLabel(tekst='<b> 5 </b>', center=True)
         #red 1
-        self.pos11 = CustomLabel(tekst=' Ponovljivost standardne devijacije u nuli ')
-        self.pos12 = CustomLabel(tekst=' S<sub>r,z</sub> = ')
+        self.pos11 = CustomLabel()
+        self.pos12 = CustomLabel()
         self.pos13 = CustomLabel()
-        self.pos14 = CustomLabel(center=True)
-        self.pos15 = CustomLabel(tekst='Ne', center=True)
-        self.red1 = [self.pos10, self.pos11, self.pos12, self.pos13, self.pos14, self.pos15]
+        self.pos14 = CustomLabel()
+        self.pos15 = CustomLabel(center=True)
+        self.pos16 = CustomLabel(center=True)
+        self.red1 = [self.pos10, self.pos11, self.pos12, self.pos13, self.pos14, self.pos15, self.pos16]
         #red 2
-        self.pos21 = CustomLabel(tekst=' Ponovljivost standardne devijacije pri koncentraciji ct ')
-        self.pos22 = CustomLabel(tekst=' S<sub>r,ct</sub> = ')
+        self.pos21 = CustomLabel()
+        self.pos22 = CustomLabel()
         self.pos23 = CustomLabel()
-        self.pos24 = CustomLabel(center=True)
-        self.pos25 = CustomLabel(tekst='Ne', center=True)
-        self.red2 = [self.pos20, self.pos21, self.pos22, self.pos23, self.pos24, self.pos25]
+        self.pos24 = CustomLabel()
+        self.pos25 = CustomLabel(center=True)
+        self.pos26 = CustomLabel(center=True)
+        self.red2 = [self.pos20, self.pos21, self.pos22, self.pos23, self.pos24, self.pos25, self.pos26]
         #red 3
-        self.pos31 = CustomLabel(tekst=' Odstupanje od linearnosti u nuli ')
-        self.pos32 = CustomLabel(tekst=' r<sub>z</sub> = ')
+        self.pos31 = CustomLabel()
+        self.pos32 = CustomLabel()
         self.pos33 = CustomLabel()
-        self.pos34 = CustomLabel(center=True)
-        self.pos35 = CustomLabel(tekst='Ne', center=True)
-        self.red3 = [self.pos30, self.pos31, self.pos32, self.pos33, self.pos34, self.pos35]
+        self.pos34 = CustomLabel()
+        self.pos35 = CustomLabel(center=True)
+        self.pos36 = CustomLabel(center=True)
+        self.red3 = [self.pos30, self.pos31, self.pos32, self.pos33, self.pos34, self.pos35, self.pos36]
         #red 4
-        self.pos41 = CustomLabel(tekst=' Maksimalno relativno odstupanje od linearnosti ')
-        self.pos42 = CustomLabel(tekst=' r<sub>z,rel</sub> = ')
+        self.pos41 = CustomLabel()
+        self.pos42 = CustomLabel()
         self.pos43 = CustomLabel()
-        self.pos44 = CustomLabel(center=True)
-        self.pos45 = CustomLabel(tekst='Ne', center=True)
-        self.red4 = [self.pos40, self.pos41, self.pos42, self.pos43, self.pos44, self.pos45]
-        self.datarows = [self.red1, self.red2, self.red3, self.red4]
+        self.pos44 = CustomLabel()
+        self.pos45 = CustomLabel(center=True)
+        self.pos46 = CustomLabel(center=True)
+        self.red4 = [self.pos40, self.pos41, self.pos42, self.pos43, self.pos44, self.pos45, self.pos46]
+        #red 5
+        self.pos51 = CustomLabel()
+        self.pos52 = CustomLabel()
+        self.pos53 = CustomLabel()
+        self.pos54 = CustomLabel()
+        self.pos55 = CustomLabel(center=True)
+        self.pos56 = CustomLabel(center=True)
+        self.red5 = [self.pos50, self.pos51, self.pos52, self.pos53, self.pos54, self.pos55, self.pos56]
+        self.datarows = [self.red1, self.red2, self.red3, self.red4, self.red5]
         #slaganje labela u grid layout...
         # self.gridLayout.addWidget(widget, row, col, rowspan, colspan)
-        self.gridLayout.addWidget(self.pos00 ,0 ,0 ,1 ,1)
-        self.gridLayout.addWidget(self.pos01 ,0 ,1 ,1 ,1)
-        self.gridLayout.addWidget(self.pos02 ,0 ,2 ,1 ,2)
-        self.gridLayout.addWidget(self.pos04 ,0 ,4 ,1 ,1)
-        self.gridLayout.addWidget(self.pos05 ,0 ,5 ,1 ,1)
-        self.gridLayout.addWidget(self.pos10 ,1 ,0 ,1 ,1)
-        self.gridLayout.addWidget(self.pos20 ,2 ,0 ,1 ,1)
-        self.gridLayout.addWidget(self.pos30 ,3 ,0 ,1 ,1)
-        self.gridLayout.addWidget(self.pos40 ,4 ,0 ,1 ,1)
+        self.gridLayout.addWidget(self.pos00, 0, 0, 1, 1)
+        self.gridLayout.addWidget(self.pos01, 0, 1, 1, 1)
+        self.gridLayout.addWidget(self.pos02, 0, 2, 1, 1)
+        self.gridLayout.addWidget(self.pos03, 0, 3, 1, 2)
+        self.gridLayout.addWidget(self.pos05, 0, 5, 1, 1)
+        self.gridLayout.addWidget(self.pos06, 0, 6, 1, 1)
+        self.gridLayout.addWidget(self.pos10, 1, 0, 1, 1)
+        self.gridLayout.addWidget(self.pos20, 2, 0, 1, 1)
+        self.gridLayout.addWidget(self.pos30, 3, 0, 1, 1)
+        self.gridLayout.addWidget(self.pos40, 4, 0, 1, 1)
+        self.gridLayout.addWidget(self.pos50, 5, 0, 1, 1)
         for row, labelList in enumerate(self.datarows):
             for col, label in enumerate(self.datarows[row]):
                 self.gridLayout.addWidget(label, row+1, col, 1, 1)
         #definiranje minimalne velicine stupaca
-        for i in range(5):
+        for i in range(7):
             self.set_minimum_height_for_row(i, 30)
         self.set_minimum_width_for_column(0, 30)
         self.set_minimum_width_for_column(1, 200)
         self.set_minimum_width_for_column(2, 75)
         self.set_minimum_width_for_column(3, 75)
-        self.set_minimum_width_for_column(4, 150)
-        self.set_minimum_width_for_column(5, 75)
+        self.set_minimum_width_for_column(4, 75)
+        self.set_minimum_width_for_column(5, 150)
+        self.set_minimum_width_for_column(6, 75)
 
         # slaganje layouta u tablicu
         self.setLayout(self.gridLayout)
@@ -134,122 +148,85 @@ class TablicaUmjeravanjeKriterij(QtGui.QWidget):
         helepr metoda koja vraca zelenu boju ako check ima vrijednost 'Da'. U
         protivnom vraca crvenu boju.
         """
-        if check == 'Da':
+        test = check
+        test = test.lower()
+        if test == 'da':
             color = QtGui.QColor(QtGui.QColor(0, 255, 0, 90))
         else:
             color = QtGui.QColor(QtGui.QColor(255, 0, 0, 90))
         return color
-
-    def set_srz_values(self, values):
-        """
-        setter za srz
-        """
-        value, limit, check = values
-        self.pos13.setText(value)
-        self.pos14.setText(limit)
-        self.pos15.setText(check)
-        color = self.find_needed_color(check)
-        self.set_row_background_color(1, color)
-
-    def set_srs_values(self, values):
-        """
-        setter za srs
-        """
-        value, limit, check = values
-        self.pos23.setText(value)
-        self.pos24.setText(limit)
-        self.pos25.setText(check)
-        color = self.find_needed_color(check)
-        self.set_row_background_color(2, color)
-
-    def set_rz_values(self, values):
-        """
-        setter za rz
-        """
-        value, limit, check = values
-        self.pos33.setText(value)
-        self.pos34.setText(limit)
-        self.pos35.setText(check)
-        color = self.find_needed_color(check)
-        self.set_row_background_color(3, color)
-
-    def set_rmax_values(self, values):
-        """
-        setter za rmax
-        """
-        value, limit, check = values
-        self.pos43.setText(value)
-        self.pos44.setText(limit)
-        self.pos45.setText(check)
-        color = self.find_needed_color(check)
-        self.set_row_background_color(4, color)
 
     def clear_results(self):
         """
         Clear rezultata tablice
         """
         #resert color
-        for red in range(1, 5):
+        for red in range(1, 6):
             self.set_row_background_color(red, QtGui.QColor(QtCore.Qt.white))
+            self.set_row_visible(red, True)
         #reset values
-        self.pos13.setText('n/a')
-        self.pos14.setText('n/a')
-        self.pos15.setText('n/a')
-        self.pos23.setText('n/a')
-        self.pos24.setText('n/a')
-        self.pos25.setText('n/a')
-        self.pos33.setText('n/a')
-        self.pos34.setText('n/a')
-        self.pos35.setText('n/a')
-        self.pos43.setText('n/a')
-        self.pos44.setText('n/a')
-        self.pos45.setText('n/a')
+        for row in self.datarows:
+            for i in range(1, 7):
+                row[i].setText('')
 
     def set_values(self, data):
         """
         setter vrijednosti u tablicu
-        ulazni parametar je dictionary sa 4 kljuca: ('srs', 'srz', 'rz', 'rmax')
-        pod svakim kljucem nalazi se lista od 3 stringa: [value, limit, check]
+        ulazni parametar je nested lista s potenicijalno 0 elemenata i max 5.
+        svaki element sadrzi listu sa:
+        [naziv, tocka norme, kratka oznaka, vrijednost, uvijet prihvatljivosti, ispunjeno]
         """
-        for (key, value) in data.items():
-            try:
-                s = self.setter_podataka[key]
-                s(value)
-            except LookupError:
-                pass
+        self.clear_results()
+        red = 1
+        for kriterij in data:
+            naziv = str(kriterij[0])
+            tockaNorme = str(kriterij[1])
+            kratkaOznaka = str(kriterij[2])
+            vrijednost = str(round(kriterij[3], 1))
+            uvjet = str(kriterij[4])
+            ispunjeno = str(kriterij[5])
+            label = self.datarows[red-1][1]
+            label.setText(naziv)
+            label = self.datarows[red-1][2]
+            label.setText(tockaNorme)
+            label = self.datarows[red-1][3]
+            label.setText(kratkaOznaka)
+            label = self.datarows[red-1][4]
+            label.setText(vrijednost)
+            label = self.datarows[red-1][5]
+            label.setText(uvjet)
+            label = self.datarows[red-1][6]
+            label.setText(ispunjeno)
+            color = self.find_needed_color(ispunjeno)
+            self.set_row_background_color(red, color)
+            red = red + 1
+        for i in range(red, 6):
+            self.set_row_visible(i, False)
 
     def set_row_background_color(self, rowNumber, color):
         """
         metoda za promjenu pozadinske boje reda u tablici
         ulazni parametar je broj reda (int) i boja (QColor)
         """
-        if rowNumber in [1, 2, 3, 4]:
+        if rowNumber in [1, 2, 3, 4, 5]:
             red = self.datarows[rowNumber-1]
             for label in red:
                 label.set_color(color)
         else:
             raise ValueError('Nije zadan valjani red')
 
-    def hide_row(self, rowNumber, check):
+    def set_row_visible(self, rowNumber, check):
         """
         metoda za sakrivanje reda u tablici (za potrebe provjere linearnosti)
         ulazni parametar je broj reda (int) i boolean koji odredjuje vidljivost
         (True --> visible, False --> hidden)
         """
-        if rowNumber in [1, 2, 3, 4]:
+        if rowNumber in [1, 2, 3, 4, 5]:
             red = self.datarows[rowNumber-1]
             for label in red:
                 label.setVisible(check)
         else:
             raise ValueError('Nije zadan valjani red')
-
-    def toggle_linearnost(self, x):
-        """
-        metoda za skrivanje stupaca ako nije ukljucena provjera linearnosti
-        """
-        self.hide_row(3, x)
-        self.hide_row(4, x)
-
 
 class TablicaFunkcijePrilagodbe(QtGui.QWidget):
     """
@@ -546,13 +523,19 @@ class TablicaUmjeravanje(QtGui.QWidget):
         """
         Metoda emitira zahtjev za brisanjem tocke
         """
-        self.emit(QtCore.SIGNAL('removerow(PyQt_PyObject)'), self.redak)
+        self.emit(QtCore.SIGNAL('removerow'))
 
     def emit_edit(self, x):
         """
         Metoda salje zahtjev za promjenom parametara selektirane tocke
         """
-        self.emit(QtCore.SIGNAL('editrow(PyQt_PyObject)'), self.redak)
+        self.emit(QtCore.SIGNAL('editrow'))
+
+    def get_redak(self):
+        """
+        vraca zadnje zapamceni radak kontekstnog menija
+        """
+        return self.redak
 
 
 class TablicaKonverterRezultati(QtGui.QWidget):
@@ -563,8 +546,8 @@ class TablicaKonverterRezultati(QtGui.QWidget):
         """
         QtGui.QWidget.__init__(self, parent=parent)
         #bitni memberi
-        self.tocke = [] #tocke umjeravanja
-        self.data = [] #pandas datafrejm rezultata umjeravanja
+        self.tocke = [] #tocke konvertera
+        self.data = [] #pandas datafrejm rezultata konvertera
         self.jedinica = 'n/a' #string mjerne jedinice
 
         self.sastavi_inicijalnu_tablicu()
