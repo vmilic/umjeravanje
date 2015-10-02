@@ -16,8 +16,10 @@ u testu koristim mock mapu i objekte koji su slicni ili identicni objektima u ap
 ako se program pokrene samostalno... generirati ce pdf file u istom folderu.
 
 #TODO!
--fontove i slike prebaciti u neki drugi folder?
--napraviti dijalog za pokretanje report generatora
+dokument headers
+norma
+brojObrasca
+revizija
 """
 
 import logging
@@ -42,11 +44,19 @@ class ReportGenerator(object):
         postavke za report, fontovi isl...
         """
         PAGE_WIDTH, PAGE_HEIGHT = A4
+        try:
+            pdfmetrics.registerFont(TTFont('FreeSans', './app/reportgen/freefont-20120503/FreeSans.ttf'))
+            pdfmetrics.registerFont(TTFont('FreeSansBold', './app/reportgen/freefont-20120503/FreeSansBold.ttf'))
+            pdfmetrics.registerFont(TTFont('FreeSansBoldOblique', './app/reportgen/freefont-20120503/FreeSansBoldOblique.ttf'))
+            pdfmetrics.registerFont(TTFont('FreeSansOblique', './app/reportgen/freefont-20120503/FreeSansOblique.ttf'))
+            self.logo = './app/reportgen/logo.png'
+        except Exception:
+            pdfmetrics.registerFont(TTFont('FreeSans', './freefont-20120503/FreeSans.ttf'))
+            pdfmetrics.registerFont(TTFont('FreeSansBold', './freefont-20120503/FreeSansBold.ttf'))
+            pdfmetrics.registerFont(TTFont('FreeSansBoldOblique', './freefont-20120503/FreeSansBoldOblique.ttf'))
+            pdfmetrics.registerFont(TTFont('FreeSansOblique', './freefont-20120503/FreeSansOblique.ttf'))
+            self.logo = 'logo.png'
 
-        pdfmetrics.registerFont(TTFont('FreeSans', './freefont-20120503/FreeSans.ttf'))
-        pdfmetrics.registerFont(TTFont('FreeSansBold', './freefont-20120503/FreeSansBold.ttf'))
-        pdfmetrics.registerFont(TTFont('FreeSansBoldOblique', './freefont-20120503/FreeSansBoldOblique.ttf'))
-        pdfmetrics.registerFont(TTFont('FreeSansOblique', './freefont-20120503/FreeSansOblique.ttf'))
 
     def generate_paragraph_style(self, font='FreeSans', align=TA_LEFT, size=10):
         """
@@ -81,13 +91,14 @@ class ReportGenerator(object):
 
         try:
             norma = argmap['norma']
-            broj_obrasca = argmap['broj_obrasca']
+            broj_obrasca = argmap['brojObrasca']
             revizija = argmap['revizija']
         except LookupError as err:
             logging.error(str(err), exc_info=True)
             pass
 
-        logotip = Image('logo.png')
+        #logo
+        logotip = Image(self.logo)
         logotip.drawHeight = 0.75*inch*1.25
         logotip.drawWidth = 0.75*inch
 
@@ -135,9 +146,7 @@ class ReportGenerator(object):
 
         stil1 = self.generate_paragraph_style()
         stil2 = self.generate_paragraph_style(font='FreeSansBold')
-
-        #defaultne vrijednosti polja iz mape - isti kljuc je string unutar []
-        oznaka_izvjesca = '[oznaka_izvjesca]'
+        oznaka_izvjesca = '[oznakaIzvjesca]'
         lokacija = '[lokacija]'
         proizvodjac = '[proizvodjac]'
         model = '[model]'
@@ -146,13 +155,19 @@ class ReportGenerator(object):
         mjerno_podrucje = '[mjerno_podrucje]'
 
         try:
-            oznaka_izvjesca = argmap['oznaka_izvjesca']
-            lokacija = argmap['lokacija']
-            proizvodjac = argmap['proizvodjac']
-            model = argmap['model']
-            tvornicka_oznaka = argmap['tvornicka_oznaka']
-            datum_umjeravanja = argmap['datum_umjeravanja']
-            mjerno_podrucje = argmap['mjerno_podrucje']
+            oznaka_izvjesca = argmap['oznakaIzvjesca']
+            lokacija = argmap['izabranaPostaja']
+            proizvodjac = argmap['proizvodjacUredjaja']
+            model = argmap['oznakaModelaUredjaja']
+            tvornicka_oznaka = argmap['izabraniUredjaj']
+            datum_umjeravanja = argmap['datumUmjeravanja']
+            #sastaviti mjerno podrucje sa mjernom jedinicom
+            popis = ['Od 0',
+                     argmap['mjernaJedinica'],
+                     'do',
+                     str(argmap['opseg']),
+                     argmap['mjernaJedinica']]
+            mjerno_podrucje = " ".join(popis)
         except LookupError as err:
             logging.error(str(err), exc_info=True)
             pass
@@ -221,9 +236,9 @@ class ReportGenerator(object):
         crm_U = '[crm_U]'
 
         try:
-            crm_vrsta = argmap['crm_vrsta']
-            crm_C = argmap['crm_C']
-            crm_U = argmap['crm_U']
+            crm_vrsta = argmap['izvorCRM']
+            crm_C = " ".join([str(argmap['koncentracijaCRM']), argmap['mjernaJedinica']])
+            crm_U = " ".join([str(argmap['sljedivostCRM']), '%'])
         except LookupError as err:
             logging.error(str(err), exc_info=True)
             pass
@@ -278,9 +293,9 @@ class ReportGenerator(object):
         kalibracijska_jedinica_sljedivost = '[kalibracijska_jedinica_sljedivost]'
 
         try:
-            kalibracijska_jedinica_proizvodjac = argmap['kalibracijska_jedinica_proizvodjac']
-            kalibracijska_jedinica_model = argmap['kalibracijska_jedinica_model']
-            kalibracijska_jedinica_sljedivost = argmap['kalibracijska_jedinica_sljedivost']
+            kalibracijska_jedinica_proizvodjac = argmap['proizvodjacDilucija']
+            kalibracijska_jedinica_model = argmap['izabranaDilucija']
+            kalibracijska_jedinica_sljedivost = argmap['sljedivostDilucija']
         except LookupError as err:
             logging.error(str(err), exc_info=True)
             pass
@@ -334,9 +349,9 @@ class ReportGenerator(object):
         cisti_zrak_U = '[cisti_zrak_U]'
 
         try:
-            cisti_zrak_proizvodjac = argmap['cisti_zrak_proizvodjac']
-            cisti_zrak_model = argmap['cisti_zrak_model']
-            cisti_zrak_U = argmap['cisti_zrak_U']
+            cisti_zrak_proizvodjac = argmap['proizvodjacCistiZrak']
+            cisti_zrak_model = argmap['izabraniZrak']
+            cisti_zrak_U = " ".join([str(argmap['sljedivostCistiZrak']), argmap['mjernaJedinica']])
         except LookupError as err:
             logging.error(str(err), exc_info=True)
             pass
@@ -388,8 +403,8 @@ class ReportGenerator(object):
         vrijeme_kraja_umjeravanja = '[vrijeme_kraja_umjeravanja]'
 
         try:
-            vrijeme_pocetka_umjeravanja = argmap['vrijeme_pocetka_umjeravanja']
-            vrijeme_kraja_umjeravanja = argmap['vrijeme_kraja_umjeravanja']
+            vrijeme_pocetka_umjeravanja = argmap['pocetakUmjeravanja']
+            vrijeme_kraja_umjeravanja = argmap['krajUmjeravanja']
         except LookupError as err:
             logging.error(str(err), exc_info=True)
             pass
@@ -438,9 +453,9 @@ class ReportGenerator(object):
         napomena = '[napomena]'
 
         try:
-            temperatura = argmap['temperatura']
-            vlaga = argmap['vlaga']
-            tlak_zraka = argmap['tlak_zraka']
+            temperatura = str(argmap['temperatura'])
+            vlaga = str(argmap['vlaga'])
+            tlak_zraka = str(argmap['tlak'])
             napomena = argmap['napomena']
         except LookupError as err:
             logging.error(str(err), exc_info=True)
@@ -533,14 +548,18 @@ class ReportGenerator(object):
         stil1 = self.generate_paragraph_style(font='FreeSansBold', align=TA_CENTER)
         stil2 = self.generate_paragraph_style(font='FreeSansBold')
 
-        ocjena_umjeravanja = False
-
+        ocjena_umjeravanja = True
         try:
-            ocjena_umjeravanja = argmap['ocjena_umjeravanja']
+            parametri = argmap['parametriRezultata']
+            for parametar in parametri:
+                value = parametar[5] #zadnji element
+                value = value.lower()
+                if value == 'ne':
+                    ocjena_umjeravanja = False
+                    break
         except LookupError as err:
             logging.error(str(err), exc_info=True)
             pass
-
         a1 = Paragraph('REZULTATI ISPITIVANJA:', stil1)
         b1 = Paragraph('Ocjena:', stil2)
         if ocjena_umjeravanja:
@@ -581,15 +600,15 @@ class ReportGenerator(object):
         frejm = pd.DataFrame(index=list(range(5)), columns=list(range(6)))
 
         try:
-            frejm = argmap['rezultati_umjeravanja']
-            jedinica = argmap['mjerna_jedinica']
+            frejm = argmap['rezultatUmjeravanja']
+            jedinica = argmap['mjernaJedinica']
         except LookupError as err:
             logging.error(str(err), exc_info=True)
             pass
 
         h0 = Paragraph('N:', stil1)
         h1 = Paragraph('cref ({0})'.format(str(jedinica)), stil1)
-        h2 = Paragraph('U* ({0})'.format(str(jedinica)), stil1)
+        h2 = Paragraph('U ({0})'.format(str(jedinica)), stil1)
         h3 = Paragraph('c ({0})'.format(str(jedinica)), stil1)
         h4 = Paragraph('\u0394 ({0})'.format(str(jedinica)), stil1)
         h5 = Paragraph('sr ({0})'.format(str(jedinica)), stil1)
@@ -650,7 +669,10 @@ class ReportGenerator(object):
 
         parametri = []
         try:
-            parametri = argmap['parametri_umjeravanja']
+            parametri = argmap['parametriRezultata']
+            for parametar in parametri:
+                #round vrijednosti na 1 decimalu
+                parametar[3] = str(round(parametar[3], 1))
         except LookupError as err:
             logging.error(str(err), exc_info=True)
             pass
@@ -671,9 +693,9 @@ class ReportGenerator(object):
             red.append(Paragraph(str(i+1), stil1))
             for j in range(6): #elementi reda iz parametara (bez rednog broja)
                 if j == 0:
-                    red.append(Paragraph(parametri[i][j], stil2))
+                    red.append(Paragraph(str(parametri[i][j]), stil2))
                 else:
-                    red.append(Paragraph(parametri[i][j], stil1))
+                    red.append(Paragraph(str(parametri[i][j]), stil1))
             layout_tablice.append(red)
 
         stil_tablice = TableStyle(
@@ -719,8 +741,9 @@ class ReportGenerator(object):
         prilagodbaB = ''
 
         try:
-            prilagodbaA = argmap['prilagodbaA']
-            prilagodbaB = argmap['prilagodbaB']
+            lista = argmap['slopeData']
+            prilagodbaA = str(round(lista[2],3))
+            prilagodbaB = str(round(lista[3], 1))
         except LookupError as err:
             logging.error(str(err), exc_info=True)
             pass
@@ -747,7 +770,7 @@ class ReportGenerator(object):
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE')
             ])
 
-        sirina_stupaca = [0.5*inch, 0.5*inch, 0.5*inch, 0.5*inch]
+        sirina_stupaca = [0.5*inch, inch, 0.5*inch, inch]
 
         tablica = Table(layout_tablice,
                         colWidths=sirina_stupaca,
@@ -764,7 +787,6 @@ class ReportGenerator(object):
         ime je naziv (path) buduceg pdf filea  (string)
         argmap je dict podataka koji ispunjavaju report (podaci...)
         """
-        #TODO! vidi mapu na kraju za potrebna polja
         #pdf templata
         doc = SimpleDocTemplate(ime,
                                 pagesize=A4,
@@ -774,142 +796,51 @@ class ReportGenerator(object):
 
         #lista flowable elemenata za report
         parts = []
-
         razmak = Spacer(1, 0.15*inch)
-
         head1 = self.generiraj_header_tablicu(argmap=argmap, stranica=1)
         parts.append(head1)
-
         parts.append(razmak)
-
         tabla1 = self.generiraj_tablicu_podataka_o_uredjaju(argmap=argmap)
         parts.append(tabla1)
-
         parts.append(razmak)
-
         tabla2 = self.generiraj_crm_tablicu(argmap=argmap)
         parts.append(tabla2)
-
         parts.append(razmak)
-
         tabla3 = self.generiraj_tablicu_kalibracijske_jedinice(argmap=argmap)
         parts.append(tabla3)
-
         parts.append(razmak)
-
         tabla4 = self.generiraj_tablicu_izvora_cistog_zraka(argmap=argmap)
         parts.append(tabla4)
-
         parts.append(razmak)
-
         tabla5 = self.generiraj_tablicu_vremena_pocetka_i_kraja_umjeravanja(argmap=argmap)
         parts.append(tabla5)
-
         parts.append(razmak)
-
         tabla6 = self.generiraj_tablicu_okolisnih_uvijeta_tjekom_provjere(argmap=argmap)
         parts.append(tabla6)
-
         parts.append(razmak)
-
         tabla7 = self.generiraj_tablicu_datum_mjeritelj_voditelj()
         parts.append(tabla7)
-
         #kraj prve stranice... page break
         parts.append(PageBreak())
-
         head2 = self.generiraj_header_tablicu(argmap=argmap, stranica=2)
         parts.append(head2)
-
         parts.append(razmak)
         parts.append(razmak)
-
         tabla8 = self.generiraj_tablicu_ocjene_umjeravanja(argmap=argmap)
         parts.append(tabla8)
-
         parts.append(razmak)
         parts.append(razmak)
-
         tabla9 = self.generiraj_tablicu_rezultata_umjeravanja(argmap=argmap)
         parts.append(tabla9)
-
-        annotation1_stil = self.generate_paragraph_style(font='FreeSansOblique', size=8)
-        annotation1 = Paragraph('* Proširena mjerna nesigurnost uz k=2 izračunata prema RU-5.5.1.11', annotation1_stil)
-        parts.append(annotation1)
-
         parts.append(razmak)
-
         tabla10 = self.generiraj_tablicu_kriterija(argmap=argmap)
         parts.append(tabla10)
-
         parts.append(razmak)
-
         tabla11 = self.generiraj_tablicu_funkcije_prilagodbe(argmap=argmap)
         parts.append(tabla11)
-
         parts.append(razmak)
-
         annotation2_stil = self.generate_paragraph_style()
         annotation2 = Paragraph('Kraj ispitnog izvješća', annotation2_stil)
         parts.append(annotation2)
-
         #zavrsna naredba za konstrukciju dokumenta
         doc.build(parts)
-
-if __name__ == '__main__':
-    ime = 'example_report.pdf'
-    import random
-    c1 = pd.Series([random.randint(1,10) for i in range(8)])
-    c2 = pd.Series([random.randint(11,20) for i in range(8)])
-    c3 = pd.Series([random.randint(21,30) for i in range(8)])
-    c4 = pd.Series([random.randint(31,40) for i in range(8)])
-    c5 = pd.Series([random.randint(41,50) for i in range(8)])
-    c6 = pd.Series([random.randint(51,60) for i in range(8)])
-    mockfrejm = pd.DataFrame({'c1':c1, 'c2':c2, 'c3':c3, 'c4':c4, 'c5':c5, 'c6':c6})
-
-    p1 = ['Ponovljivost standardne devijacije u nuli', '9.5.1', 'S<sub>r,z</sub> =', '0.2', '< 1.0 nmol/mol', 'Da']
-    p2 = ['Ponovljivost standardne devijacije pri koncentraciji ct', '9.5.1', 'S<sub>r,ct</sub> =', '1.7', '< 1.5 nmol/mol', 'Ne']
-    p3 = ['Odstupanje od linearnosti u nuli', '9.6.2', 'r<sub>z</sub> =', '1.4', '≤ 5.0 nmol/mol', 'Da']
-    p4 = ['Maksimalno relativno odstupanje od linearnosti', '9.6.2', 'r<sub>z,rel</sub> =', '2.1', '≤ 4.0 %', 'Da']
-    p5 = ['Efikasnost konvertera dušikovih oksida', '9.6.2', 'E<sub>c</sub> =', '50', '95 % ≤ E<sub>c</sub> ≤ 105 %', 'Ne']
-    p6 = ['Nešto bezveze radi testiranja', '1.1.1', 'N<sup>o</sup> =', '32.1', '≤ 12.0 %', 'Ne']
-
-
-    mockparametri = [p1, p2, p3, p4, p5, p6]
-
-    mapa = {
-        'norma':'HRN EN 14212:2012 Vanjski zrak – Standardna metoda za mjerenje koncentracije sumporova dioksida u zraku ultraljubičastom fluorescencijom',
-        'broj_obrasca':'OB 5.10.0.0-1',
-        'revizija':'1',
-        'oznaka_izvjesca':'neka oznaka izvješća',
-        'lokacija':'nearby...',
-        'proizvodjac':'neki proizvođač',
-        'model':'neki model',
-        'tvornicka_oznaka':'neka oznaka',
-        'datum_umjeravanja':'danas',
-        'mjerno_podrucje':'od x do y',
-        'crm_vrsta':'Boca pod tlakom NO u N2 ili nesto slicno',
-        'crm_C':'10000 nekih jedinica',
-        'crm_U':'23%',
-        'kalibracijska_jedinica_proizvodjac':'proizvođač kalibracijske jedinice',
-        'kalibracijska_jedinica_model':'model kalibracijske jedinice',
-        'kalibracijska_jedinica_sljedivost':'sss, wewe, ssss',
-        'cisti_zrak_proizvodjac':'proizvođač cisti zrak',
-        'cisti_zrak_model':'model cisti zrak',
-        'cisti_zrak_U':'12 neke mjerne jedinice',
-        'vrijeme_pocetka_umjeravanja': 'start umjeravanja',
-        'vrijeme_kraja_umjeravanja':'kraj umjeravanja',
-        'temperatura':'temperatura',
-        'vlaga':'vlaga',
-        'tlak_zraka':'tlak zraka',
-        'napomena':'napomena',
-        'ocjena_umjeravanja':False,
-        'rezultati_umjeravanja':mockfrejm,
-        'mjerna_jedinica':'nmol/mol',
-        'parametri_umjeravanja':mockparametri,
-        'prilagodbaA':'1.05',
-        'prilagodbaB':'0.12'
-        }
-
-    report = ReportGenerator()
-    report.generiraj_report(ime, mapa)

@@ -25,33 +25,27 @@ class EditTockuDijalog(BASE3, FORM3):
         self.setupUi(self)
 
         self.indeks = indeks
-        self.tocke = tocke
+        self.tocke = copy.deepcopy(tocke)
         self.frejm = frejm
         self.startIndeks = start
         self.selektiraniIndeks = None
 
-        #TODO!
-        print('start inita')
-        for tocka in self.tocke:
-            print(str(tocka.ime))
-            print('cref--> ', tocka.crefFaktor)
-            print('min--> ', min(tocka.indeksi))
-            print('max--> ', max(tocka.indeksi))
-            print('\n')
-
-        dots = copy.deepcopy(self.tocke)
-
         self.dataModel = modeli.SiroviFrameModel()
         self.dataModel.set_frejm(self.frejm)
-        self.dataModel.set_tocke(dots)
+        self.dataModel.set_tocke(self.tocke)
         self.dataModel.set_start(self.startIndeks)
 
         self.tableViewPodaci.setModel(self.dataModel)
         self.tableViewPodaci.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
 
+        #PROBLEM sa dodavanjem i micanjem tocaka
         self.tocka = self.tocke[self.indeks]
-        minIndeks = list(self.frejm.index)[min(self.tocka.indeksi)]
-        maxIndeks = list(self.frejm.index)[max(self.tocka.indeksi)]
+        try:
+            minIndeks = list(self.frejm.index)[min(self.tocka.indeksi)]
+            maxIndeks = list(self.frejm.index)[max(self.tocka.indeksi)]
+        except Exception:
+            minIndeks = None
+            maxIndeks = None
         cref = float(self.tocka.crefFaktor)
 
         self.crefDoubleSpinBox.setValue(cref)
@@ -67,17 +61,6 @@ class EditTockuDijalog(BASE3, FORM3):
         self.gumbStart.clicked.connect(self.set_start)
         self.gumbEnd.clicked.connect(self.set_end)
         self.tableViewPodaci.clicked.connect(self.set_selektirani_indeks)
-
-        #TODO!
-        print('kraj inita')
-        for tocka in self.tocke:
-            print(str(tocka.ime))
-            print('cref--> ', tocka.crefFaktor)
-            print('min--> ', min(tocka.indeksi))
-            print('max--> ', max(tocka.indeksi))
-            print('\n')
-
-
 
     def get_tocke(self):
         """

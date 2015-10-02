@@ -100,7 +100,9 @@ def get_uredjaj_info(url, serial):
             output = {'analitickaMetoda': {},
                       'komponente': [],
                       'komponenta': {},
-                      'lokacija': 'None'}
+                      'lokacija': 'None',
+                      'proizvodjac':'None',
+                      'oznakaModela':'None'}
             root = ET.fromstring(r.text)
             # analiticke metode
             tmp1 = {}
@@ -144,6 +146,8 @@ def get_uredjaj_info(url, serial):
             output['komponenta'] = tmp2
             # output
             output['lokacija'] = get_lokaciju_uredjaja(url, serial)
+            output['proizvodjac'] = root.find('modelUredjajaId/proizvodjacId/naziv').text
+            output['oznakaModela'] = root.find('modelUredjajaId/oznakaModela').text
             return copy.deepcopy(output)
         else:
             msg = 'Bad request, url={0} , status_code={1}'.format(r.url, r.status_code)
@@ -224,6 +228,7 @@ def pripremi_mape_postaja_i_uredjaja(url1, url2):
     svePostaje = get_postaje(url2)
     listaUredjaja = get_uredjaje(url1)
     for serial in listaUredjaja:
+        #TODO!
         uredjaj = get_uredjaj_info(url1, serial)
         sviUredjaji[serial] = uredjaj
         try:
@@ -275,6 +280,10 @@ if __name__ == '__main__':
     postaje, uredjaji, komponente, output = priprema_podataka_za_model_stanica_i_uredjaja(uredjaj)
     for combo in output:
         print(combo)
+
+    x = uredjaj['2819-E']
+    for key in x:
+        print(key, '-->', x[key], '\n')
 
 
 

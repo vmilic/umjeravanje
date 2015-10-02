@@ -5,19 +5,22 @@ Created on Fri Aug 28 09:41:20 2015
 @author: DHMZ-Milic
 """
 import logging
-import pickle
 import copy
-import pandas as pd
+import gc #garbage collector
+import sip
 import numpy as np
+import pandas as pd
 from PyQt4 import QtGui, QtCore, uic
 import app.view.canvas as canvas
 import app.view.pomocni as view_helpers
 import app.view.read_file_wizard as datareader
 import app.view.dijalog_edit_tocke as dotedit
+import app.reportgen.reportgen as pdfreport
 import app.model.konfig_klase as konfig
-import app.model.pomocne_funkcije as helperi
 import app.model.kalkulator as calc
 import app.model.frejm_model as modeli
+import app.model.model as doc
+
 
 
 BASE, FORM = uic.loadUiType('./app/view/uiFiles/display.ui')
@@ -29,64 +32,45 @@ class GlavniProzor(BASE, FORM):
         super(BASE, self).__init__(parent)
         self.setupUi(self)
 
-        self.tablicaRezultataUmjeravanja = QtGui.QWidget() #placeholder za tablicu
-        self.tablicaPrilagodba = view_helpers.TablicaFunkcijePrilagodbe()
-        self.tablicaParametri = view_helpers.TablicaUmjeravanjeKriterij()
-        self.konverterRezultatView = view_helpers.TablicaKonverterRezultati()
-        self.tablicaKonverter = view_helpers.TablicaKonverterParametri()
-        self.trenutnaMjernaJedinica = 'n/a'
-        self.uredjaji = {}
-        self.postaje = {}
+        ### setup konfig elemente ###
         try:
             self.konfiguracija = konfig.MainKonfig(cfg=cfg)
-            self.postaje, self.uredjaji = helperi.pripremi_mape_postaja_i_uredjaja(
-                self.konfiguracija.uredjajUrl,
-                self.konfiguracija.postajeUrl)
         except Exception as err:
             logging.error(str(err), exc_info=True)
             raise SystemExit('Konfiguracijski file nije ispravan.')
 
-        ### objekti koji racunaju ###
-        self.kalkulator = calc.RacunUmjeravanja(cfg=self.konfiguracija)
-        self.konverterKalkulator = calc.ProvjeraKonvertera(cfg=self.konfiguracija)
+        ### setup dokument ###
+        self.dokument = doc.DokumentModel(cfg=self.konfiguracija)
 
-        ### setup kontrolnih elementia gui-a (comboboxevi, checkboxevi...) ###
-        self.comboDilucija.addItems(self.konfiguracija.get_listu_dilucija())
-        self.comboZrak.addItems(self.konfiguracija.get_listu_cistiZrak())
-        self.checkLinearnost.setChecked(self.konfiguracija.provjeraLinearnosti)
-        try:
-            c50 = float(self.konfiguracija.get_konfig_element('KONVERTER_META','cNOX50'))
-            c95 = float(self.konfiguracija.get_konfig_element('KONVERTER_META','cNOX95'))
-            self.cnox50SpinBox.setValue(c50)
-            self.cnox95SpinBox.setValue(c95)
-        except Exception as err:
-            logging.error(str(err), exc_info=True)
-            self.cnox50SpinBox.setValue(200.0)
-            self.cnox95SpinBox.setValue(180.0)
+        ### setup view elemente ###
+        self.tablicaRezultataUmjeravanja = QtGui.QWidget() #placeholder za tablicu
+        self.layoutRezultati.addWidget(self.tablicaRezultataUmjeravanja)
+        self.tablicaPrilagodba = view_helpers.TablicaFunkcijePrilagodbe()
+        self.tablicaParametri = view_helpers.TablicaUmjeravanjeKriterij()
+        self.konverterRezultatView = view_helpers.TablicaKonverterRezultati()
+        self.tablicaKonverter = view_helpers.TablicaKonverterParametri()
 
-        self.rezultatUmjeravanja = self.generiraj_nan_frejm()
+        ### setup objekte za racunanje ###
+        self.kalkulator = calc.RacunUmjeravanja(doc=self.dokument)
+        self.konverterKalkulator = calc.ProvjeraKonvertera(doc=self.dokument)
+
         self.gereriraj_tablicu_rezultata_umjeravanja()
 
-        self.siroviPodaci = pd.DataFrame()
         self.siroviPodaciModel = modeli.SiroviFrameModel()
         self.siroviPodaciView.setModel(self.siroviPodaciModel)
         self.siroviPodaciView.horizontalHeader().setStretchLastSection(True)
 
-        self.konverterRezultat = pd.DataFrame(columns=['c, R, NOx', 'c, R, NO2', 'c, NO', 'c, NOx'], index=[1,2,3,4,5,6])
-        self.konverterRezultatView.set_mjerna_jedinica(self.trenutnaMjernaJedinica)
-        self.konverterRezultatView.set_tocke(self.konfiguracija.konverterTocke)
-        self.konverterRezultatView.set_data(self.konverterRezultat)
+        self.konverterRezultatView.set_mjerna_jedinica(self.dokument.get_mjernaJedinica())
+        self.konverterRezultatView.set_tocke(self.dokument.get_tockeKonverter())
+        self.konverterRezultatView.set_data(self.dokument.get_konverterRezultat())
 
-        self.konverterPodaci = pd.DataFrame()
-        self.konverterPodaciModel = modeli.SiroviFrameModel(tocke=self.konfiguracija.konverterTocke)
+        self.konverterPodaciModel = modeli.SiroviFrameModel(tocke=self.dokument.get_tockeKonverter())
         self.konverterPodaciView.setModel(self.konverterPodaciModel)
         self.konverterPodaciView.horizontalHeader().setStretchLastSection(True)
 
-        ### postavljanje elemenate u layout gui-a ###
+        ### setup i postavljanje layouta za view elemente ###
         #grafovi
         self.inicijalizacija_grafova()
-        #umjeravanje rezultati
-        self.layoutRezultati.addWidget(self.tablicaRezultataUmjeravanja)
         #umjeravanje prilagodba
         self.layoutPrilagodba = QtGui.QVBoxLayout()
         self.layoutPrilagodba.addWidget(self.tablicaPrilagodba)
@@ -107,7 +91,223 @@ class GlavniProzor(BASE, FORM):
         #vertikalni spacer za scroll area layout
         self.konverterRezultatiLayout.addStretch(-1)
 
+        ### setup signale i slotove ###
         self.setup_signal_connections()
+
+        ### inicijalni setup kontrolnih elemenata gui-a ###
+        self.dokument.init_listaDilucija()
+        self.dokument.init_listaZrak()
+        self.checkLinearnost.setChecked(self.dokument.get_provjeraLinearnosti())
+        self.cnox50SpinBox.setValue(self.dokument.get_cNOx50())
+        self.cnox95SpinBox.setValue(self.dokument.get_cNOx95())
+
+
+    def setup_signal_connections(self):
+        """
+        connect actione i widgete za callbackovima
+        """
+        self.action_Exit.triggered.connect(self.close)
+        self.action_ucitaj_podatke.triggered.connect(self.read_data)
+        self.action_spremi.triggered.connect(self.save_umjeravanje_to_file)
+        self.action_ucitaj.triggered.connect(self.load_umjeravanje_from_file)
+        self.action_Napravi_pdf_report.triggered.connect(self.napravi_pdf_report)
+
+        #izbor pocetka umjeravanja
+        self.siroviPodaciView.clicked.connect(self.odaberi_start_umjeravanja)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_siroviPodaciStart(PyQt_PyObject)'),
+                     self.set_start_umjeravanja)
+        #izbor pocetka kontrole konvertera
+        self.konverterPodaciView.clicked.connect(self.odaberi_start_provjere_konvertera)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_konverterPodaciStart(PyQt_PyObject)'),
+                     self.set_start_provjere_konvertera)
+        #provjera linearnosti
+        self.checkLinearnost.toggled.connect(self.promjena_checkLinearnost)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_provjeraLinearnosti(PyQt_PyObject)'),
+                     self.set_checkLinearnost)
+        #provjera konvertera
+        self.checkKonverter.toggled.connect(self.promjena_checkKonverter)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_provjeraKonvertera(PyQt_PyObject)'),
+                     self.set_checkKonverter)
+        #promjena opsega
+        self.doubleSpinBoxOpseg.valueChanged.connect(self.promjena_doubleSpinBoxOpseg)
+        self.konverterOpseg.valueChanged.connect(self.promjena_konverterOpseg)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_opseg(PyQt_PyObject)'),
+                     self.set_doubleSpinBoxOpseg)
+        #promjena izabranog mjerenja
+        self.comboMjerenje.currentIndexChanged.connect(self.promjena_comboMjerenje)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_izabranoMjerenje(PyQt_PyObject)'),
+                     self.set_comboMjerenje)
+        #promjena izvora CRM
+        self.izvorPlainTextEdit.textChanged.connect(self.promjena_izvorPlainTextEdit)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_izvorCRM(PyQt_PyObject)'),
+                     self.set_izvorPlainTextEdit)
+        #promjena koncentracije CRM
+        self.doubleSpinBoxKoncentracijaCRM.valueChanged.connect(self.promjena_doubleSpinBoxKoncentracijaCRM)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_koncentracijaCRM(PyQt_PyObject)'),
+                     self.set_doubleSpinBoxKoncentracijaCRM)
+        #promjena sljedivosti CRM
+        self.doubleSpinBoxSljedivostCRM.valueChanged.connect(self.promjena_doubleSpinBoxSljedivostCRM)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_sljedivostCRM(PyQt_PyObject)'),
+                     self.set_doubleSpinBoxSljedivostCRM)
+        #promjena izbora dilucijske jedinice
+        self.comboDilucija.currentIndexChanged.connect(self.promjena_comboDilucija)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_izabranaDilucija(PyQt_PyObject)'),
+                     self.set_comboDilucija)
+        #promjena proizvodjaca dilucijske jedinice
+        self.dilucijaProizvodjacLineEdit.textChanged.connect(self.promjena_dilucijaProizvodjacLineEdit)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_proizvodjacDilucija(PyQt_PyObject)'),
+                     self.set_dilucijaProizvodjacLineEdit)
+        #promjena sljedivosti dilucijske jedinice
+        self.dilucijaSljedivostLineEdit.textChanged.connect(self.promjena_dilucijaSljedivostLineEdit)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_sljedivostDilucija(PyQt_PyObject)'),
+                     self.set_dilucijaSljedivostLineEdit)
+        #promjena izbora generatora cistog zraka
+        self.comboZrak.currentIndexChanged.connect(self.promjena_comboZrak)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_izabraniZrak(PyQt_PyObject)'),
+                     self.set_comboZrak)
+        #promjena proizvodjaca generatora cistog zraka
+        self.zrakProizvodjacLineEdit.textChanged.connect(self.promjena_zrakProizvodjacLineEdit)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_proizvodjacCistiZrak(PyQt_PyObject)'),
+                     self.set_zrakProizvodjacLineEdit)
+        #promjena sljedivosti generatora cistog zraka
+        self.doubleSpinBoxSljedivostCistiZrak.valueChanged.connect(self.promjena_doubleSpinBoxSljedivostCistiZrak)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_sljedivostCistiZrak(PyQt_PyObject)'),
+                     self.set_doubleSpinBoxSljedivostCistiZrak)
+        #promjena teksta norme
+        self.normaPlainTextEdit.textChanged.connect(self.promjena_normaPlainTextEdit)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_norma(PyQt_PyObject)'),
+                     self.set_normaPlainTextEdit)
+        #promjena oznake izvjesca
+        self.oznakaIzvjescaLineEdit.textChanged.connect(self.promjena_oznakaIzvjescaLineEdit)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_oznakaIzvjesca(PyQt_PyObject)'),
+                     self.set_oznakaIzvjescaLineEdit)
+        #promjena broja obrasca
+        self.brojObrascaLineEdit.textChanged.connect(self.promjena_brojObrascaLineEdit)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_brojObrasca(PyQt_PyObject)'),
+                     self.set_brojObrascaLineEdit)
+        #promjena broja revizije
+        self.revizijaLineEdit.textChanged.connect(self.promjena_revizijaLineEdit)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_revizija(PyQt_PyObject)'),
+                     self.set_revizijaLineEdit)
+        #promjena datuma umjeravanja
+        self.datumUmjeravanjaLineEdit.textChanged.connect(self.promjena_datumUmjeravanjaLineEdit)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_datumUmjeravanja(PyQt_PyObject)'),
+                     self.set_datumUmjeravanjaLineEdit)
+        #promjena temperature (okolisni uvijeti)
+        self.temperaturaDoubleSpinBox.valueChanged.connect(self.promjena_temperaturaDoubleSpinBox)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_temperatura(PyQt_PyObject)'),
+                     self.set_temperaturaDoubleSpinBox)
+        #promjena relativne vlage (okolisni uvijeti)
+        self.vlagaDoubleSpinBox.valueChanged.connect(self.promjena_vlagaDoubleSpinBox)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_vlaga(PyQt_PyObject)'),
+                     self.set_vlagaDoubleSpinBox)
+        #promjena tlaka zraka (okolisni uvijeti)
+        self.tlakDoubleSpinBox.valueChanged.connect(self.promjena_tlakDoubleSpinBox)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_tlak(PyQt_PyObject)'),
+                     self.set_tlakDoubleSpinBox)
+        #promjena teksta napomene
+        self.napomenaPlainTextEdit.textChanged.connect(self.promjena_napomenaPlainTextEdit)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_napomena(PyQt_PyObject)'),
+                     self.set_napomenaPlainTextEdit)
+        #promjena cnox50 parametra
+        self.cnox50SpinBox.valueChanged.connect(self.promjena_cnox50SpinBox)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_cNOx50(PyQt_PyObject)'),
+                     self.set_cnox50SpinBox)
+        #promjena cnox95 parametra
+        self.cnox95SpinBox.valueChanged.connect(self.promjena_cnox95SpinBox)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_cNOx95(PyQt_PyObject)'),
+                     self.set_cnox95SpinBox)
+        #popunjavanje comboMjerenje iz dokumenta
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_listaMjerenja(PyQt_PyObject)'),
+                     self.napuni_comboMjerenje)
+        #popunjavanje comboDilucija iz dokumenta
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_listaDilucija(PyQt_PyObject)'),
+                     self.napuni_comboDilucija)
+        #popunjavanje comboZrak iz dokumenta
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_listaZrak(PyQt_PyObject)'),
+                     self.napuni_comboZrak)
+        #promjena izabrani uredjaj
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_izabraniUredjaj(PyQt_PyObject)'),
+                     self.set_labelUredjaj)
+        #promjena izabrana postaja
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_izabranaPostaja(PyQt_PyObject)'),
+                     self.set_labelPostaja)
+        #promjena izabrani csv file
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_izabraniPathCSV(PyQt_PyObject)'),
+                     self.set_labelDatoteka)
+        #promjena umjernih tocaka (broj, postavke tocke...)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_tockeUmjeravanja'),
+                     self.recalculate)
+        #naredna iz dokumenta za ponovnim crtanjem tablice rezultata umjeravanja
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('redraw_rezultateUmjeravanja'),
+                     self.gereriraj_tablicu_rezultata_umjeravanja)
+        #promjena mjerne jedinice
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_mjernaJedinica(PyQt_PyObject)'),
+                     self.set_mjernaJedinica)
+        #promjena rezultata umjeravanja
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_rezultatUmjeravanja'),
+                     self.gereriraj_tablicu_rezultata_umjeravanja)
+        #promjena slope data [slope, offset, prilagodbaA, prilagodbaB]
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_slopeData(PyQt_PyObject)'),
+                     self.set_slopeData)
+        #promjena parametara rezultata (kriterij prihvatljivosti)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_parametriRezultata(PyQt_PyObject)'),
+                     self.set_kriterijPrihvatljivosti)
+        #promjena rezultata konvertera
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_konverterRezultat(PyQt_PyObject)'),
+                     self.set_konverterRezultat)
+        #promjena efikasnosti konvertera
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_listaEfikasnostiKonvertera(PyQt_PyObject)'),
+                     self.set_efikasnostiKonvertera)
+        #setter za frejm sirovih podataka preuzetih iz dokumenta
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_siroviPodaci(PyQt_PyObject)'),
+                     self.set_ucitane_sirove_podatke)
+        #setter za frejm sirovih podataka za konverter preuzetih iz dokumenta
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_konverterPodaci(PyQt_PyObject)'),
+                     self.set_ucitane_konverter_podatke)
+
 
     def inicijalizacija_grafova(self):
         """inicijalizacija i postavljanje kanvasa za grafove u layout."""
@@ -122,266 +322,6 @@ class GlavniProzor(BASE, FORM):
         self.layoutGrafovi.addWidget(self.crefCanvas)
         self.layoutGrafovi.addWidget(self.mjerenjaCanvas)
 
-
-    def setup_signal_connections(self):
-        """
-        connect actione i widgete za callbackovima
-        """
-        self.action_Exit.triggered.connect(self.close)
-        self.action_ucitaj_podatke.triggered.connect(self.read_data)
-        self.action_spremi.triggered.connect(self.save_umjeravanje_to_file)
-        self.action_ucitaj.triggered.connect(self.load_umjeravanje_from_file)
-
-        self.siroviPodaciView.clicked.connect(self.odaberi_start_umjeravanja)
-
-        self.comboMjerenje.currentIndexChanged.connect(self.promjena_mjerenja)
-        self.comboDilucija.currentIndexChanged.connect(self.recalculate)
-        self.comboZrak.currentIndexChanged.connect(self.recalculate)
-        self.checkLinearnost.toggled.connect(self.toggle_linearnost)
-        self.doubleSpinBoxOpseg.valueChanged.connect(self.recalculate)
-        self.doubleSpinBoxKoncentracijaCRM.valueChanged.connect(self.recalculate)
-        self.doubleSpinBoxSljedivostCRM.valueChanged.connect(self.recalculate)
-
-        self.konverterPodaciView.clicked.connect(self.odaberi_start_provjere_konvertera)
-
-        self.konverterOpseg.valueChanged.connect(self.recalculate_konverter)
-        self.cnox50SpinBox.valueChanged.connect(self.recalculate_konverter)
-        self.cnox95SpinBox.valueChanged.connect(self.recalculate_konverter)
-
-        self.doubleSpinBoxOpseg.valueChanged.connect(self.konverterOpseg.setValue)
-        self.konverterOpseg.valueChanged.connect(self.doubleSpinBoxOpseg.setValue)
-
-        self.connect(self.konfiguracija,
-                     QtCore.SIGNAL('promjena_umjernih_tocaka'),
-                     self.recalculate)
-
-    def toggle_linearnost(self, x):
-        """
-        intercept za recalculate koji sluzi za update i promjenu displaya
-        rezultata umjeravanja ovisno o umjeravanju
-        """
-        self.tablicaParametri.toggle_linearnost(x)
-        self.recalculate()
-
-    def update_mjerne_jedinice(self, uredjaj, komponenta):
-        """
-        update mjerne jedinice za zadani uredjaj i komponentu.
-
-        mj-komponenta --> uredjaj[SERIAL]['komponenta'][FORMULA]['mjernaJedinica']
-        mj-analiticka metoda --> uredjaj[SERIAL]['analitickaMetoda'][NAZIV]['mjernaJedinica']
-        """
-        try:
-            mj = self.uredjaji[uredjaj]['komponenta'][komponenta]['mjernaJedinica']
-        except LookupError:
-            print('fail lookup mjerne jedinice komponente, ure={0}, komp={1}'.format(uredjaj, komponenta))
-            mj = 'n/a'
-        try:
-            mjOpseg = self.uredjaji[uredjaj]['analitickaMetoda']['o']['mjernaJedinica']
-        except LookupError:
-            print('fail lookup mjerne jedinice opsega analitickeMetode, ure={0}, komp={1}'.format(uredjaj, komponenta))
-            mjOpseg = mj
-        self.trenutnaMjernaJedinica = mjOpseg
-        self.labelJedinicaOpseg.setText(mjOpseg)
-        self.labelJedinicaCCRM.setText(mjOpseg)
-        self.labelKonverterOpseg.setText(mjOpseg)
-        self.labelKonverter50.setText(mjOpseg)
-        self.labelKonverter95.setText(mjOpseg)
-        self.konverterRezultatView.set_mjerna_jedinica(mjOpseg)
-
-    def promjena_mjerenja(self, x):
-        """
-        Promjena mjerenja (stupca za racunanje). Prema potrebi se mjenja:
-        - mjerna jedinica
-        - opseg mjerenja
-        """
-        try:
-            self.doubleSpinBoxOpseg.blockSignals(True)
-            self.konverterOpseg.blockSignals(True)
-            uredjaj = self.labelUredjaj.text()
-            opseg = float(self.uredjaji[uredjaj]['analitickaMetoda']['o']['max'])
-            self.doubleSpinBoxOpseg.setValue(opseg)
-            self.konverterOpseg.setValue(opseg)
-        except LookupError:
-            pass
-        finally:
-            self.doubleSpinBoxOpseg.blockSignals(False)
-            self.konverterOpseg.blockSignals(False)
-        self.recalculate()
-
-    def edit_tocku_dijalog(self, indeks):
-        """
-        Poziv dijaloga za edit vrijednosti parametara izabrane tocke.
-        ulazni parametar indeks je indeks pod kojim se ta tocka nalazi
-        u listi self.konfiguracija.umjerneTocke
-        """
-        tocke = copy.deepcopy(self.konfiguracija.umjerneTocke)
-        podaci = self.siroviPodaci.copy()
-        self.dijalog = dotedit.EditTockuDijalog(indeks=indeks,
-                                                tocke=tocke,
-                                                frejm=podaci,
-                                                start=self.siroviPodaciModel.startIndeks,
-                                                parent=None)
-        if self.dijalog.exec_():
-            dots = self.dijalog.get_tocke()
-            self.konfiguracija.umjerneTocke = dots
-            self.recalculate()
-        else:
-            self.konfiguracija.umjerneTocke = tocke
-            self.recalculate()
-
-    def read_data(self):
-        """
-        ucitavanje sirovih podataka preko wizarda
-        """
-        self.fileWizard = datareader.CarobnjakZaCitanjeFilea(uredjaji=self.uredjaji,
-                                                             postaje=self.postaje)
-        prihvacen = self.fileWizard.exec_()
-        if prihvacen:
-            frejm = self.fileWizard.get_frejm()
-            lokacija = self.fileWizard.get_postaja()
-            uredjaj = self.fileWizard.get_uredjaj()
-            path = str(self.fileWizard.get_path_do_filea())
-            # postavi info o ucitanom fileu
-            self.labelDatoteka.setText(path)
-            self.labelPostaja.setText(lokacija)
-            self.labelUredjaj.setText(uredjaj)
-            self.postavi_sirove_podatke(frejm)
-            self.comboMjerenje.blockSignals(True)
-            self.comboMjerenje.clear()
-            komponente = set(self.uredjaji[uredjaj]['komponente'])
-            komponente.remove('None')
-            self.comboMjerenje.addItems(list(komponente))
-            if 'NOx' in komponente:
-                ind = self.comboMjerenje.findText('NOx')
-                self.comboMjerenje.setCurrentIndex(ind)
-            self.comboMjerenje.blockSignals(False)
-            try:
-                #ako uredjaj ima podatak o opsegu postavi opseg
-                opseg = float(self.uredjaji[uredjaj]['analitickaMetoda']['o']['max'])
-                self.doubleSpinBoxOpseg.blockSignals(True)
-                self.konverterOpseg.blockSignals(True)
-                self.doubleSpinBoxOpseg.setValue(opseg)
-                self.konverterOpseg.setValue(opseg)
-            except LookupError:
-                #zanemari gresku (nepostojeci kljuc)
-                pass
-            finally:
-                self.doubleSpinBoxOpseg.blockSignals(False)
-                self.konverterOpseg.blockSignals(False)
-            self.recalculate()
-
-    def postavi_sirove_podatke(self, frejm):
-        """
-        Metoda postavlja pandas datafrejm (ulazni parametar) u member,
-        predaje ga modelu i updatea view sa ucitanim podacima.
-        """
-        self.siroviPodaci = frejm
-        self.siroviPodaciModel.set_frejm(self.siroviPodaci)
-        self.siroviPodaciModel.set_tocke(self.konfiguracija.umjerneTocke)
-        self.siroviPodaciView.update()
-        #postavljanje podataka za provjeru konvertera samo ako je NOX
-        testSet = set(['NOx', 'NO', 'NO2'])
-        dataSet = set(self.siroviPodaci.columns)
-        if testSet.issubset(dataSet):
-            self.konverterPodaci = self.siroviPodaci.copy()
-            self.konverterPodaciModel.set_frejm(self.konverterPodaci)
-            self.konverterPodaciModel.set_tocke(self.konfiguracija.konverterTocke)
-            self.konverterPodaciView.setModel(self.konverterPodaciModel)
-            self.konverterPodaciView.update()
-        else:
-            self.konverterPodaci = pd.DataFrame()
-            self.konverterPodaciModel.set_frejm(self.konverterPodaci)
-            self.konverterPodaciModel.set_tocke(self.konfiguracija.konverterTocke)
-            self.konverterPodaciView.setModel(self.konverterPodaciModel)
-            self.konverterPodaciView.update()
-
-    def odaberi_start_umjeravanja(self, x):
-        """
-        Metoda sluzi za odabir pocetnog indeksa (ljevi klik na tablicu sa sirovim
-        podacima)
-        """
-        self.siroviPodaciView.clearSelection()
-        self.siroviPodaciModel.set_start(x)
-        self.recalculate()
-
-    def odaberi_start_provjere_konvertera(self, x):
-        """
-        Metoda sluzi za odabir pocetnog indeksa provjere konvertera.
-        """
-        self.konverterPodaciView.clearSelection()
-        self.konverterPodaciModel.set_start(x)
-        self.recalculate_konverter()
-
-    def prilagodba_rezultata_za_prikaz_u_tablicama(self):
-        """
-        helper funkcija za postavljanje podataka u tablice
-        """
-        srz, srs, rz, rmax = self.kalkulator.get_provjeru_parametara()
-        parametriPrilagodbe = self.kalkulator.get_slope_and_offset_list()
-        prilagodbaA = parametriPrilagodbe[2]
-        prilagodbaB = parametriPrilagodbe[3]
-
-        out = {}
-        out['srz'] = self.pripremi_redak_za_prikaz(
-            lista=srz,
-            znak='<',
-            jedinica=self.trenutnaMjernaJedinica)
-        out['srs'] = self.pripremi_redak_za_prikaz(
-            lista=srs,
-            znak='<',
-            jedinica=self.trenutnaMjernaJedinica)
-        out['rz'] = self.pripremi_redak_za_prikaz(
-            lista=rz,
-            jedinica=self.trenutnaMjernaJedinica)
-        out['rmax'] = self.pripremi_redak_za_prikaz(
-            lista=rmax,
-            jedinica='%')
-
-        if not np.isnan(prilagodbaA):
-            prilagodbaA = round(prilagodbaA, 3)
-        if not np.isnan(prilagodbaB):
-            prilagodbaB = round(prilagodbaB, 1)
-        prilagodba = [str(prilagodbaA), str(prilagodbaB)]
-
-        return out, prilagodba
-
-    def pripremi_redak_za_prikaz(self, lista=None, rnd=1, znak='\u2264', jedinica='n/a'):
-        """
-        helper funkcija koja pretvra numericke i boolean vrijednosti u string za prikaz
-        u tablici. output je lista dobro formatiranih stringova
-        """
-        if lista == None:
-            return ['n/a', 'n/a', 'Ne']
-
-        value = lista[0]
-        if not np.isnan(value):
-            value = round(value, rnd)
-        value = str(value)
-
-        limit = lista[1]
-        if not np.isnan(limit):
-            limit = round(limit, rnd)
-        limit = " ".join([str(znak), str(limit), str(jedinica)])
-
-        ispravan = lista[2]
-        if ispravan:
-            ispravan = 'Da'
-        else:
-            ispravan = 'Ne'
-
-        return [value, limit, ispravan]
-
-    def generiraj_nan_frejm(self):
-        """
-        metoda generira datafrejm sa 6 stupaca i n redaka (n je broj umjernih
-        tocaka prezuetih iz konfiga), radi inicijalnog prikaza tablice
-        rezultata umjeravanja. Sve vrijednosti tog datafrejma su np.NaN
-        """
-        frejm = pd.DataFrame(
-            columns=['cref', 'U*', 'c', u'\u0394', 'sr', 'r'],
-            index=list(range(len(self.konfiguracija.umjerneTocke))))
-        return frejm
-
     def gereriraj_tablicu_rezultata_umjeravanja(self):
         """
         metoda koja generira tablicu umjeravanja i postavlja je u specificno mjesto
@@ -392,367 +332,655 @@ class GlavniProzor(BASE, FORM):
         #korak 1, maknuti widget iz layouta
         self.layoutRezultati.removeWidget(self.tablicaRezultataUmjeravanja)
         #korak 2, moram zatvoriti widget (garbage collection...)
-        self.tablicaRezultataUmjeravanja.close()
+        sip.delete(self.tablicaRezultataUmjeravanja)
+        self.tablicaRezultataUmjeravanja = None
+        #self.tablicaRezultataUmjeravanja.destroy()
+        gc.collect() #force garbage collection
         #korak 3, stvaram novi widget (tablicu) i dodjelujem je istom imenu
         try:
             self.tablicaRezultataUmjeravanja = view_helpers.TablicaUmjeravanje(
-                tocke=self.konfiguracija.umjerneTocke,
-                data=self.rezultatUmjeravanja,
-                jedinica=self.trenutnaMjernaJedinica,
+                tocke=self.dokument.get_tockeUmjeravanja(),
+                data=self.dokument.get_rezultatUmjeravanja(),
+                jedinica=self.dokument.get_mjernaJedinica(),
                 parent=None)
         except Exception as err:
             logging.error(str(err), exc_info=True)
-            frejm = self.generiraj_nan_frejm()
             self.tablicaRezultataUmjeravanja = view_helpers.TablicaUmjeravanje(
-                tocke=self.konfiguracija.umjerneTocke,
-                data=frejm,
-                jedinica=self.trenutnaMjernaJedinica,
+                tocke=self.dokument.get_tockeUmjeravanja(),
+                data=self.dokument.generiraj_nan_frejm_rezultata_umjeravanja(),
+                jedinica=self.dokument.get_mjernaJedinica(),
                 parent=None)
-        #korak 4, insert novog widgeta na isto mjesto u layout
-        self.layoutRezultati.insertWidget(0,self.tablicaRezultataUmjeravanja)
-        #korak 5, update layouta
-        self.layoutRezultati.update()
-        #korak 6, spajanje signala iz kontekstnog menija sa metodama za
-        #dodavanje, editiranje i brisanje tocaka
-        self.connect(self.tablicaRezultataUmjeravanja,
-                     QtCore.SIGNAL('addrow'),
-                     self.add_red_umjeravanje)
+        finally:
+            #korak 4, insert novog widgeta na isto mjesto u layout
+            self.layoutRezultati.insertWidget(0, self.tablicaRezultataUmjeravanja)
+            #korak 5, update layouta
+            self.layoutRezultati.update()
+            #korak 6, spajanje signala iz kontekstnog menija sa metodama za
+            #dodavanje, editiranje i brisanje tocaka
+            self.connect(self.tablicaRezultataUmjeravanja,
+                         QtCore.SIGNAL('addrow'),
+                         self.add_red_umjeravanje)
+            self.connect(self.tablicaRezultataUmjeravanja,
+                         QtCore.SIGNAL('removerow'),
+                         self.remove_red_umjeravanje)
+            self.connect(self.tablicaRezultataUmjeravanja,
+                         QtCore.SIGNAL('editrow'),
+                         self.edit_red_umjeravanje)
 
-        self.connect(self.tablicaRezultataUmjeravanja,
-                     QtCore.SIGNAL('removerow(PyQt_PyObject)'),
-                     self.remove_red_umjeravanje)
 
-        self.connect(self.tablicaRezultataUmjeravanja,
-                     QtCore.SIGNAL('editrow(PyQt_PyObject)'),
-                     self.edit_red_umjeravanje)
 
     def add_red_umjeravanje(self):
-        self.konfiguracija.dodaj_tocku()
+        """metoda (slot) za dodavanje tocaka u dokument"""
+        self.dokument.dodaj_umjernu_tocku()
 
-    def remove_red_umjeravanje(self, x):
-        self.konfiguracija.makni_tocku(x-1) #korekcija za zero based indexing
+    def remove_red_umjeravanje(self):
+        """metoda za brisanje tocke za umjeravanje iz dokumenta"""
+        red = self.tablicaRezultataUmjeravanja.get_redak()
+        self.dokument.makni_umjernu_tocku(red-1) #korekcija za zero based indexing
 
-    def edit_red_umjeravanje(self, x):
-        self.edit_tocku_dijalog(x-1) #korekcija za zero based indexing
+    def edit_red_umjeravanje(self):
+        """metoda za editiranje umjerne tocke uz pomoc dijaloga"""
+        red = self.tablicaRezultataUmjeravanja.get_redak()
+        self.edit_tocku_dijalog(red-1) #korekcija za zero based indexing
 
-    def refresh_views(self):
+    def edit_tocku_dijalog(self, indeks):
         """
-        force refresh modela i view-ova nakon promjene podataka
+        Poziv dijaloga za edit vrijednosti parametara izabrane tocke.
+        ulazni parametar indeks je indeks pod kojim se ta tocka nalazi
+        u listi self.konfiguracija.umjerneTocke
         """
-        # umjeravanje
-        self.rezultatUmjeravanja = self.kalkulator.rezultat
-        self.siroviPodaciModel.set_tocke(self.konfiguracija.umjerneTocke)
-        #mjerne jedinice
-        komponenta = self.comboMjerenje.currentText()
-        uredjaj = self.labelUredjaj.text()
-        self.update_mjerne_jedinice(uredjaj, komponenta)
-        #tablica rezultata umjeravanja
-        self.gereriraj_tablicu_rezultata_umjeravanja()
-        parametri, prilagodba = self.prilagodba_rezultata_za_prikaz_u_tablicama()
-        self.tablicaParametri.set_values(parametri)
-        self.tablicaParametri.toggle_linearnost(self.checkLinearnost.isChecked())
-        self.tablicaPrilagodba.set_values(prilagodba)
+        tocke = copy.deepcopy(self.dokument.get_tockeUmjeravanja())
+        podaci = self.dokument.get_siroviPodaci().copy()
+        start = self.dokument.get_siroviPodaciStart()
+        self.dijalog = dotedit.EditTockuDijalog(indeks=indeks,
+                                                tocke=tocke,
+                                                frejm=podaci,
+                                                start=start,
+                                                parent=None)
+        if self.dijalog.exec_():
+            dots = self.dijalog.get_tocke()
+            tocka = dots[indeks]
+            self.dokument.zamjeni_umjernu_tocku(indeks, tocka)
+            self.recalculate()
 
-        #update view-s
+    def read_data(self):
+        """
+        ucitavanje sirovih podataka preko wizarda
+        """
+        self.fileWizard = datareader.CarobnjakZaCitanjeFilea(uredjaji=self.dokument.get_uredjaji(),
+                                                             postaje=self.dokument.get_postaje())
+        prihvacen = self.fileWizard.exec_()
+        if prihvacen:
+            frejm = self.fileWizard.get_frejm()
+            lokacija = self.fileWizard.get_postaja()
+            uredjaj = self.fileWizard.get_uredjaj()
+            path = str(self.fileWizard.get_path_do_filea())
+            # postavi info o ucitanom fileu
+            self.dokument.set_izabraniUredjaj(uredjaj)
+            self.dokument.set_izabranaPostaja(lokacija)
+            self.dokument.set_izabraniPathCSV(path)
+            #postavi frejm sa sirovim podacima
+            self.postavi_sirove_podatke(frejm)
+            #update combobox za izbor mjerenja
+            komponente = set(self.dokument.uredjaji[uredjaj]['komponente'])
+            komponente.remove('None')
+            komponente = list(komponente)
+            self.dokument.set_listaMjerenja(komponente)
+            self.recalculate()
+
+    def set_ucitane_sirove_podatke(self, x):
+        """setter sirovih podataka ucitanih iz spremljenog filea umjeravanja.
+        Ulazni parametar x je dict:
+        {'frejm': pandas frejm podataka, 'start': pocetni indeks}"""
+        frejm = x['frejm']
+        start = x['start']
+        udots = self.dokument.get_tockeUmjeravanja()
+        self.siroviPodaciModel.set_frejm(frejm)
+        self.siroviPodaciModel.set_tocke(udots)
+        self.siroviPodaciModel.set_start_prilikom_loada(start)
         self.siroviPodaciView.update()
-        # clear and redraw grafove
-        self.crefCanvas.clear_graf()
-        self.mjerenjaCanvas.clear_graf()
-        self.prikazi_grafove()
 
-    def setup_kalkulator(self):
-        """
-        Funkcija postavlja priprema kalkulator za racunanje. Predaje mu konfig,
-        podatke i stupac s kojim se racuna.
-        """
-        try:
-            self.kalkulator.set_uredjaj(self.uredjaji[str(self.labelUredjaj.text())])
-        except LookupError:
-            QtGui.QMessageBox.warning(self, 'Problem', 'Nedostaju podaci za izabrani uredjaj.')
-            logging.debug('Uredjaj nije definiran (n/a)', exc_info=True)
-        self.kalkulator.set_linearnost(self.checkLinearnost.isChecked())
-        self.kalkulator.set_data(self.siroviPodaci)
-        self.kalkulator.set_stupac(self.comboMjerenje.currentText())
-        self.kalkulator.set_dilucija(self.comboDilucija.currentText())
-        self.kalkulator.set_cistiZrak(self.comboZrak.currentText())
-        self.kalkulator.set_opseg(float(self.doubleSpinBoxOpseg.value()))
-        self.kalkulator.set_cCRM(float(self.doubleSpinBoxKoncentracijaCRM.value()))
-        self.kalkulator.set_sCRM(float(self.doubleSpinBoxSljedivostCRM.value()))
+    def set_ucitane_konverter_podatke(self, x):
+        """setter sirovih podataka za efikasnost konvertera ucitanih iz spremljenog
+        filea umjeravanja.
+        Ulazni parametar x je dict:
+        {'frejm': pandas frejm podataka, 'start': pocetni indeks}"""
+        frejm = x['frejm']
+        start = x['start']
+        kdots = self.dokument.get_tockeKonverter()
+        self.konverterPodaciModel.set_frejm(frejm)
+        self.konverterPodaciModel.set_tocke(kdots)
+        self.konverterPodaciModel.set_start_prilikom_loada(start)
+        self.konverterPodaciView.update()
 
-    def setup_konverter_kalkulator(self):
+    def postavi_sirove_podatke(self, frejm):
         """
-        Funkcija priprema kalkulator za racunjanje provjere konvertera.
+        Metoda postavlja pandas datafrejm (ulazni parametar) u member,
+        predaje ga modelu i updatea view sa ucitanim podacima.
         """
-        self.konverterKalkulator.set_data(self.konverterPodaci)
-        self.konverterKalkulator.set_opseg(self.konverterOpseg.value())
-        self.konverterKalkulator.set_cnox50(self.cnox50SpinBox.value())
-        self.konverterKalkulator.set_cnox95(self.cnox95SpinBox.value())
+        siroviPodaci = frejm.copy()
+        konverterPodaci = frejm.copy()
+        udots = self.dokument.get_tockeUmjeravanja()
+        kdots = self.dokument.get_tockeKonverter()
+        self.dokument.set_siroviPodaci(siroviPodaci)
+        self.siroviPodaciModel.set_frejm(siroviPodaci)
+        self.siroviPodaciModel.set_tocke(udots)
+        self.siroviPodaciView.update()
+        #postavljanje podataka za provjeru konvertera samo ako je NOX
+        testSet = set(['NOx', 'NO', 'NO2'])
+        dataSet = set(frejm.columns)
+        if testSet.issubset(dataSet):
+            self.dokument.set_konverterPodaci(konverterPodaci)
+            self.konverterPodaciModel.set_frejm(konverterPodaci)
+            self.konverterPodaciModel.set_tocke(kdots)
+            self.konverterPodaciView.setModel(self.konverterPodaciModel)
+            self.konverterPodaciView.update()
+        else:
+            self.dokument.set_konverterPodaci(pd.DataFrame())
+            self.konverterPodaciModel.set_frejm(pd.DataFrame())
+            self.konverterPodaciModel.set_tocke(kdots)
+            self.konverterPodaciView.setModel(self.konverterPodaciModel)
+            self.konverterPodaciView.update()
+
+    def set_labelUredjaj(self, tekst):
+        """Setter serijskog broja uredjaja (tekst) u label"""
+        self.labelUredjaj.setText(tekst)
+        self.recalculate()
+
+    def set_labelPostaja(self, tekst):
+        """Setter naziva postaje na kojoj je smjesten uredjaj u label"""
+        self.labelPostaja.setText(tekst)
+
+    def set_labelDatoteka(self, tekst):
+        """Setter punog patha i naziva fajla sa sirovim csv podacima"""
+        self.labelDatoteka.setText(tekst)
+
+    def set_mjernaJedinica(self, jedinica):
+        """Setter mjerne jedinice u labele i druge elemente gui-a"""
+        self.labelJedinicaOpseg.setText(jedinica)
+        self.labelJedinicaCCRM.setText(jedinica)
+        self.labelKonverterOpseg.setText(jedinica)
+        self.labelKonverter50.setText(jedinica)
+        self.labelKonverter95.setText(jedinica)
+        self.labelJedinicaZrak.setText(jedinica)
+        self.konverterRezultatView.set_mjerna_jedinica(jedinica)
+
+    def promjena_comboMjerenje(self, x):
+        """slot koji dokumentu javlja promjenu izabranog mjerenja"""
+        value = self.comboMjerenje.currentText()
+        self.dokument.set_izabranoMjerenje(value)
+
+    def set_comboMjerenje(self, x):
+        """Metoda postavlja izabrano mjerenje preuzeto iz dokumenta u gui
+        widgete"""
+        #self.comboMjerenje.blockSignals(True)
+        ind = self.comboMjerenje.findText(x)
+        self.comboMjerenje.setCurrentIndex(ind)
+        #self.comboMjerenje.blockSignals(False)
+        self.recalculate()
+
+    def promjena_doubleSpinBoxOpseg(self, x):
+        """slot koji dokumentu javlja promjenu opsega mjerenja"""
+        value = self.doubleSpinBoxOpseg.value()
+        self.dokument.set_opseg(value)
+
+    def set_doubleSpinBoxOpseg(self, x):
+        """Metoda postavlja izabrani opseg preuzet iz dokumenta u gui widgete"""
+        #self.doubleSpinBoxOpseg.blockSignals(True)
+        #self.konverterOpseg.blockSignals(True)
+        self.doubleSpinBoxOpseg.setValue(x)
+        self.konverterOpseg.setValue(x)
+        #self.doubleSpinBoxOpseg.blockSignals(False)
+        #self.konverterOpseg.blockSignals(False)
+        self.recalculate()
+
+    def promjena_izvorPlainTextEdit(self):
+        """slot koji dokumentu javlja promjenu izvora CRM-a"""
+        value = self.izvorPlainTextEdit.toPlainText()
+        self.dokument.set_izvorCRM(value)
+
+    def set_izvorPlainTextEdit(self, x):
+        """Metoda postavlja izvorCRM u gui widget"""
+        #self.izvorPlainTextEdit.blockSignals(True)
+        self.izvorPlainTextEdit.setPlainText(x)
+        self.izvorPlainTextEdit.moveCursor(QtGui.QTextCursor.End)
+        #self.izvorPlainTextEdit.blockSignals(False)
+
+    def promjena_doubleSpinBoxKoncentracijaCRM(self, x):
+        """slot koji dokumentu javlja promjenu koncentracije CRM-a"""
+        value = self.doubleSpinBoxKoncentracijaCRM.value()
+        self.dokument.set_koncentracijaCRM(value)
+
+    def set_doubleSpinBoxKoncentracijaCRM(self, x):
+        """Metoda postavlja koncentraciju CRM-a u gui widget"""
+        #self.doubleSpinBoxKoncentracijaCRM.blockSignals(True)
+        self.doubleSpinBoxKoncentracijaCRM.setValue(x)
+        #self.doubleSpinBoxKoncentracijaCRM.blockSignals(False)
+        self.recalculate()
+
+    def promjena_doubleSpinBoxSljedivostCRM(self, x):
+        """slot koji dokumentu javlja promjenu sljedivosti CRM-a"""
+        value = self.doubleSpinBoxSljedivostCRM.value()
+        self.dokument.set_sljedivostCRM(value)
+
+    def set_doubleSpinBoxSljedivostCRM(self, x):
+        """Metoda postavlja sljedivost CRM u gui widget"""
+        #self.doubleSpinBoxSljedivostCRM.blockSignals(True)
+        self.doubleSpinBoxSljedivostCRM.setValue(x)
+        #self.doubleSpinBoxSljedivostCRM.blockSignals(False)
+        self.recalculate()
+
+    def promjena_comboDilucija(self, x):
+        """slot koji dokumentu javlja promjenu izabrane dilucijske jedinice"""
+        value = self.comboDilucija.currentText()
+        self.dokument.set_izabranaDilucija(value)
+
+    def set_comboDilucija(self, x):
+        """Metoda postavlja izabranu dilucijsku jedinicu preuzetu iz dokumenta
+        u gui widget"""
+        #self.comboDilucija.blockSignals(True)
+        ind = self.comboDilucija.findText(x)
+        self.comboDilucija.setCurrentIndex(ind)
+        #self.comboDilucija.blockSignals(False)
+        self.recalculate()
+
+    def promjena_dilucijaProizvodjacLineEdit(self, x):
+        """slot koji javlja dokumentu promjenu proizvodjaca dilucijske jedinice"""
+        value = self.dilucijaProizvodjacLineEdit.text()
+        self.dokument.set_proizvodjacDilucija(value)
+
+    def set_dilucijaProizvodjacLineEdit(self, x):
+        """Metoda postavlja proizvodjaca dilucijske jedinice preuzetu iz dokumenta
+        u gui widget"""
+        #self.dilucijaProizvodjacLineEdit.blockSignals(True)
+        self.dilucijaProizvodjacLineEdit.setText(x)
+        #self.dilucijaProizvodjacLineEdit.blockSignals(False)
+
+    def promjena_dilucijaSljedivostLineEdit(self, x):
+        """slot koji javlja dokumentu promjenu sljedivosti dilucijske jedinice"""
+        value = self.dilucijaSljedivostLineEdit.text()
+        self.dokument.set_sljedivostDilucija(value)
+
+    def set_dilucijaSljedivostLineEdit(self, x):
+        """Metoda postavlja sljedivost dilucijske jedinice preuzetu iz dokumenta
+        u gui widget"""
+        #self.dilucijaSljedivostLineEdit.blockSignals(True)
+        self.dilucijaSljedivostLineEdit.setText(x)
+        #self.dilucijaSljedivostLineEdit.blockSignals(False)
+
+    def promjena_comboZrak(self, x):
+        """slot koji javlja dokumentu da je doslo do promjene izabranog generatora
+        cistog zraka"""
+        value = self.comboZrak.currentText()
+        self.dokument.set_izabraniZrak(value)
+
+    def set_comboZrak(self, x):
+        """Metoda postavlja izabrani generator cistog zraka iz dokumenta u gui
+        widget"""
+        #self.comboZrak.blockSignals(True)
+        ind = self.comboZrak.findText(x)
+        self.comboZrak.setCurrentIndex(ind)
+        #self.comboZrak.blockSignals(False)
+        self.recalculate()
+
+    def promjena_zrakProizvodjacLineEdit(self, x):
+        """slot koji postavlja proizvodjaca generatora cistog zraka u dokument"""
+        value = self.zrakProizvodjacLineEdit.text()
+        self.dokument.set_proizvodjacCistiZrak(value)
+
+    def set_zrakProizvodjacLineEdit(self, x):
+        """Metoda postavlja proizvodjaca generatora cistog zraka iz dokumenta
+        u gui widget"""
+        #self.zrakProizvodjacLineEdit.blockSignals(True)
+        self.zrakProizvodjacLineEdit.setText(x)
+        #self.zrakProizvodjacLineEdit.blockSignals(False)
+
+    def promjena_doubleSpinBoxSljedivostCistiZrak(self, x):
+        """slot koji postavlja sljedivost generatora cistog zraka u dokument"""
+        value = self.doubleSpinBoxSljedivostCistiZrak.value()
+        self.dokument.set_sljedivostCistiZrak(value)
+
+    def set_doubleSpinBoxSljedivostCistiZrak(self, x):
+        """Metoda postavlja slejdivost generatora cistog zraka iz dokumenta u gui
+        widget"""
+        #self.doubleSpinBoxSljedivostCistiZrak.blockSignals(True)
+        self.doubleSpinBoxSljedivostCistiZrak.setValue(x)
+        #self.doubleSpinBoxSljedivostCistiZrak.blockSignals(False)
+        self.recalculate()
+
+    def promjena_normaPlainTextEdit(self):
+        """slot koji postavlja tekst norme u dokument"""
+        value = self.normaPlainTextEdit.toPlainText()
+        self.dokument.set_norma(value)
+
+    def set_normaPlainTextEdit(self, x):
+        """Metoda koja postavlja tekst norme iz dokumenta u gui widget"""
+        #self.normaPlainTextEdit.blockSignals(True)
+        self.normaPlainTextEdit.setPlainText(x)
+        self.normaPlainTextEdit.moveCursor(QtGui.QTextCursor.End)
+        #self.normaPlainTextEdit.blockSignals(False)
+
+    def promjena_oznakaIzvjescaLineEdit(self, x):
+        """slot koji postavlja oznaku izvjesca u dokument"""
+        value = self.oznakaIzvjescaLineEdit.text()
+        self.dokument.set_oznakaIzvjesca(value)
+
+    def set_oznakaIzvjescaLineEdit(self, x):
+        """Metoda koja postavlja oznaku izvjesca iz dokumenta u gui widget"""
+        #self.oznakaIzvjescaLineEdit.blockSignals(True)
+        self.oznakaIzvjescaLineEdit.setText(x)
+        #self.oznakaIzvjescaLineEdit.blockSignals(False)
+
+    def promjena_brojObrascaLineEdit(self, x):
+        """slot koji postavlja broj obrasca u dokument"""
+        value = self.brojObrascaLineEdit.text()
+        self.dokument.set_brojObrasca(value)
+
+    def set_brojObrascaLineEdit(self, x):
+        """Metoda koja postavlja broj obrasca iz dokumenta u gui widget"""
+        #self.brojObrascaLineEdit.blockSignals(True)
+        self.brojObrascaLineEdit.setText(x)
+        #self.brojObrascaLineEdit.blockSignals(False)
+
+    def promjena_revizijaLineEdit(self, x):
+        """slot koji postavlja broj revizije u dokument"""
+        value = self.revizijaLineEdit.text()
+        self.dokument.set_revizija(value)
+
+    def set_revizijaLineEdit(self, x):
+        """Metoda koja postavlja broj revizije iz dokumenta u gui widget"""
+        #self.revizijaLineEdit.blockSignals(True)
+        self.revizijaLineEdit.setText(x)
+        #self.revizijaLineEdit.blockSignals(False)
+
+    def promjena_datumUmjeravanjaLineEdit(self, x):
+        """slot koji postavlja datum umjeravanja u dokument"""
+        value = self.datumUmjeravanjaLineEdit.text()
+        self.dokument.set_datumUmjeravanja(value)
+
+    def set_datumUmjeravanjaLineEdit(self, x):
+        """metoda postavlja datum umjeravanja iz dokumenta u gui widget"""
+        #self.datumUmjeravanjaLineEdit.blockSignals(True)
+        self.datumUmjeravanjaLineEdit.setText(x)
+        #self.datumUmjeravanjaLineEdit.blockSignals(False)
+
+    def promjena_temperaturaDoubleSpinBox(self, x):
+        """slot koji postavlja temperaturu (okolisni uvijeti) u dokument"""
+        value = self.temperaturaDoubleSpinBox.value()
+        self.dokument.set_temperatura(value)
+
+    def set_temperaturaDoubleSpinBox(self, x):
+        """metoda postavlja temperaturu (okolisni uvijeti) iz dokumenta u gui
+        widget"""
+        #self.temperaturaDoubleSpinBox.blockSignals(True)
+        self.temperaturaDoubleSpinBox.setValue(x)
+        #self.temperaturaDoubleSpinBox.blockSignals(False)
+
+    def promjena_vlagaDoubleSpinBox(self, x):
+        """slot koji postavlja relativnu vlagu (okolisni uvijeti) u dokumnet"""
+        value = self.vlagaDoubleSpinBox.value()
+        self.dokument.set_vlaga(value)
+
+    def set_vlagaDoubleSpinBox(self, x):
+        """Metoda postavlja relativnu vlagu (okolisni uvijeti) iz dokumenta u
+        gui widget"""
+        #self.vlagaDoubleSpinBox.blockSignals(True)
+        self.vlagaDoubleSpinBox.setValue(x)
+        #self.vlagaDoubleSpinBox.blockSignals(False)
+
+    def promjena_tlakDoubleSpinBox(self, x):
+        """slot koji postavlja tlak (okolisni uvijeti) u dokument"""
+        value = self.tlakDoubleSpinBox.value()
+        self.dokument.set_tlak(value)
+
+    def set_tlakDoubleSpinBox(self, x):
+        """metoda postavlja tlak (okolisni uvijeti) iz dokumenta u gui widget"""
+        #self.tlakDoubleSpinBox.blockSignals(True)
+        self.tlakDoubleSpinBox.setValue(x)
+        #self.tlakDoubleSpinBox.blockSignals(False)
+
+    def promjena_napomenaPlainTextEdit(self):
+        """slot koji postavlja tekst napomena u dokument"""
+        value = self.napomenaPlainTextEdit.toPlainText()
+        self.dokument.set_napomena(value)
+
+    def set_napomenaPlainTextEdit(self, x):
+        """metoda postavlja tekst napomene iz dokumenta u gui widget"""
+        #self.napomenaPlainTextEdit.blockSignals(True)
+        self.napomenaPlainTextEdit.setPlainText(x)
+        self.napomenaPlainTextEdit.moveCursor(QtGui.QTextCursor.End)
+        #self.napomenaPlainTextEdit.blockSignals(False)
+
+    def promjena_checkLinearnost(self, x):
+        """slot koji zapisuje promjenu linearnosti (checkbox) u dokument"""
+        value = self.checkLinearnost.isChecked()
+        self.dokument.set_provjeraLinearnosti(value)
+
+    def set_checkLinearnost(self, x):
+        """metoda postavlja check linearnosti iz dokumenta u gui widget"""
+        #self.checkLinearnost.blockSignals(True)
+        self.checkLinearnost.setChecked(x)
+        #self.checkLinearnost.blockSignals(False)
+        self.recalculate()
+
+    def promjena_checkKonverter(self, x):
+        """slot koji zapisuje promjenu provjere konvertera u dokument (checkbox)"""
+        value = self.checkKonverter.isChecked()
+        self.dokument.set_provjeraKonvertera(value)
+
+    def set_checkKonverter(self, x):
+        """metoda postavlja ckeck provjere konvertera iz dokumenta u gui widget"""
+        #self.checkKonverter.blockSignals(True)
+        self.checkKonverter.setChecked(x)
+        self.recalculate()
+        #self.checkKonverter.blockSignals(False)
+
+    def promjena_cnox50SpinBox(self, x):
+        """slot koji zapisuje parametar cnox50 u dokument"""
+        value = self.cnox50SpinBox.value()
+        self.dokument.set_cNOx50(value)
+
+    def set_cnox50SpinBox(self, x):
+        """metoda postavlja parametar cNOx50 iz dokumenta u gui widget"""
+        #self.cnox50SpinBox.blockSignals(True)
+        self.cnox50SpinBox.setValue(x)
+        #self.cnox50SpinBox.blockSignals(False)
+
+    def promjena_cnox95SpinBox(self, x):
+        """slot koji zapisuje parametar cnox95 u dokument"""
+        value = self.cnox95SpinBox.value()
+        self.dokument.set_cNOx95(value)
+
+    def set_cnox95SpinBox(self, x):
+        """metoda postavlja parametar cNOx95 iz dokumenta u gui widget"""
+        #self.cnox95SpinBox.blockSignals(True)
+        self.cnox95SpinBox.setValue(x)
+        #self.cnox95SpinBox.blockSignals(False)
+
+    def promjena_konverterOpseg(self, x):
+        """slot koji zapisuje opseg konvertera u dokument (povezan sa opsegom
+        umjeravanja)"""
+        value = self.konverterOpseg.value()
+        self.dokument.set_opseg(value)
+
+    def napuni_comboMjerenje(self, x):
+        """metoda postavlja listu x (lista stringova mjerenja) iz dokumenta
+        u comboMjerenje widget"""
+        #self.comboMjerenje.blockSignals(True)
+        self.comboMjerenje.clear()
+        self.comboMjerenje.addItems(x)
+        #self.comboMjerenje.blockSignals(False)
+
+    def napuni_comboDilucija(self, x):
+        """metoda postavlja listu x (lista stringova dilucijskih jedinica) iz
+        dokumenta u comboDilucija widget"""
+        #self.comboDilucija.blockSignals(True)
+        self.comboDilucija.clear()
+        self.comboDilucija.addItems(x)
+        #self.comboDilucija.blockSignals(False)
+
+    def napuni_comboZrak(self, x):
+        """metoda postavlja listu x (lista stringova generatora cistog zraka) iz
+        dokumenta u comboZrak widget"""
+        #self.comboZrak.blockSignals(True)
+        self.comboZrak.clear()
+        self.comboZrak.addItems(x)
+        #self.comboZrak.blockSignals(False)
 
     def recalculate(self):
-        """
-        Pocetna metoda za racunanje i prikaz rezultata umjeravanja.
-        """
-        self.setup_kalkulator()
+        """metoda je zaduzena za poziv kalkulatora na racunanje umjeravanja"""
+        print('recalculating ...')
         self.kalkulator.racunaj()
-        self.refresh_views()
-
-    def recalculate_konverter(self):
-        """
-        Poceta metoda za racunanje i prikaz rezultata provjere konvertera
-        """
-        self.setup_konverter_kalkulator()
         self.konverterKalkulator.racunaj()
-        self.refresh_konverter_views()
 
-    def refresh_konverter_views(self):
-        """
-        update rezultata provjere konvertera
-        """
-        self.konverterRezultat = self.konverterKalkulator.rezultat
-        self.konverterRezultatView.set_mjerna_jedinica(self.trenutnaMjernaJedinica)
-        self.konverterRezultatView.set_tocke(self.konfiguracija.konverterTocke)
-        self.konverterRezultatView.set_data(self.konverterRezultat)
+        rezultat1 = self.kalkulator.rezultat.copy()
+        self.dokument.set_rezultatUmjeravanja(rezultat1)
 
-        efikasnost = self.konverterKalkulator.get_listu_efikasnosti()
-        strEfikasnost = [str(round(i, 1)) for i in efikasnost]
-        self.tablicaKonverter.set_values(strEfikasnost)
-        self.konverterRezultatView.update()
-        self.konverterPodaciView.update()
+        slopeData = copy.deepcopy(self.kalkulator.get_slope_and_offset_list())
+        self.dokument.set_slopeData(slopeData)
+
+        parametriUmjeravanje =  copy.deepcopy(self.kalkulator.get_provjeru_parametara())
+        parametriUmjeravanje = [i for i in parametriUmjeravanje if not np.isnan(i[3])]
+        ecKonverter = copy.deepcopy(self.konverterKalkulator.get_ec_parametar())
+        if ecKonverter != None:
+            if not np.isnan(ecKonverter[3]):
+                parametriUmjeravanje.append(ecKonverter)
+        self.dokument.set_parametriRezultata(parametriUmjeravanje)
+
+        self.prikazi_grafove()
+
+        rezultatKonverter = self.konverterKalkulator.rezultat
+        self.dokument.set_konverterRezultat(rezultatKonverter)
+
+        listaEfikasnosti = self.konverterKalkulator.get_listu_efikasnosti()
+        self.dokument.set_listaEfikasnostiKonvertera(listaEfikasnosti)
+
+    def odaberi_start_umjeravanja(self, x):
+        """
+        Metoda sluzi za odabir pocetnog indeksa (ljevi klik na tablicu sa sirovim
+        podacima). Vrijednost se postavlja u dokument
+        """
+        self.dokument.set_siroviPodaciStart(x)
+
+    def set_start_umjeravanja(self, x):
+        """
+        Metoda postavlja pocetni indeks umjeravanja u model (update gui)
+        """
+        self.siroviPodaciView.clearSelection()
+        self.siroviPodaciModel.set_start(x)
+        self.recalculate()
+
+    def odaberi_start_provjere_konvertera(self, x):
+        """Metoda sluzi za odabir pocetnog indeksa (ljevi klik na tablicu sa
+        sitovim podacima konvertera). Vrijednost se postavlja u dokument."""
+        self.dokument.set_konverterPodaciStart(x)
+
+    def set_start_provjere_konvertera(self, x):
+        """metoda postavlja pocetni indeks frejma u model (update gui)"""
+        self.konverterPodaciView.clearSelection()
+        self.konverterPodaciModel.set_start(x) #BUG!
+        self.recalculate()
+
+    def save_umjeravanje_to_file(self):
+        """spremanje dokumenta u file"""
+        filepath = QtGui.QFileDialog.getSaveFileName(parent=self,
+                                                     caption='Spremi file',
+                                                     filter='Umjeravanje save files (*.usf);;all (*.*)')
+        if filepath:
+            self.dokument.save_dokument(filepath)
+
+    def load_umjeravanje_from_file(self):
+        """ucitavanje dokumenta iz spremljenog filea"""
+        filepath = QtGui.QFileDialog.getOpenFileName(parent=self,
+                                                     caption='Ucitaj file',
+                                                     filter='Umjeravanje save files (*.usf);;all (*.*)')
+        if filepath:
+            self.dokument.load_dokument(filename=filepath)
+
+    def napravi_pdf_report(self):
+        """metoda je zaduzena za generiranje pdf reporta umjeravanja.
+        - podaci se preuzimaju u obliku dicta od dokumenta (mapa)
+        - ime filea se dobiva uz pomoc dijaloga
+        """
+        ime = QtGui.QFileDialog.getSaveFileName(parent=self,
+                                                caption='Spremi pdf report',
+                                                filter = 'pdf file (*.pdf)')
+        if ime:
+            mapa = self.dokument.dokument_to_dict()
+            mapa = copy.deepcopy(mapa)
+            report = pdfreport.ReportGenerator()
+            report.generiraj_report(ime, mapa)
+
+    def set_slopeData(self, x):
+        """Setter za slope podatke umjeravanja
+        x = [slope, offset, prilagodbaA, prilagodbaB]"""
+        #zaokruzi vrijednosti
+        prilagodba = [str(round(x[2], 3)), str(round(x[3], 1))]
+        #postavi elemente u tablicu
+        self.tablicaPrilagodba.set_values(prilagodba)
+        self.tablicaPrilagodba.update()
+
+    def set_kriterijPrihvatljivosti(self, x):
+        """Setter za kriterij prihvatljivosti (parametri umjeravanja).
+        x je nested lista kriterija koji su izracunati.
+        x = [srz, srs, rz, rmax, ec]
+
+        svaki kriterij je lista sa elementima:
+        [naziv,tocka norme,kratka oznaka,vrijednost,uvijet prihvatljivosti,ispunjeno]
+        """
+        parametri = copy.deepcopy(x)
+        self.tablicaParametri.set_values(parametri)
+        self.tablicaParametri.update()
+
+    def set_konverterRezultat(self, x):
+        """Setter za rezultat frejm provjere konvertera iz dokumenta u gui."""
+        jedinica = self.dokument.get_mjernaJedinica()
+        tocke = self.dokument.get_tockeKonverter()
+        self.konverterRezultatView.set_mjerna_jedinica(jedinica)
+        self.konverterRezultatView.set_tocke(tocke)
+        self.konverterRezultatView.set_data(x)
+
+    def set_efikasnostiKonvertera(self, x):
+        """Setter za listu efikasnosti konvertera iz dokumenta u gui"""
+        lista = [str(round(i, 1)) for i in x]
+        self.tablicaKonverter.set_values(lista)
 
     def prikazi_grafove(self):
         """
         Metoda za crtanje grafova
         """
-        if len(self.rezultatUmjeravanja) > 0:
-            x = list(self.rezultatUmjeravanja.loc[:, 'cref'])
-            y = list(self.rezultatUmjeravanja.loc[:, 'c'])
-            if self.checkLinearnost.isChecked():
-                self.crefCanvas.set_slope_offset(self.kalkulator.slope, self.kalkulator.offset)
+        self.crefCanvas.clear_graf()
+        self.mjerenjaCanvas.clear_graf()
+
+        #dohvati rezultat umjeravanja:
+        rezultat = self.dokument.get_rezultatUmjeravanja()
+        slopeData = self.dokument.get_slopeData()
+        testLinearnosti = self.dokument.get_provjeraLinearnosti()
+        tocke = self.dokument.get_tockeUmjeravanja()
+        stupac = self.dokument.get_izabranoMjerenje()
+        frejm = self.dokument.get_siroviPodaci()
+
+        if stupac in frejm.columns:
+            x = list(rezultat.loc[:, 'cref'])
+            y = list(rezultat.loc[:, 'c'])
+            if testLinearnosti:
+                slope = slopeData[0]
+                offset = slopeData[1]
+                self.crefCanvas.set_slope_offset(slope, offset)
             else:
                 self.crefCanvas.set_slope_offset(None, None)
             self.crefCanvas.crtaj(x, y)
-            """
-            1. sklepaj strukturu (tocke, frejm)
-            2. metoda crtaj mora sklepati intervale tocaka x, y
-            3. metoda crtaj mora prilagoditi boju tocke na grafu
-            """
-            stupac = str(self.comboMjerenje.currentText())
-            if stupac in self.siroviPodaci.columns:
-                frejm = self.siroviPodaci.loc[:,stupac]
-                if self.checkLinearnost.isChecked():
-                    self.mjerenjaCanvas.crtaj(frejm, self.konfiguracija.umjerneTocke)
-                else:
-                    zs = self.get_zero_span_tocke()
-                    self.mjerenjaCanvas.crtaj(frejm, zs)
 
-    def get_zero_span_tocke(self):
-        """
-        Metoda pronalazi indekse za zero i span.
-
-        Zero je prva tocka koja ima crefFaktor jednak 0.0
-        Span je prva tocka sa crefFaktorom 0.8, a ako niti jedna tocka nema
-        taj crefFaktor, onda se uzima ona sa najvecim crefFaktorom
-        """
-        if len(self.konfiguracija.umjerneTocke) >= 2:
-            cf = [float(tocka.crefFaktor) for tocka in self.konfiguracija.umjerneTocke]
-            zero = cf.index(0.0)
-            if 0.8 in cf:
-                span = cf.index(0.8)
+            frejm = frejm.copy()
+            frejm = frejm.loc[:, stupac]
+            if testLinearnosti:
+                self.mjerenjaCanvas.crtaj(frejm, tocke)
             else:
-                span = cf.index(max(cf))
-            out = [self.konfiguracija.umjerneTocke[zero],
-                   self.konfiguracija.umjerneTocke[span]]
-            return out
-        else:
-            return []
+                zs = self.dokument.get_zero_span_tocke()
+                self.mjerenjaCanvas.crtaj(frejm, zs)
 
-    def blokiraj_signale(self):
-        """
-        blokiranje signala radi izbjegavanja nepotrebnog racunanja
-        """
-        self.comboMjerenje.blockSignals(True)
-        self.comboDilucija.blockSignals(True)
-        self.comboZrak.blockSignals(True)
-        self.checkLinearnost.blockSignals(True)
-        self.doubleSpinBoxOpseg.blockSignals(True)
-        self.konverterOpseg.blockSignals(True)
-        self.doubleSpinBoxKoncentracijaCRM.blockSignals(True)
-        self.doubleSpinBoxSljedivostCRM.blockSignals(True)
 
-    def odblokiraj_signale(self):
-        """
-        odblokiranje signala radi omogucavanja racunanja
-        """
-        self.comboMjerenje.blockSignals(False)
-        self.comboDilucija.blockSignals(False)
-        self.comboZrak.blockSignals(False)
-        self.checkLinearnost.blockSignals(False)
-        self.doubleSpinBoxOpseg.blockSignals(False)
-        self.konverterOpseg.blockSignals(False)
-        self.doubleSpinBoxKoncentracijaCRM.blockSignals(False)
-        self.doubleSpinBoxSljedivostCRM.blockSignals(False)
 
-    def save_umjeravanje_to_file(self):
-        """
-        serijalizacija objekata uz pomoc modula pickle u file.
-        """
-        outputMapa = {}
-        #tocke
-        tocke = copy.deepcopy(self.konfiguracija.umjerneTocke)
-        outputMapa['umjerneTocke'] = []
-        for tocka in tocke:
-            obj = {}
-            obj['ime'] = tocka.ime
-            obj['indeksi'] = tocka.indeksi
-            obj['crefFaktor'] = tocka.crefFaktor
-            obj['rgba'] = (tocka.boja.red(), tocka.boja.green(), tocka.boja.blue(), tocka.boja.alpha())
-            outputMapa['umjerneTocke'].append(obj)
-        #konverter tocke
-        konverterTocke = copy.deepcopy(self.konfiguracija.konverterTocke)
-        outputMapa['konverterTocke'] = []
-        for tocka in konverterTocke:
-            obj = {}
-            obj['ime'] = tocka.ime
-            obj['indeksi'] = tocka.indeksi
-            obj['crefFaktor'] = tocka.crefFaktor
-            obj['rgba'] = (tocka.boja.red(), tocka.boja.green(), tocka.boja.blue(), tocka.boja.alpha())
-            outputMapa['konverterTocke'].append(obj)
-        # ucitani podaci...frejm
-        outputMapa['frejmPodataka'] = self.siroviPodaci
-        # start indeks u modelu
-        outputMapa['pocetniIndeks'] = self.siroviPodaciModel.startIndeks
-        #start indeks za konverter
-        outputMapa['konverterPocetniIndeks'] = self.konverterPodaciModel.startIndeks
-        # REST postaje
-        outputMapa['postajeREST'] = self.postaje
-        # REST uredjaji
-        outputMapa['uredjajiREST'] = self.uredjaji
-        #file path
-        outputMapa['izabraniFile'] = str(self.labelDatoteka.text())
-        #izabrana postaja
-        outputMapa['izabranaPostaja'] = str(self.labelPostaja.text())
-        #izabrani uredjaj
-        outputMapa['izabraniUredjaj'] = str(self.labelUredjaj.text())
-        # provjera linearnosti
-        outputMapa['provjeraLinearnosti'] = self.checkLinearnost.isChecked()
-        # combo mjerenje
-        mjerenja = list(set(self.uredjaji[str(self.labelUredjaj.text())]['komponente']))
-        mjerenja = [str(mjerenje) for mjerenje in mjerenja if str(mjerenje) != 'None']
-        outputMapa['listaMjerenje'] = mjerenja
-        # combo dilucija
-        outputMapa['listaDilucija'] = self.konfiguracija.get_listu_dilucija()
-        # combo cisti zrak
-        outputMapa['listaZrak'] = self.konfiguracija.get_listu_cistiZrak()
-        #izbor combo mjerenje
-        outputMapa['izborMjerenje'] = self.comboMjerenje.currentText()
-        #izbor combo dilucija
-        outputMapa['izborDilucija'] = self.comboDilucija.currentText()
-        #izbor combo cisti zrak
-        outputMapa['izborZrak'] = self.comboZrak.currentText()
-        # opseg
-        outputMapa['opseg'] = self.doubleSpinBoxOpseg.value()
-        # koncentracija CRM
-        outputMapa['cCRM'] = self.doubleSpinBoxKoncentracijaCRM.value()
-        #sljedivost CRM
-        outputMapa['sCRM'] = self.doubleSpinBoxSljedivostCRM.value()
-        #spremanje mape uz pomoc pickle
-        filepath = QtGui.QFileDialog.getSaveFileName(parent=self,
-                                                     caption='Spremi file',
-                                                     filter='Umjeravanje save files (*.usf);;all (*.*)')
-        if filepath:
-            with open(filepath, mode='wb') as fajl:
-                try:
-                    pickle.dump(outputMapa, fajl)
-                except Exception as err:
-                    QtGui.QMessageBox.information(self, 'Problem', 'Spremanje datoteke nije uspjelo.')
-                    logging.error(str(err), exc_info=True)
 
-    def load_umjeravanje_from_file(self):
-        """
-        ucitavanje umjeravanja iz filea
-        """
-        filepath = QtGui.QFileDialog.getOpenFileName(parent=self,
-                                                     caption='Ucitaj file',
-                                                     filter='Umjeravanje save files (*.usf);;all (*.*)')
-        if filepath:
-            with open(filepath, mode='rb') as fajl:
-                try:
-                    #block signlale
-                    self.blokiraj_signale()
-                    outputMapa = pickle.load(fajl)
-                    # REST postaje
-                    self.postaje = outputMapa['postajeREST']
-                    # REST uredjaji
-                    self.uredjaji = outputMapa['uredjajiREST']
-                    #file path
-                    self.labelDatoteka.setText(outputMapa['izabraniFile'])
-                    #izabrana postaja
-                    self.labelPostaja.setText(outputMapa['izabranaPostaja'])
-                    #izabrani uredjaj
-                    self.labelUredjaj.setText(outputMapa['izabraniUredjaj'])
-                    # combo mjerenje
-                    self.comboMjerenje.clear()
-                    self.comboMjerenje.addItems(outputMapa['listaMjerenje'])
-                    # combo dilucija
-                    self.comboDilucija.clear()
-                    self.comboDilucija.addItems(outputMapa['listaDilucija'])
-                    # combo cisti zrak
-                    self.comboZrak.clear()
-                    self.comboZrak.addItems(outputMapa['listaZrak'])
-                    #tocke
-                    tocke = outputMapa['umjerneTocke']
-                    outTocke = []
-                    for tocka in tocke:
-                        dot = konfig.Tocka()
-                        dot.ime = tocka['ime']
-                        dot.indeksi = tocka['indeksi']
-                        dot.crefFaktor = tocka['crefFaktor']
-                        r, g, b, a = tocka['rgba']
-                        dot.boja = QtGui.QColor(r, g, b, a)
-                        outTocke.append(dot)
-                    self.konfiguracija.umjerneTocke = outTocke
-                    #konverter tocke
-                    konverterTocke = outputMapa['konverterTocke']
-                    outTocke = []
-                    for tocka in konverterTocke:
-                        dot = konfig.Tocka()
-                        dot.ime = tocka['ime']
-                        dot.indeksi = tocka['indeksi']
-                        dot.crefFaktor = tocka['crefFaktor']
-                        r, g, b, a = tocka['rgba']
-                        dot.boja = QtGui.QColor(r, g, b, a)
-                        outTocke.append(dot)
-                    self.konfiguracija.konverterTocke = outTocke
-                    # ucitani podaci (frejm) za umjeravanje i konverter
-                    self.postavi_sirove_podatke(outputMapa['frejmPodataka'])
-                    # start indeks u modelu
-                    self.siroviPodaciModel.set_start_prilikom_loada(outputMapa['pocetniIndeks'])
-                    #start indeks konverter modela
-                    self.konverterPodaciModel.set_start_prilikom_loada(outputMapa['konverterPocetniIndeks'])
-                    # provjera linearnosti
-                    self.checkLinearnost.setChecked(outputMapa['provjeraLinearnosti'])
-                    # opseg
-                    self.doubleSpinBoxOpseg.setValue(outputMapa['opseg'])
-                    self.konverterOpseg.setValue(outputMapa['opseg'])
-                    # koncentracija CRM
-                    self.doubleSpinBoxKoncentracijaCRM.setValue(outputMapa['cCRM'])
-                    #sljedivost CRM
-                    self.doubleSpinBoxSljedivostCRM.setValue(outputMapa['sCRM'])
-                    #izbor combo mjerenje
-                    ind = self.comboMjerenje.findText(outputMapa['izborMjerenje'])
-                    self.comboMjerenje.setCurrentIndex(ind)
-                    #izbor combo dilucija
-                    ind = self.comboDilucija.findText(outputMapa['izborDilucija'])
-                    self.comboDilucija.setCurrentIndex(ind)
-                    #izbor combo cisti zrak
-                    ind = self.comboZrak.findText(outputMapa['izborZrak'])
-                    self.comboZrak.setCurrentIndex(ind)
-                    #unblock signale i recalculate
-                    self.odblokiraj_signale()
-                    self.update_mjerne_jedinice(outputMapa['izabraniUredjaj'],
-                                                outputMapa['izborMjerenje'])
-                    self.toggle_linearnost(outputMapa['provjeraLinearnosti'])
-                    self.recalculate_konverter()
-                except Exception as err:
-                    QtGui.QMessageBox.information(self, 'Problem', 'Ucitavanje datoteke nije uspjelo.')
-                    logging.error(str(err), exc_info=True)
+
+
