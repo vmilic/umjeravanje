@@ -99,7 +99,7 @@ class DokumentModel(QtCore.QObject):
             r, g, b, a = tocka['rgba']
             dot.boja = QtGui.QColor(r, g, b, a)
             umjerneTocke.append(dot)
-        self.set_tockeUmjeravanja(umjerneTocke) #so far so good tocke se shebu na iducem getu
+        self.set_tockeUmjeravanja(umjerneTocke)
         konverterTocke = []
         tocke = mapa['tockeKonverter']
         for tocka in tocke:
@@ -126,30 +126,66 @@ class DokumentModel(QtCore.QObject):
         self.set_provjeraKonvertera(mapa['provjeraKonvertera'])
         self.set_cNOx50(mapa['cNOx50'])
         self.set_cNOx95(mapa['cNOx95'])
+
         self.set_proizvodjacDilucija(mapa['proizvodjacDilucija'])
+        self.emit(QtCore.SIGNAL('promjena_proizvodjacDilucija(PyQt_PyObject)'),
+                  self.proizvodjacDilucija)
+
         self.set_sljedivostDilucija(mapa['sljedivostDilucija'])
+        self.emit(QtCore.SIGNAL('promjena_sljedivostDilucija(PyQt_PyObject)'),
+                  self.sljedivostDilucija)
+
         self.set_proizvodjacCistiZrak(mapa['proizvodjacCistiZrak'])
+        self.emit(QtCore.SIGNAL('promjena_proizvodjacCistiZrak(PyQt_PyObject)'),
+                  self.proizvodjacCistiZrak)
+
         self.set_sljedivostCistiZrak(mapa['sljedivostCistiZrak'])
+
         self.set_norma(mapa['norma'])
+        self.emit(QtCore.SIGNAL('promjena_norma(PyQt_PyObject)'),
+                  self.norma)
+
         self.set_oznakaIzvjesca(mapa['oznakaIzvjesca'])
+        self.emit(QtCore.SIGNAL('promjena_oznakaIzvjesca(PyQt_PyObject)'),
+                  self.oznakaIzvjesca)
+
         self.set_brojObrasca(mapa['brojObrasca'])
+        self.emit(QtCore.SIGNAL('promjena_brojObrasca(PyQt_PyObject)'),
+                  self.brojObrasca)
+
         self.set_revizija(mapa['revizija'])
+        self.emit(QtCore.SIGNAL('promjena_revizija(PyQt_PyObject)'),
+                  self.revizija)
+
         self.set_datumUmjeravanja(mapa['datumUmjeravanja'])
+        self.emit(QtCore.SIGNAL('promjena_datumUmjeravanja(PyQt_PyObject)'),
+                  self.datumUmjeravanja)
+
         self.set_temperatura(mapa['temperatura'])
         self.set_vlaga(mapa['vlaga'])
         self.set_tlak(mapa['tlak'])
+
         self.set_napomena(mapa['napomena'])
+        self.emit(QtCore.SIGNAL('promjena_napomena(PyQt_PyObject)'),
+                  self.napomena)
+
         self.set_pocetakUmjeravanja(mapa['pocetakUmjeravanja'])
         self.set_krajUmjeravanja(mapa['krajUmjeravanja'])
         self.set_rezultatUmjeravanja(mapa['rezultatUmjeravanja'])
         self.set_konverterRezultat(mapa['konverterRezultat'])
+
         self.set_izvorCRM(mapa['izvorCRM'])
+        self.emit(QtCore.SIGNAL('promjena_izvorCRM(PyQt_PyObject)'),
+                  self.izvorCRM)
+
         self.set_koncentracijaCRM(mapa['koncentracijaCRM'])
         self.set_sljedivostCRM(mapa['sljedivostCRM'])
         self.set_listaEfikasnostiKonvertera(mapa['listaEfikasnostiKonvertera'])
         self.set_slopeData(mapa['slopeData'])
         self.set_parametriRezultata(mapa['parametriRezultata'])
+        #TODO!
         self.set_opseg(mapa['opseg'])
+
         self.set_oznakaModelaUredjaja(mapa['oznakaModelaUredjaja'])
         self.set_proizvodjacUredjaja(mapa['proizvodjacUredjaja'])
 
@@ -263,36 +299,47 @@ class DokumentModel(QtCore.QObject):
                 logging.error(str(err), exc_info=True)
                 tekst = ''
             self.set_sljedivostDilucija(tekst)
+            self.emit(QtCore.SIGNAL('promjena_sljedivostDilucija(PyQt_PyObject)'),
+                      self.sljedivostDilucija)
             try:
                 tekst = self.cfg.get_konfig_element(str(izborDilucija), 'proizvodjac')
             except AttributeError as err:
                 logging.error(str(err), exc_info=True)
                 tekst = ''
             self.set_proizvodjacDilucija(tekst)
+            self.emit(QtCore.SIGNAL('promjena_proizvodjacDilucija(PyQt_PyObject)'),
+                      self.proizvodjacDilucija)
             try:
                 tekst = self.cfg.get_konfig_element(str(izborZrak), 'proizvodjac')
             except AttributeError as err:
                 logging.error(str(err), exc_info=True)
                 tekst = ''
             self.set_proizvodjacCistiZrak(tekst)
+            self.emit(QtCore.SIGNAL('promjena_proizvodjacCistiZrak(PyQt_PyObject)'),
+                      self.proizvodjacCistiZrak)
+
             self.set_rezultatUmjeravanja(self.generiraj_nan_frejm_rezultata_umjeravanja())
             self.set_konverterRezultat(self.generiraj_nan_frejm_rezultata_konvertera())
+            self.emit(QtCore.SIGNAL('postavi_usporedna_mjerenja'))
         else:
             with open(filename, mode='rb') as fajl:
                 try:
                     mapa = pickle.load(fajl)
                     self.dict_to_dokument(mapa)
+                    self.emit(QtCore.SIGNAL('postavi_usporedna_mjerenja'))
                 except Exception as err:
                     logging.error(str(err), exc_info=True)
                     QtGui.QMessageBox.information(self, 'Problem', 'Ucitavanje datoteke nije uspjelo.')
 
-    def set_opseg(self, x):
+    def set_opseg(self, x, recalculate=True):
         """Setter max opsega mjerenja. Ulazna vrijednost je tipa float"""
+        #TODO!
         x = float(x)
         if x != self.opseg:
             self.opseg = x
+            output = [self.opseg, recalculate]
             self.emit(QtCore.SIGNAL('promjena_opseg(PyQt_PyObject)'),
-                      self.opseg)
+                      output)
 
     def get_opseg(self):
         """Getter max opsega mjerenja"""
@@ -440,8 +487,6 @@ class DokumentModel(QtCore.QObject):
         x = str(x)
         if x != self.napomena:
             self.napomena = x
-            self.emit(QtCore.SIGNAL('promjena_napomena(PyQt_PyObject)'),
-                      self.napomena)
 
     def get_napomena(self):
         """Getter napomena umjeravanja"""
@@ -488,8 +533,6 @@ class DokumentModel(QtCore.QObject):
         x = str(x)
         if x != self.datumUmjeravanja:
             self.datumUmjeravanja = x
-            self.emit(QtCore.SIGNAL('promjena_datumUmjeravanja(PyQt_PyObject)'),
-                      self.datumUmjeravanja)
 
     def get_datumUmjeravanja(self):
         """Getter datuma umjeravanja"""
@@ -500,8 +543,6 @@ class DokumentModel(QtCore.QObject):
         x = str(x)
         if x != self.revizija:
             self.revizija = x
-            self.emit(QtCore.SIGNAL('promjena_revizija(PyQt_PyObject)'),
-                      self.revizija)
 
     def get_revizija(self):
         """Getter broja revizije"""
@@ -512,8 +553,6 @@ class DokumentModel(QtCore.QObject):
         x = str(x)
         if x != self.brojObrasca:
             self.brojObrasca = x
-            self.emit(QtCore.SIGNAL('promjena_brojObrasca(PyQt_PyObject)'),
-                      self.brojObrasca)
 
     def get_brojObrasca(self):
         """Getter broj obrasca"""
@@ -524,8 +563,6 @@ class DokumentModel(QtCore.QObject):
         x = str(x)
         if x != self.oznakaIzvjesca:
             self.oznakaIzvjesca = x
-            self.emit(QtCore.SIGNAL('promjena_oznakaIzvjesca(PyQt_PyObject)'),
-                      self.oznakaIzvjesca)
 
     def get_oznakaIzvjesca(self):
         """Getter oznake izvjesca"""
@@ -536,8 +573,6 @@ class DokumentModel(QtCore.QObject):
         x = str(x)
         if x != self.norma:
             self.norma = x
-            self.emit(QtCore.SIGNAL('promjena_norma(PyQt_PyObject)'),
-                      self.norma)
 
     def get_norma(self):
         """Getter norme mjerenja (norma + naziv)"""
@@ -562,8 +597,6 @@ class DokumentModel(QtCore.QObject):
         x = str(x)
         if x != self.proizvodjacCistiZrak:
             self.proizvodjacCistiZrak = x
-            self.emit(QtCore.SIGNAL('promjena_proizvodjacCistiZrak(PyQt_PyObject)'),
-                      self.proizvodjacCistiZrak)
 
     def get_proizvodjacCistiZrak(self):
         """Getter proizvodjaca generatora cistog zraka"""
@@ -575,8 +608,6 @@ class DokumentModel(QtCore.QObject):
         x = str(x)
         if x != self.sljedivostDilucija:
             self.sljedivostDilucija = x
-            self.emit(QtCore.SIGNAL('promjena_sljedivostDilucija(PyQt_PyObject)'),
-                      self.sljedivostDilucija)
 
     def get_sljedivostDilucija(self):
         """Getter sljedivosti dilucijske (kalibracijske) jedinice"""
@@ -588,8 +619,7 @@ class DokumentModel(QtCore.QObject):
         x = str(x)
         if x != self.proizvodjacDilucija:
             self.proizvodjacDilucija = x
-            self.emit(QtCore.SIGNAL('promjena_proizvodjacDilucija(PyQt_PyObject)'),
-                      self.proizvodjacDilucija)
+
 
     def get_proizvodjacDilucija(self):
         """Getter proizvodjaca dilucijske (kalibracijske) jedinice."""
@@ -627,8 +657,6 @@ class DokumentModel(QtCore.QObject):
         x = str(x)
         if x != self.izvorCRM:
             self.izvorCRM = x
-            self.emit(QtCore.SIGNAL('promjena_izvorCRM(PyQt_PyObject)'),
-                      self.izvorCRM)
 
     def get_izvorCRM(self):
         """Getter izvora certificiranog referentnog materijala."""
@@ -823,6 +851,8 @@ class DokumentModel(QtCore.QObject):
                 # proizvodjac
                 value = self.cfg.get_konfig_element(self.izabraniZrak, 'proizvodjac')
                 self.set_proizvodjacCistiZrak(value)
+                self.emit(QtCore.SIGNAL('promjena_proizvodjacCistiZrak(PyQt_PyObject)'),
+                          self.proizvodjacCistiZrak)
             except Exception as err:
                 logging.error(str(err), exc_info=True)
             try:
@@ -855,6 +885,8 @@ class DokumentModel(QtCore.QObject):
             try:
                 value = self.cfg.get_konfig_element(self.izabranaDilucija, 'proizvodjac')
                 self.set_proizvodjacDilucija(value)
+                self.emit(QtCore.SIGNAL('promjena_proizvodjacDilucija(PyQt_PyObject)'),
+                          self.proizvodjacDilucija)
             except Exception as err:
                 logging.error(str(err), exc_info=True)
             # dilucija sljedivost
@@ -864,6 +896,8 @@ class DokumentModel(QtCore.QObject):
                 part3 = self.cfg.get_konfig_element(self.izabranaDilucija, 'GENERATOR_OZONA_sljedivost')
                 value = ", ".join([part1, part2, part3])
                 self.set_sljedivostDilucija(value)
+                self.emit(QtCore.SIGNAL('promjena_sljedivostDilucija(PyQt_PyObject)'),
+                          self.sljedivostDilucija)
             except Exception as err:
                 logging.error(str(err), exc_info=True)
 
@@ -892,6 +926,9 @@ class DokumentModel(QtCore.QObject):
                 # promjena izvora certificiranog referentnog materijala
                 value = self.cfg.get_konfig_element(self.izabranoMjerenje, 'izvor')
                 self.set_izvorCRM(value)
+                self.emit(QtCore.SIGNAL('promjena_izvorCRM(PyQt_PyObject)'),
+                          self.izvorCRM)
+
             except Exception as err:
                 logging.error(str(err), exc_info=True)
             try:
@@ -906,18 +943,26 @@ class DokumentModel(QtCore.QObject):
                 part2 = self.cfg.get_konfig_element(self.izabranoMjerenje, 'naziv')
                 value = " - ".join([part1, part2])
                 self.set_norma(value)
+                self.emit(QtCore.SIGNAL('promjena_norma(PyQt_PyObject)'),
+                          self.norma)
+
             except Exception as err:
                 logging.error(str(err), exc_info=True)
             try:
                 # promjena brojObrasca
                 value = self.cfg.get_konfig_element(self.izabranoMjerenje, 'oznaka')
                 self.set_brojObrasca(value)
+                self.emit(QtCore.SIGNAL('promjena_brojObrasca(PyQt_PyObject)'),
+                          self.brojObrasca)
+
             except Exception as err:
                 logging.error(str(err), exc_info=True)
             try:
                 # promjena revizija
                 value = self.cfg.get_konfig_element(self.izabranoMjerenje, 'revizija')
                 self.set_revizija(value)
+                self.emit(QtCore.SIGNAL('promjena_revizija(PyQt_PyObject)'),
+                          self.revizija)
             except Exception as err:
                 logging.error(str(err), exc_info=True)
             try:

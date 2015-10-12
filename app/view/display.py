@@ -20,6 +20,7 @@ import app.model.konfig_klase as konfig
 import app.model.kalkulator as calc
 import app.model.frejm_model as modeli
 import app.model.model as doc
+import app.view.rezultat_panel as panel
 
 
 
@@ -54,7 +55,7 @@ class GlavniProzor(BASE, FORM):
         self.kalkulator = calc.RacunUmjeravanja(doc=self.dokument)
         self.konverterKalkulator = calc.ProvjeraKonvertera(doc=self.dokument)
 
-        self.gereriraj_tablicu_rezultata_umjeravanja()
+        self.generiraj_tablicu_rezultata_umjeravanja()
 
         self.siroviPodaciModel = modeli.SiroviFrameModel()
         self.siroviPodaciView.setModel(self.siroviPodaciModel)
@@ -124,6 +125,7 @@ class GlavniProzor(BASE, FORM):
                      self.set_start_provjere_konvertera)
         #provjera linearnosti
         self.checkLinearnost.toggled.connect(self.promjena_checkLinearnost)
+        self.multiCheckLinearnost.toggled.connect(self.promjena_checkLinearnost)
         self.connect(self.dokument,
                      QtCore.SIGNAL('promjena_provjeraLinearnosti(PyQt_PyObject)'),
                      self.set_checkLinearnost)
@@ -274,7 +276,7 @@ class GlavniProzor(BASE, FORM):
         #naredna iz dokumenta za ponovnim crtanjem tablice rezultata umjeravanja
         self.connect(self.dokument,
                      QtCore.SIGNAL('redraw_rezultateUmjeravanja'),
-                     self.gereriraj_tablicu_rezultata_umjeravanja)
+                     self.generiraj_tablicu_rezultata_umjeravanja)
         #promjena mjerne jedinice
         self.connect(self.dokument,
                      QtCore.SIGNAL('promjena_mjernaJedinica(PyQt_PyObject)'),
@@ -282,7 +284,7 @@ class GlavniProzor(BASE, FORM):
         #promjena rezultata umjeravanja
         self.connect(self.dokument,
                      QtCore.SIGNAL('promjena_rezultatUmjeravanja'),
-                     self.gereriraj_tablicu_rezultata_umjeravanja)
+                     self.generiraj_tablicu_rezultata_umjeravanja)
         #promjena slope data [slope, offset, prilagodbaA, prilagodbaB]
         self.connect(self.dokument,
                      QtCore.SIGNAL('promjena_slopeData(PyQt_PyObject)'),
@@ -307,6 +309,11 @@ class GlavniProzor(BASE, FORM):
         self.connect(self.dokument,
                      QtCore.SIGNAL('promjena_konverterPodaci(PyQt_PyObject)'),
                      self.set_ucitane_konverter_podatke)
+        #setup usporednih mjerenja
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('postavi_usporedna_mjerenja'),
+                     self.postavi_usporedna_umjeravanja)
+
 
 
     def inicijalizacija_grafova(self):
@@ -322,7 +329,7 @@ class GlavniProzor(BASE, FORM):
         self.layoutGrafovi.addWidget(self.crefCanvas)
         self.layoutGrafovi.addWidget(self.mjerenjaCanvas)
 
-    def gereriraj_tablicu_rezultata_umjeravanja(self):
+    def generiraj_tablicu_rezultata_umjeravanja(self):
         """
         metoda koja generira tablicu umjeravanja i postavlja je u specificno mjesto
         u layoutu.
@@ -383,6 +390,21 @@ class GlavniProzor(BASE, FORM):
         red = self.tablicaRezultataUmjeravanja.get_redak()
         self.edit_tocku_dijalog(red-1) #korekcija za zero based indexing
 
+    def add_red_umjeravanje_panel(self):
+        """metoda (slot) za dodavanje tocaka u dokument"""
+        self.dokument.dodaj_umjernu_tocku()
+
+    def remove_red_umjeravanje_panel(self, x):
+        """metoda za brisanje tocke za umjeravanje iz dokumenta, x je broj redka"""
+        red = int(x)
+        self.dokument.makni_umjernu_tocku(red)
+
+    def edit_red_umjeravanje_panel(self, x):
+        """metoda za editiranje umjerne tocke uz pomoc dijaloga"""
+        red = int(x)
+        self.edit_tocku_dijalog(red)
+
+
     def edit_tocku_dijalog(self, indeks):
         """
         Poziv dijaloga za edit vrijednosti parametara izabrane tocke.
@@ -427,6 +449,7 @@ class GlavniProzor(BASE, FORM):
             komponente = list(komponente)
             self.dokument.set_listaMjerenja(komponente)
             self.recalculate()
+            self.postavi_usporedna_umjeravanja()
 
     def set_ucitane_sirove_podatke(self, x):
         """setter sirovih podataka ucitanih iz spremljenog filea umjeravanja.
@@ -513,10 +536,8 @@ class GlavniProzor(BASE, FORM):
     def set_comboMjerenje(self, x):
         """Metoda postavlja izabrano mjerenje preuzeto iz dokumenta u gui
         widgete"""
-        #self.comboMjerenje.blockSignals(True)
         ind = self.comboMjerenje.findText(x)
         self.comboMjerenje.setCurrentIndex(ind)
-        #self.comboMjerenje.blockSignals(False)
         self.recalculate()
 
     def promjena_doubleSpinBoxOpseg(self, x):
@@ -525,14 +546,17 @@ class GlavniProzor(BASE, FORM):
         self.dokument.set_opseg(value)
 
     def set_doubleSpinBoxOpseg(self, x):
-        """Metoda postavlja izabrani opseg preuzet iz dokumenta u gui widgete"""
-        #self.doubleSpinBoxOpseg.blockSignals(True)
-        #self.konverterOpseg.blockSignals(True)
-        self.doubleSpinBoxOpseg.setValue(x)
-        self.konverterOpseg.setValue(x)
-        #self.doubleSpinBoxOpseg.blockSignals(False)
-        #self.konverterOpseg.blockSignals(False)
-        self.recalculate()
+        """Metoda postavlja izabrani opseg preuzet iz dokumenta u gui widgete
+        x je lista [vrijednost, neki boolean], boolean je odlucijuci faktor
+        za recalculate"""
+        #TODO!
+        self.doubleSpinBoxOpseg.setValue(x[0])
+        self.konverterOpseg.setValue(x[0])
+        if x[1] == True:
+            print('recaclulating opseg change')
+            self.recalculate()
+        else:
+            print('not recaclulating opseg change')
 
     def promjena_izvorPlainTextEdit(self):
         """slot koji dokumentu javlja promjenu izvora CRM-a"""
@@ -541,10 +565,8 @@ class GlavniProzor(BASE, FORM):
 
     def set_izvorPlainTextEdit(self, x):
         """Metoda postavlja izvorCRM u gui widget"""
-        #self.izvorPlainTextEdit.blockSignals(True)
         self.izvorPlainTextEdit.setPlainText(x)
         self.izvorPlainTextEdit.moveCursor(QtGui.QTextCursor.End)
-        #self.izvorPlainTextEdit.blockSignals(False)
 
     def promjena_doubleSpinBoxKoncentracijaCRM(self, x):
         """slot koji dokumentu javlja promjenu koncentracije CRM-a"""
@@ -553,9 +575,7 @@ class GlavniProzor(BASE, FORM):
 
     def set_doubleSpinBoxKoncentracijaCRM(self, x):
         """Metoda postavlja koncentraciju CRM-a u gui widget"""
-        #self.doubleSpinBoxKoncentracijaCRM.blockSignals(True)
         self.doubleSpinBoxKoncentracijaCRM.setValue(x)
-        #self.doubleSpinBoxKoncentracijaCRM.blockSignals(False)
         self.recalculate()
 
     def promjena_doubleSpinBoxSljedivostCRM(self, x):
@@ -565,9 +585,7 @@ class GlavniProzor(BASE, FORM):
 
     def set_doubleSpinBoxSljedivostCRM(self, x):
         """Metoda postavlja sljedivost CRM u gui widget"""
-        #self.doubleSpinBoxSljedivostCRM.blockSignals(True)
         self.doubleSpinBoxSljedivostCRM.setValue(x)
-        #self.doubleSpinBoxSljedivostCRM.blockSignals(False)
         self.recalculate()
 
     def promjena_comboDilucija(self, x):
@@ -578,10 +596,8 @@ class GlavniProzor(BASE, FORM):
     def set_comboDilucija(self, x):
         """Metoda postavlja izabranu dilucijsku jedinicu preuzetu iz dokumenta
         u gui widget"""
-        #self.comboDilucija.blockSignals(True)
         ind = self.comboDilucija.findText(x)
         self.comboDilucija.setCurrentIndex(ind)
-        #self.comboDilucija.blockSignals(False)
         self.recalculate()
 
     def promjena_dilucijaProizvodjacLineEdit(self, x):
@@ -592,9 +608,7 @@ class GlavniProzor(BASE, FORM):
     def set_dilucijaProizvodjacLineEdit(self, x):
         """Metoda postavlja proizvodjaca dilucijske jedinice preuzetu iz dokumenta
         u gui widget"""
-        #self.dilucijaProizvodjacLineEdit.blockSignals(True)
         self.dilucijaProizvodjacLineEdit.setText(x)
-        #self.dilucijaProizvodjacLineEdit.blockSignals(False)
 
     def promjena_dilucijaSljedivostLineEdit(self, x):
         """slot koji javlja dokumentu promjenu sljedivosti dilucijske jedinice"""
@@ -604,9 +618,7 @@ class GlavniProzor(BASE, FORM):
     def set_dilucijaSljedivostLineEdit(self, x):
         """Metoda postavlja sljedivost dilucijske jedinice preuzetu iz dokumenta
         u gui widget"""
-        #self.dilucijaSljedivostLineEdit.blockSignals(True)
         self.dilucijaSljedivostLineEdit.setText(x)
-        #self.dilucijaSljedivostLineEdit.blockSignals(False)
 
     def promjena_comboZrak(self, x):
         """slot koji javlja dokumentu da je doslo do promjene izabranog generatora
@@ -617,10 +629,8 @@ class GlavniProzor(BASE, FORM):
     def set_comboZrak(self, x):
         """Metoda postavlja izabrani generator cistog zraka iz dokumenta u gui
         widget"""
-        #self.comboZrak.blockSignals(True)
         ind = self.comboZrak.findText(x)
         self.comboZrak.setCurrentIndex(ind)
-        #self.comboZrak.blockSignals(False)
         self.recalculate()
 
     def promjena_zrakProizvodjacLineEdit(self, x):
@@ -631,9 +641,7 @@ class GlavniProzor(BASE, FORM):
     def set_zrakProizvodjacLineEdit(self, x):
         """Metoda postavlja proizvodjaca generatora cistog zraka iz dokumenta
         u gui widget"""
-        #self.zrakProizvodjacLineEdit.blockSignals(True)
         self.zrakProizvodjacLineEdit.setText(x)
-        #self.zrakProizvodjacLineEdit.blockSignals(False)
 
     def promjena_doubleSpinBoxSljedivostCistiZrak(self, x):
         """slot koji postavlja sljedivost generatora cistog zraka u dokument"""
@@ -643,9 +651,7 @@ class GlavniProzor(BASE, FORM):
     def set_doubleSpinBoxSljedivostCistiZrak(self, x):
         """Metoda postavlja slejdivost generatora cistog zraka iz dokumenta u gui
         widget"""
-        #self.doubleSpinBoxSljedivostCistiZrak.blockSignals(True)
         self.doubleSpinBoxSljedivostCistiZrak.setValue(x)
-        #self.doubleSpinBoxSljedivostCistiZrak.blockSignals(False)
         self.recalculate()
 
     def promjena_normaPlainTextEdit(self):
@@ -655,10 +661,8 @@ class GlavniProzor(BASE, FORM):
 
     def set_normaPlainTextEdit(self, x):
         """Metoda koja postavlja tekst norme iz dokumenta u gui widget"""
-        #self.normaPlainTextEdit.blockSignals(True)
         self.normaPlainTextEdit.setPlainText(x)
         self.normaPlainTextEdit.moveCursor(QtGui.QTextCursor.End)
-        #self.normaPlainTextEdit.blockSignals(False)
 
     def promjena_oznakaIzvjescaLineEdit(self, x):
         """slot koji postavlja oznaku izvjesca u dokument"""
@@ -667,9 +671,7 @@ class GlavniProzor(BASE, FORM):
 
     def set_oznakaIzvjescaLineEdit(self, x):
         """Metoda koja postavlja oznaku izvjesca iz dokumenta u gui widget"""
-        #self.oznakaIzvjescaLineEdit.blockSignals(True)
         self.oznakaIzvjescaLineEdit.setText(x)
-        #self.oznakaIzvjescaLineEdit.blockSignals(False)
 
     def promjena_brojObrascaLineEdit(self, x):
         """slot koji postavlja broj obrasca u dokument"""
@@ -678,9 +680,7 @@ class GlavniProzor(BASE, FORM):
 
     def set_brojObrascaLineEdit(self, x):
         """Metoda koja postavlja broj obrasca iz dokumenta u gui widget"""
-        #self.brojObrascaLineEdit.blockSignals(True)
         self.brojObrascaLineEdit.setText(x)
-        #self.brojObrascaLineEdit.blockSignals(False)
 
     def promjena_revizijaLineEdit(self, x):
         """slot koji postavlja broj revizije u dokument"""
@@ -689,9 +689,7 @@ class GlavniProzor(BASE, FORM):
 
     def set_revizijaLineEdit(self, x):
         """Metoda koja postavlja broj revizije iz dokumenta u gui widget"""
-        #self.revizijaLineEdit.blockSignals(True)
         self.revizijaLineEdit.setText(x)
-        #self.revizijaLineEdit.blockSignals(False)
 
     def promjena_datumUmjeravanjaLineEdit(self, x):
         """slot koji postavlja datum umjeravanja u dokument"""
@@ -700,9 +698,7 @@ class GlavniProzor(BASE, FORM):
 
     def set_datumUmjeravanjaLineEdit(self, x):
         """metoda postavlja datum umjeravanja iz dokumenta u gui widget"""
-        #self.datumUmjeravanjaLineEdit.blockSignals(True)
         self.datumUmjeravanjaLineEdit.setText(x)
-        #self.datumUmjeravanjaLineEdit.blockSignals(False)
 
     def promjena_temperaturaDoubleSpinBox(self, x):
         """slot koji postavlja temperaturu (okolisni uvijeti) u dokument"""
@@ -712,9 +708,7 @@ class GlavniProzor(BASE, FORM):
     def set_temperaturaDoubleSpinBox(self, x):
         """metoda postavlja temperaturu (okolisni uvijeti) iz dokumenta u gui
         widget"""
-        #self.temperaturaDoubleSpinBox.blockSignals(True)
         self.temperaturaDoubleSpinBox.setValue(x)
-        #self.temperaturaDoubleSpinBox.blockSignals(False)
 
     def promjena_vlagaDoubleSpinBox(self, x):
         """slot koji postavlja relativnu vlagu (okolisni uvijeti) u dokumnet"""
@@ -724,9 +718,7 @@ class GlavniProzor(BASE, FORM):
     def set_vlagaDoubleSpinBox(self, x):
         """Metoda postavlja relativnu vlagu (okolisni uvijeti) iz dokumenta u
         gui widget"""
-        #self.vlagaDoubleSpinBox.blockSignals(True)
         self.vlagaDoubleSpinBox.setValue(x)
-        #self.vlagaDoubleSpinBox.blockSignals(False)
 
     def promjena_tlakDoubleSpinBox(self, x):
         """slot koji postavlja tlak (okolisni uvijeti) u dokument"""
@@ -735,9 +727,7 @@ class GlavniProzor(BASE, FORM):
 
     def set_tlakDoubleSpinBox(self, x):
         """metoda postavlja tlak (okolisni uvijeti) iz dokumenta u gui widget"""
-        #self.tlakDoubleSpinBox.blockSignals(True)
         self.tlakDoubleSpinBox.setValue(x)
-        #self.tlakDoubleSpinBox.blockSignals(False)
 
     def promjena_napomenaPlainTextEdit(self):
         """slot koji postavlja tekst napomena u dokument"""
@@ -746,10 +736,8 @@ class GlavniProzor(BASE, FORM):
 
     def set_napomenaPlainTextEdit(self, x):
         """metoda postavlja tekst napomene iz dokumenta u gui widget"""
-        #self.napomenaPlainTextEdit.blockSignals(True)
         self.napomenaPlainTextEdit.setPlainText(x)
         self.napomenaPlainTextEdit.moveCursor(QtGui.QTextCursor.End)
-        #self.napomenaPlainTextEdit.blockSignals(False)
 
     def promjena_checkLinearnost(self, x):
         """slot koji zapisuje promjenu linearnosti (checkbox) u dokument"""
@@ -758,9 +746,8 @@ class GlavniProzor(BASE, FORM):
 
     def set_checkLinearnost(self, x):
         """metoda postavlja check linearnosti iz dokumenta u gui widget"""
-        #self.checkLinearnost.blockSignals(True)
         self.checkLinearnost.setChecked(x)
-        #self.checkLinearnost.blockSignals(False)
+        self.multiCheckLinearnost.setChecked(x)
         self.recalculate()
 
     def promjena_checkKonverter(self, x):
@@ -770,10 +757,8 @@ class GlavniProzor(BASE, FORM):
 
     def set_checkKonverter(self, x):
         """metoda postavlja ckeck provjere konvertera iz dokumenta u gui widget"""
-        #self.checkKonverter.blockSignals(True)
         self.checkKonverter.setChecked(x)
         self.recalculate()
-        #self.checkKonverter.blockSignals(False)
 
     def promjena_cnox50SpinBox(self, x):
         """slot koji zapisuje parametar cnox50 u dokument"""
@@ -782,9 +767,7 @@ class GlavniProzor(BASE, FORM):
 
     def set_cnox50SpinBox(self, x):
         """metoda postavlja parametar cNOx50 iz dokumenta u gui widget"""
-        #self.cnox50SpinBox.blockSignals(True)
         self.cnox50SpinBox.setValue(x)
-        #self.cnox50SpinBox.blockSignals(False)
 
     def promjena_cnox95SpinBox(self, x):
         """slot koji zapisuje parametar cnox95 u dokument"""
@@ -793,9 +776,7 @@ class GlavniProzor(BASE, FORM):
 
     def set_cnox95SpinBox(self, x):
         """metoda postavlja parametar cNOx95 iz dokumenta u gui widget"""
-        #self.cnox95SpinBox.blockSignals(True)
         self.cnox95SpinBox.setValue(x)
-        #self.cnox95SpinBox.blockSignals(False)
 
     def promjena_konverterOpseg(self, x):
         """slot koji zapisuje opseg konvertera u dokument (povezan sa opsegom
@@ -806,26 +787,20 @@ class GlavniProzor(BASE, FORM):
     def napuni_comboMjerenje(self, x):
         """metoda postavlja listu x (lista stringova mjerenja) iz dokumenta
         u comboMjerenje widget"""
-        #self.comboMjerenje.blockSignals(True)
         self.comboMjerenje.clear()
         self.comboMjerenje.addItems(x)
-        #self.comboMjerenje.blockSignals(False)
 
     def napuni_comboDilucija(self, x):
         """metoda postavlja listu x (lista stringova dilucijskih jedinica) iz
         dokumenta u comboDilucija widget"""
-        #self.comboDilucija.blockSignals(True)
         self.comboDilucija.clear()
         self.comboDilucija.addItems(x)
-        #self.comboDilucija.blockSignals(False)
 
     def napuni_comboZrak(self, x):
         """metoda postavlja listu x (lista stringova generatora cistog zraka) iz
         dokumenta u comboZrak widget"""
-        #self.comboZrak.blockSignals(True)
         self.comboZrak.clear()
         self.comboZrak.addItems(x)
-        #self.comboZrak.blockSignals(False)
 
     def recalculate(self):
         """metoda je zaduzena za poziv kalkulatora na racunanje umjeravanja"""
@@ -838,7 +813,7 @@ class GlavniProzor(BASE, FORM):
 
         slopeData = copy.deepcopy(self.kalkulator.get_slope_and_offset_list())
         self.dokument.set_slopeData(slopeData)
-
+        #TODO!
         parametriUmjeravanje =  copy.deepcopy(self.kalkulator.get_provjeru_parametara())
         parametriUmjeravanje = [i for i in parametriUmjeravanje if not np.isnan(i[3])]
         ecKonverter = copy.deepcopy(self.konverterKalkulator.get_ec_parametar())
@@ -854,6 +829,9 @@ class GlavniProzor(BASE, FORM):
 
         listaEfikasnosti = self.konverterKalkulator.get_listu_efikasnosti()
         self.dokument.set_listaEfikasnostiKonvertera(listaEfikasnosti)
+
+        #update usporedni prikaz
+        self.update_multiple_prikaz_rezultata()
 
     def odaberi_start_umjeravanja(self, x):
         """
@@ -979,8 +957,83 @@ class GlavniProzor(BASE, FORM):
                 zs = self.dokument.get_zero_span_tocke()
                 self.mjerenjaCanvas.crtaj(frejm, zs)
 
+    def postavi_usporedna_umjeravanja(self):
+        """
+        inicijalno postavljanje panela za usporedno umjeravanje.
 
+        svaki plin, koji postoji kao stupac u frejmu sirovih podataka, se racuna
+        i prikazuje u zasebnom objektu panel. Ti objekti se onda slazu u horizontalni
+        layout u posebnom tabu glavnog gui prozora.
+        """
+        #potrebne postavke
+        plin = self.dokument.get_izabranoMjerenje()
+        frejm = self.dokument.get_siroviPodaci()
+        stupci = sorted(list(frejm.columns))
 
+        #prije postavljanja novih panela potrebno je maknuti stare
+        for i in reversed(range(self.multipleRezultatLayout.count())):
+            item = self.multipleRezultatLayout.itemAt(i).widget()
+            if item != None:
+                self.multipleRezultatLayout.removeWidget(item)
+                sip.delete(item)
+                item = None
 
+        #inicijalizacija i postavljanje panela
+        self.dokument.block_all_signals()
+        for gas in stupci:
+            izabraniPanel = panel.RezultatPanel(dokument=self.dokument, plin=gas)
+            # direktno manipuliranje dokumentom
+            self.dokument.izabranoMjerenje = gas
+            #racunanje potrebnih vrijednosti
+            self.kalkulator.racunaj()
+            rez = self.kalkulator.rezultat
+            slopedata = self.kalkulator.get_slope_and_offset_list()
+            kriterij = self.kalkulator.get_provjeru_parametara()
+            mapa = {'rezultat':rez,
+                    'slopeData':slopedata,
+                    'kriterij':kriterij}
+            #postavljanje panela u layout
+            self.multipleRezultatLayout.addWidget(izabraniPanel)
+            #update rezultata za layout
+            izabraniPanel.update_rezultat(mapa)
+            #spoji signale iz panela
+            self.connect(izabraniPanel,
+                         QtCore.SIGNAL('panel_dodaj_umjernu_tocku'),
+                         self.add_red_umjeravanje)
+            self.connect(izabraniPanel,
+                         QtCore.SIGNAL('panel_makni_umjernu_tocku(PyQt_PyObject)'),
+                         self.remove_red_umjeravanje)
+            self.connect(izabraniPanel,
+                         QtCore.SIGNAL('panel_makni_umjernu_tocku(PyQt_PyObject)'),
+                         self.edit_red_umjeravanje)
+
+        #restore dokument i kalkulator u pocetno stanje
+        self.dokument.izabranoMjerenje = plin
+        self.kalkulator.racunaj()
+        self.dokument.unblock_all_signals()
+
+    def update_multiple_prikaz_rezultata(self):
+        """
+        refresh vrijednosti nakon racunanja za usporedni prikaz rezultata
+        """
+        print('multiple_prikaz_rezultata')
+        plin = self.dokument.get_izabranoMjerenje()
+        self.dokument.block_all_signals()
+        #panel po panel... dohvati plin tog panela, izracunaj rezultat i postavi u gui
+        for i in range(self.multipleRezultatLayout.count()):
+            item = self.multipleRezultatLayout.itemAt(i).widget()
+            gas = item.plin
+            self.dokument.izabranoMjerenje = gas
+            self.kalkulator.racunaj()
+            rez = self.kalkulator.rezultat
+            slopedata = self.kalkulator.get_slope_and_offset_list()
+            kriterij = self.kalkulator.get_provjeru_parametara()
+            mapa = {'rezultat':rez,
+                    'slopeData':slopedata,
+                    'kriterij':kriterij}
+            item.update_rezultat(mapa)
+        self.dokument.izabranoMjerenje = plin
+        self.kalkulator.racunaj()
+        self.dokument.unblock_all_signals()
 
 

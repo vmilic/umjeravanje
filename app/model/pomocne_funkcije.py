@@ -123,6 +123,9 @@ def get_uredjaj_info(url, serial):
                     msg = 'Za uredjaj {0} nije definirana max granica za {1}. Koristim default 400'.format(serial, naziv)
                     maxGranica = 400.0
                     logging.error(msg, exc_info=True)
+                #TODO!
+                if mjernaJedinica == 'ug/m3':
+                    mjernaJedinica = '\u03BCg/m3'
 
                 tmp1[oznaka] = {
                     'naziv': naziv,
@@ -139,6 +142,10 @@ def get_uredjaj_info(url, serial):
                 output['komponente'].append(formula)
                 naziv = komponenta.find('naziv').text
                 mjernaJedinica = komponenta.find('./mjerneJediniceId/oznaka').text
+                #TODO!
+                if mjernaJedinica == 'ug/m3':
+                    mjernaJedinica = '\u03BCg/m3'
+
                 tmp2[formula] = {
                     'naziv': naziv,
                     'mjernaJedinica': mjernaJedinica,

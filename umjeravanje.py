@@ -6,9 +6,12 @@ Created on Mon May 18 12:21:15 2015
 @author: DHMZ-Milic
 
 #TODO!
-- redizajn sa dokumentom..
 - dijalog za edit tocke ne provjerava granice prilikom postavljanja vrijednosti
-- treba spojiti dijalog za report u app
+
+-TODO! visestruki rezultati za NOx... (i parametri...)
+-TODO! smanji interakciju sa dokumentom (feedback u textboxevima)
+- veze i protokoli
+- prebaci utf ug/m3 na grcki mu --> '\u03BC'
 """
 import sys
 import logging
