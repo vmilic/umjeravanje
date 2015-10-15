@@ -21,6 +21,8 @@ import app.model.kalkulator as calc
 import app.model.frejm_model as modeli
 import app.model.model as doc
 import app.view.rezultat_panel as panel
+import app.view.kolektor as kol
+
 
 
 
@@ -68,7 +70,6 @@ class GlavniProzor(BASE, FORM):
         self.konverterPodaciModel = modeli.SiroviFrameModel(tocke=self.dokument.get_tockeKonverter())
         self.konverterPodaciView.setModel(self.konverterPodaciModel)
         self.konverterPodaciView.horizontalHeader().setStretchLastSection(True)
-
         ### setup i postavljanje layouta za view elemente ###
         #grafovi
         self.inicijalizacija_grafova()
@@ -91,17 +92,17 @@ class GlavniProzor(BASE, FORM):
         self.layoutKonverterParametri.addStretch(-1)
         #vertikalni spacer za scroll area layout
         self.konverterRezultatiLayout.addStretch(-1)
-
+        ###Prikupljanje podataka tab setup###
+        self.kolektor = kol.Kolektor()
+        self.kolektorLayout.addWidget(self.kolektor)
         ### setup signale i slotove ###
         self.setup_signal_connections()
-
         ### inicijalni setup kontrolnih elemenata gui-a ###
         self.dokument.init_listaDilucija()
         self.dokument.init_listaZrak()
         self.checkLinearnost.setChecked(self.dokument.get_provjeraLinearnosti())
         self.cnox50SpinBox.setValue(self.dokument.get_cNOx50())
         self.cnox95SpinBox.setValue(self.dokument.get_cNOx95())
-
 
     def setup_signal_connections(self):
         """
@@ -313,6 +314,10 @@ class GlavniProzor(BASE, FORM):
         self.connect(self.dokument,
                      QtCore.SIGNAL('postavi_usporedna_mjerenja'),
                      self.postavi_usporedna_umjeravanja)
+        #signal dokumenta za ponovnim racunanjem
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('dokument_request_recalculate'),
+                     self.recalculate)
 
 
 
@@ -448,7 +453,6 @@ class GlavniProzor(BASE, FORM):
             komponente.remove('None')
             komponente = list(komponente)
             self.dokument.set_listaMjerenja(komponente)
-            self.recalculate()
             self.postavi_usporedna_umjeravanja()
 
     def set_ucitane_sirove_podatke(self, x):
@@ -508,7 +512,6 @@ class GlavniProzor(BASE, FORM):
     def set_labelUredjaj(self, tekst):
         """Setter serijskog broja uredjaja (tekst) u label"""
         self.labelUredjaj.setText(tekst)
-        self.recalculate()
 
     def set_labelPostaja(self, tekst):
         """Setter naziva postaje na kojoj je smjesten uredjaj u label"""
@@ -536,9 +539,10 @@ class GlavniProzor(BASE, FORM):
     def set_comboMjerenje(self, x):
         """Metoda postavlja izabrano mjerenje preuzeto iz dokumenta u gui
         widgete"""
-        ind = self.comboMjerenje.findText(x)
+        ind = self.comboMjerenje.findText(x[0])
         self.comboMjerenje.setCurrentIndex(ind)
-        self.recalculate()
+        if x[1] == True:
+            self.recalculate()
 
     def promjena_doubleSpinBoxOpseg(self, x):
         """slot koji dokumentu javlja promjenu opsega mjerenja"""
@@ -549,14 +553,10 @@ class GlavniProzor(BASE, FORM):
         """Metoda postavlja izabrani opseg preuzet iz dokumenta u gui widgete
         x je lista [vrijednost, neki boolean], boolean je odlucijuci faktor
         za recalculate"""
-        #TODO!
         self.doubleSpinBoxOpseg.setValue(x[0])
         self.konverterOpseg.setValue(x[0])
         if x[1] == True:
-            print('recaclulating opseg change')
             self.recalculate()
-        else:
-            print('not recaclulating opseg change')
 
     def promjena_izvorPlainTextEdit(self):
         """slot koji dokumentu javlja promjenu izvora CRM-a"""
@@ -575,8 +575,9 @@ class GlavniProzor(BASE, FORM):
 
     def set_doubleSpinBoxKoncentracijaCRM(self, x):
         """Metoda postavlja koncentraciju CRM-a u gui widget"""
-        self.doubleSpinBoxKoncentracijaCRM.setValue(x)
-        self.recalculate()
+        self.doubleSpinBoxKoncentracijaCRM.setValue(x[0])
+        if x[1] == True:
+            self.recalculate()
 
     def promjena_doubleSpinBoxSljedivostCRM(self, x):
         """slot koji dokumentu javlja promjenu sljedivosti CRM-a"""
@@ -585,8 +586,9 @@ class GlavniProzor(BASE, FORM):
 
     def set_doubleSpinBoxSljedivostCRM(self, x):
         """Metoda postavlja sljedivost CRM u gui widget"""
-        self.doubleSpinBoxSljedivostCRM.setValue(x)
-        self.recalculate()
+        self.doubleSpinBoxSljedivostCRM.setValue(x[0])
+        if x[1] == True:
+            self.recalculate()
 
     def promjena_comboDilucija(self, x):
         """slot koji dokumentu javlja promjenu izabrane dilucijske jedinice"""
@@ -596,9 +598,10 @@ class GlavniProzor(BASE, FORM):
     def set_comboDilucija(self, x):
         """Metoda postavlja izabranu dilucijsku jedinicu preuzetu iz dokumenta
         u gui widget"""
-        ind = self.comboDilucija.findText(x)
+        ind = self.comboDilucija.findText(x[0])
         self.comboDilucija.setCurrentIndex(ind)
-        self.recalculate()
+        if x[1] == True:
+            self.recalculate()
 
     def promjena_dilucijaProizvodjacLineEdit(self, x):
         """slot koji javlja dokumentu promjenu proizvodjaca dilucijske jedinice"""
@@ -629,9 +632,10 @@ class GlavniProzor(BASE, FORM):
     def set_comboZrak(self, x):
         """Metoda postavlja izabrani generator cistog zraka iz dokumenta u gui
         widget"""
-        ind = self.comboZrak.findText(x)
+        ind = self.comboZrak.findText(x[0])
         self.comboZrak.setCurrentIndex(ind)
-        self.recalculate()
+        if x[1] == True:
+            self.recalculate()
 
     def promjena_zrakProizvodjacLineEdit(self, x):
         """slot koji postavlja proizvodjaca generatora cistog zraka u dokument"""
@@ -651,8 +655,9 @@ class GlavniProzor(BASE, FORM):
     def set_doubleSpinBoxSljedivostCistiZrak(self, x):
         """Metoda postavlja slejdivost generatora cistog zraka iz dokumenta u gui
         widget"""
-        self.doubleSpinBoxSljedivostCistiZrak.setValue(x)
-        self.recalculate()
+        self.doubleSpinBoxSljedivostCistiZrak.setValue(x[0])
+        if x[1] == True:
+            self.recalculate()
 
     def promjena_normaPlainTextEdit(self):
         """slot koji postavlja tekst norme u dokument"""
@@ -746,9 +751,10 @@ class GlavniProzor(BASE, FORM):
 
     def set_checkLinearnost(self, x):
         """metoda postavlja check linearnosti iz dokumenta u gui widget"""
-        self.checkLinearnost.setChecked(x)
-        self.multiCheckLinearnost.setChecked(x)
-        self.recalculate()
+        self.checkLinearnost.setChecked(x[0])
+        self.multiCheckLinearnost.setChecked(x[0])
+        if x[1] == True:
+            self.recalculate()
 
     def promjena_checkKonverter(self, x):
         """slot koji zapisuje promjenu provjere konvertera u dokument (checkbox)"""
@@ -757,8 +763,9 @@ class GlavniProzor(BASE, FORM):
 
     def set_checkKonverter(self, x):
         """metoda postavlja ckeck provjere konvertera iz dokumenta u gui widget"""
-        self.checkKonverter.setChecked(x)
-        self.recalculate()
+        self.checkKonverter.setChecked(x[0])
+        if x[1] == True:
+            self.recalculate()
 
     def promjena_cnox50SpinBox(self, x):
         """slot koji zapisuje parametar cnox50 u dokument"""
@@ -787,20 +794,26 @@ class GlavniProzor(BASE, FORM):
     def napuni_comboMjerenje(self, x):
         """metoda postavlja listu x (lista stringova mjerenja) iz dokumenta
         u comboMjerenje widget"""
+        self.comboMjerenje.blockSignals(True)
         self.comboMjerenje.clear()
         self.comboMjerenje.addItems(x)
+        self.comboMjerenje.blockSignals(False)
 
     def napuni_comboDilucija(self, x):
         """metoda postavlja listu x (lista stringova dilucijskih jedinica) iz
         dokumenta u comboDilucija widget"""
+        self.comboDilucija.blockSignals(True)
         self.comboDilucija.clear()
         self.comboDilucija.addItems(x)
+        self.comboDilucija.blockSignals(False)
 
     def napuni_comboZrak(self, x):
         """metoda postavlja listu x (lista stringova generatora cistog zraka) iz
         dokumenta u comboZrak widget"""
+        self.comboZrak.blockSignals(True)
         self.comboZrak.clear()
         self.comboZrak.addItems(x)
+        self.comboZrak.blockSignals(False)
 
     def recalculate(self):
         """metoda je zaduzena za poziv kalkulatora na racunanje umjeravanja"""
@@ -813,7 +826,6 @@ class GlavniProzor(BASE, FORM):
 
         slopeData = copy.deepcopy(self.kalkulator.get_slope_and_offset_list())
         self.dokument.set_slopeData(slopeData)
-        #TODO!
         parametriUmjeravanje =  copy.deepcopy(self.kalkulator.get_provjeru_parametara())
         parametriUmjeravanje = [i for i in parametriUmjeravanje if not np.isnan(i[3])]
         ecKonverter = copy.deepcopy(self.konverterKalkulator.get_ec_parametar())
@@ -845,8 +857,9 @@ class GlavniProzor(BASE, FORM):
         Metoda postavlja pocetni indeks umjeravanja u model (update gui)
         """
         self.siroviPodaciView.clearSelection()
-        self.siroviPodaciModel.set_start(x)
-        self.recalculate()
+        self.siroviPodaciModel.set_start(x[0])
+        if x[1] == True:
+            self.recalculate()
 
     def odaberi_start_provjere_konvertera(self, x):
         """Metoda sluzi za odabir pocetnog indeksa (ljevi klik na tablicu sa
@@ -856,8 +869,9 @@ class GlavniProzor(BASE, FORM):
     def set_start_provjere_konvertera(self, x):
         """metoda postavlja pocetni indeks frejma u model (update gui)"""
         self.konverterPodaciView.clearSelection()
-        self.konverterPodaciModel.set_start(x) #BUG!
-        self.recalculate()
+        self.konverterPodaciModel.set_start(x[0])
+        if x[1] == True:
+            self.recalculate()
 
     def save_umjeravanje_to_file(self):
         """spremanje dokumenta u file"""
@@ -1016,7 +1030,7 @@ class GlavniProzor(BASE, FORM):
         """
         refresh vrijednosti nakon racunanja za usporedni prikaz rezultata
         """
-        print('multiple_prikaz_rezultata')
+        reportSlope = {} #za pdf report
         plin = self.dokument.get_izabranoMjerenje()
         self.dokument.block_all_signals()
         #panel po panel... dohvati plin tog panela, izracunaj rezultat i postavi u gui
@@ -1031,9 +1045,11 @@ class GlavniProzor(BASE, FORM):
             mapa = {'rezultat':rez,
                     'slopeData':slopedata,
                     'kriterij':kriterij}
+            reportSlope[gas] = slopedata
             item.update_rezultat(mapa)
         self.dokument.izabranoMjerenje = plin
         self.kalkulator.racunaj()
         self.dokument.unblock_all_signals()
+        self.dokument.set_reportSlope(reportSlope)
 
 

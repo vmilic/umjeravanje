@@ -7,12 +7,8 @@ Created on Mon May 18 12:21:15 2015
 
 #TODO!
 - dijalog za edit tocke ne provjerava granice prilikom postavljanja vrijednosti
-
--TODO! visestruki rezultati za NOx... (i parametri...)
--TODO! smanji interakciju sa dokumentom (feedback u textboxevima)
-- veze i protokoli
-- prebaci utf ug/m3 na grcki mu --> '\u03BC'
 """
+
 import sys
 import logging
 import configparser
