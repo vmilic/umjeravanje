@@ -182,8 +182,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>803</width>
-                 <height>590</height>
+                 <width>532</width>
+                 <height>516</height>
                 </rect>
                </property>
                <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -787,6 +787,35 @@
             </item>
            </layout>
           </widget>
+          <widget class="QWidget" name="prikupljanjePodataka">
+           <attribute name="title">
+            <string>Prikupljanje podataka</string>
+           </attribute>
+           <layout class="QVBoxLayout" name="verticalLayout_10">
+            <item>
+             <widget class="QScrollArea" name="scrollArea_6">
+              <property name="widgetResizable">
+               <bool>true</bool>
+              </property>
+              <widget class="QWidget" name="scrollAreaWidgetContents_6">
+               <property name="geometry">
+                <rect>
+                 <x>0</x>
+                 <y>0</y>
+                 <width>785</width>
+                 <height>572</height>
+                </rect>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_11">
+                <item>
+                 <layout class="QVBoxLayout" name="kolektorLayout"/>
+                </item>
+               </layout>
+              </widget>
+             </widget>
+            </item>
+           </layout>
+          </widget>
          </widget>
         </item>
        </layout>
@@ -968,8 +997,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>803</width>
-                 <height>590</height>
+                 <width>149</width>
+                 <height>49</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="konverterRezultatiLayout">

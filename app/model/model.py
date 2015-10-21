@@ -67,6 +67,7 @@ class DokumentModel(QtCore.QObject):
         self.krajUmjeravanja = ''
         self.parametriRezultata = [] #lista: srz, srs, rz, rmax, ec
         self.slopeData = [np.NaN, np.NaN, np.NaN, np.NaN]
+        self.reportSlope = {'n/a':[np.NaN, np.NaN, np.NaN, np.NaN]}
         self.listaEfikasnostiKonvertera = [np.NaN, np.NaN, np.NaN, np.NaN]
         #dodatne informacije o uredjaju
         self.oznakaModelaUredjaja = ''
@@ -85,7 +86,7 @@ class DokumentModel(QtCore.QObject):
         """
         self.set_postaje(mapa['postaje'])
         self.set_uredjaji(mapa['uredjaji'])
-        self.set_listaMjerenja(mapa['listaMjerenja'])
+        self.set_listaMjerenja(mapa['listaMjerenja'], recalculate=False)
         self.set_listaDilucija(mapa['listaDilucija'])
         self.set_listaZrak(mapa['listaZrak'])
         #potrebno je rekonstruirati objekt Tocka()
@@ -111,19 +112,19 @@ class DokumentModel(QtCore.QObject):
             dot.boja = QtGui.QColor(r, g, b, a)
             konverterTocke.append(dot)
         self.set_tockeKonverter(konverterTocke)
-        self.set_siroviPodaciStart(mapa['siroviPodaciStart'])
+        self.set_siroviPodaciStart(mapa['siroviPodaciStart'], recalculate=False)
         self.set_siroviPodaci(mapa['siroviPodaci'])
-        self.set_konverterPodaciStart(mapa['konverterPodaciStart'])
+        self.set_konverterPodaciStart(mapa['konverterPodaciStart'], recalculate=False)
         self.set_konverterPodaci(mapa['konverterPodaci'])
         self.set_izabraniUredjaj(mapa['izabraniUredjaj'])
         self.set_izabranaPostaja(mapa['izabranaPostaja'])
         self.set_izabraniPathCSV(mapa['izabraniPathCSV'])
         self.set_mjernaJedinica(mapa['mjernaJedinica'])
-        self.set_izabranoMjerenje(mapa['izabranoMjerenje'])
-        self.set_izabranaDilucija(mapa['izabranaDilucija'])
-        self.set_izabraniZrak(mapa['izabraniZrak'])
-        self.set_provjeraLinearnosti(mapa['provjeraLinearnosti'])
-        self.set_provjeraKonvertera(mapa['provjeraKonvertera'])
+        self.set_izabranoMjerenje(mapa['izabranoMjerenje'], recalculate=False)
+        self.set_izabranaDilucija(mapa['izabranaDilucija'], recalculate=False)
+        self.set_izabraniZrak(mapa['izabraniZrak'], recalculate=False)
+        self.set_provjeraLinearnosti(mapa['provjeraLinearnosti'], recalculate=False)
+        self.set_provjeraKonvertera(mapa['provjeraKonvertera'], recalculate=False)
         self.set_cNOx50(mapa['cNOx50'])
         self.set_cNOx95(mapa['cNOx95'])
 
@@ -139,7 +140,7 @@ class DokumentModel(QtCore.QObject):
         self.emit(QtCore.SIGNAL('promjena_proizvodjacCistiZrak(PyQt_PyObject)'),
                   self.proizvodjacCistiZrak)
 
-        self.set_sljedivostCistiZrak(mapa['sljedivostCistiZrak'])
+        self.set_sljedivostCistiZrak(mapa['sljedivostCistiZrak'], recalculate=False)
 
         self.set_norma(mapa['norma'])
         self.emit(QtCore.SIGNAL('promjena_norma(PyQt_PyObject)'),
@@ -178,16 +179,17 @@ class DokumentModel(QtCore.QObject):
         self.emit(QtCore.SIGNAL('promjena_izvorCRM(PyQt_PyObject)'),
                   self.izvorCRM)
 
-        self.set_koncentracijaCRM(mapa['koncentracijaCRM'])
-        self.set_sljedivostCRM(mapa['sljedivostCRM'])
+        self.set_koncentracijaCRM(mapa['koncentracijaCRM'], recalculate=False)
+        self.set_sljedivostCRM(mapa['sljedivostCRM'], recalculate=False)
         self.set_listaEfikasnostiKonvertera(mapa['listaEfikasnostiKonvertera'])
         self.set_slopeData(mapa['slopeData'])
+        self.set_reportSlope(mapa['reportSlope'])
         self.set_parametriRezultata(mapa['parametriRezultata'])
-        #TODO!
-        self.set_opseg(mapa['opseg'])
-
+        self.set_opseg(mapa['opseg'], recalculate=False)
         self.set_oznakaModelaUredjaja(mapa['oznakaModelaUredjaja'])
         self.set_proizvodjacUredjaja(mapa['proizvodjacUredjaja'])
+
+        self.signal_recalculate()
 
     def dokument_to_dict(self):
         """
@@ -197,6 +199,7 @@ class DokumentModel(QtCore.QObject):
         output = {}
         output['listaEfikasnostiKonvertera'] = self.listaEfikasnostiKonvertera
         output['slopeData'] = self.slopeData
+        output['reportSlope'] = self.reportSlope
         output['izabraniUredjaj'] = self.izabraniUredjaj
         output['izabranaPostaja'] = self.izabranaPostaja
         output['izabraniPathCSV'] = self.izabraniPathCSV
@@ -331,9 +334,12 @@ class DokumentModel(QtCore.QObject):
                     logging.error(str(err), exc_info=True)
                     QtGui.QMessageBox.information(self, 'Problem', 'Ucitavanje datoteke nije uspjelo.')
 
+    def signal_recalculate(self):
+        """metoda signalizira potrebu za ponovnim racunanjem rezultata"""
+        self.emit(QtCore.SIGNAL('dokument_request_recalculate'))
+
     def set_opseg(self, x, recalculate=True):
         """Setter max opsega mjerenja. Ulazna vrijednost je tipa float"""
-        #TODO!
         x = float(x)
         if x != self.opseg:
             self.opseg = x
@@ -356,6 +362,16 @@ class DokumentModel(QtCore.QObject):
     def get_parametriRezultata(self):
         """Getter dicta parametara rezultata."""
         return self.parametriRezultata
+
+    def set_reportSlope(self, x):
+        """setter dicta za pdf report prilagodbe rezultata ako ima vise plinova.
+        x je dictionary,  {plin:[slope, offset, prilagodbaA, prilagodbaB]}.
+        Svi elementi liste su float, plin je tipa string"""
+        self.reportSlope = copy.deepcopy(x)
+
+    def get_reportSlope(self):
+        """getter dicta za pdf report prilagodbe rezultata"""
+        return self.reportSlope
 
     def set_slopeData(self, x):
         """Seter liste sa slope parametrima za umjeravanje (lista float).
@@ -578,14 +594,15 @@ class DokumentModel(QtCore.QObject):
         """Getter norme mjerenja (norma + naziv)"""
         return self.norma
 
-    def set_sljedivostCistiZrak(self, x):
+    def set_sljedivostCistiZrak(self, x, recalculate=True):
         """Setter sljedivosti generatora cistog zraka. Ulazna vrijednost je tipa
         float"""
         x = float(x)
         if x != self.sljedivostCistiZrak:
             self.sljedivostCistiZrak = x
+            output = [self.sljedivostCistiZrak, recalculate]
             self.emit(QtCore.SIGNAL('promjena_sljedivostCistiZrak(PyQt_PyObject)'),
-                      self.sljedivostCistiZrak)
+                      output)
 
     def get_sljedivostCistiZrak(self):
         """Getter sljedivosti generatora cistog zraka"""
@@ -625,27 +642,29 @@ class DokumentModel(QtCore.QObject):
         """Getter proizvodjaca dilucijske (kalibracijske) jedinice."""
         return self.proizvodjacDilucija
 
-    def set_sljedivostCRM(self, x):
+    def set_sljedivostCRM(self, x, recalculate=True):
         """Setter sljedivosti certificiranog referentnog materijala. Ulazna vrijednost
         je tipa float"""
         x = float(x)
         if x != self.sljedivostCRM:
             self.sljedivostCRM = x
+            output = [self.sljedivostCRM, recalculate]
             self.emit(QtCore.SIGNAL('promjena_sljedivostCRM(PyQt_PyObject)'),
-                      self.sljedivostCRM)
+                      output)
 
     def get_sljedivostCRM(self):
         """Getter sljedivosti certificiranog referentnog materijala"""
         return self.sljedivostCRM
 
-    def set_koncentracijaCRM(self, x):
+    def set_koncentracijaCRM(self, x, recalculate=True):
         """Setter koncentracije certificiranog referentnog materijala. Ulazna
         vrijednost je tipa float"""
         x = float(x)
         if x != self.koncentracijaCRM:
             self.koncentracijaCRM = x
+            output = [self.koncentracijaCRM, recalculate]
             self.emit(QtCore.SIGNAL('promjena_koncentracijaCRM(PyQt_PyObject)'),
-                      self.koncentracijaCRM)
+                      output)
 
     def get_koncentracijaCRM(self):
         """Getter koncentracije certificiranog referentnog materijala"""
@@ -687,7 +706,7 @@ class DokumentModel(QtCore.QObject):
         """Getter pandas frejma rezultata provjere konvertera"""
         return self.konverterRezultat
 
-    def set_konverterPodaciStart(self, x):
+    def set_konverterPodaciStart(self, x, recalculate=True):
         """Setter pocetka provjere konvertera. Ulazni parametar je integer, redni
         broj indeksa konverter podataka od kojeg se krece sa kontrolom konvertera."""
         if isinstance(x, QtCore.QModelIndex):
@@ -695,8 +714,9 @@ class DokumentModel(QtCore.QObject):
         x = int(x)
         if x != self.konverterPodaciStart:
             self.konverterPodaciStart = x
+            output = [self.konverterPodaciStart, recalculate]
             self.emit(QtCore.SIGNAL('promjena_konverterPodaciStart(PyQt_PyObject)'),
-                      self.konverterPodaciStart)
+                      output)
 
     def get_konverterPodaciStart(self):
         """Getter pocetka provjere konvertera. Output je integer, redni broj indeksa
@@ -718,7 +738,7 @@ class DokumentModel(QtCore.QObject):
         """Getter konverter sirovih podataka ucitanih iz csv filea"""
         return self.konverterPodaci
 
-    def set_siroviPodaciStart(self, x):
+    def set_siroviPodaciStart(self, x, recalculate=True):
         """Setter pocetka umjeravanja. Ulazni parametar je integer, redni broj
         indeksa sirovih podataka od kojeg se krece sa umjeravanjem"""
         if isinstance(x, QtCore.QModelIndex):
@@ -726,9 +746,10 @@ class DokumentModel(QtCore.QObject):
         x = int(x)
         if x != self.siroviPodaciStart:
             self.siroviPodaciStart = x
+            output = [self.siroviPodaciStart, recalculate]
             self.set_vremenske_granice_umjernih_tocaka()
             self.emit(QtCore.SIGNAL('promjena_siroviPodaciStart(PyQt_PyObject)'),
-                      self.siroviPodaciStart)
+                      output)
 
     def get_siroviPodaciStart(self):
         """Getter pocetka umjeravanja. Izlazni parametar je integer, redni broj
@@ -811,32 +832,34 @@ class DokumentModel(QtCore.QObject):
         """Getter za vijednost cNOx50 parametra"""
         return self.cNOx50
 
-    def set_provjeraLinearnosti(self, x):
+    def set_provjeraLinearnosti(self, x, recalculate=True):
         """Setter za provjeru linearnosti prilikom racunanja umjeravanja. Ulazni
         parametar x je boolean"""
         x = bool(x)
         if x != self.provjeraLinearnosti:
             self.provjeraLinearnosti = x
+            output = [self.provjeraLinearnosti, recalculate]
             self.emit(QtCore.SIGNAL('promjena_provjeraLinearnosti(PyQt_PyObject)'),
-                      self.provjeraLinearnosti)
+                      output)
 
     def get_provjeraLinearnosti(self):
         """Getter za boolean provjere linearnosti"""
         return self.provjeraLinearnosti
 
-    def set_provjeraKonvertera(self, x):
+    def set_provjeraKonvertera(self, x, recalculate=True):
         """Setter za boolean koji definira da li se radi provjera konvertera."""
         x = bool(x)
         if x != self.provjeraKonvertera:
             self.provjeraKonvertera = x
+            output = [self.provjeraKonvertera, recalculate]
             self.emit(QtCore.SIGNAL('promjena_provjeraKonvertera(PyQt_PyObject)'),
-                      self.provjeraKonvertera)
+                      output)
 
     def get_provjeraKonvertera(self):
         """Getter za boolean provjere konvertera"""
         return self.provjeraKonvertera
 
-    def set_izabraniZrak(self, x):
+    def set_izabraniZrak(self, x, recalculate=True):
         """Setter izabranog generatora cistog zraka. Ulazna vrijednost je string"""
         x = str(x)
         if not x in self.listaZrak:
@@ -844,8 +867,7 @@ class DokumentModel(QtCore.QObject):
             raise ValueError(msg)
         if x != self.izabraniZrak:
             self.izabraniZrak = x
-            self.emit(QtCore.SIGNAL('promjena_izabraniZrak(PyQt_PyObject)'),
-                      self.izabraniZrak)
+            output = [self.izabraniZrak, recalculate]
             # promjena povezanih polja
             try:
                 # proizvodjac
@@ -862,15 +884,17 @@ class DokumentModel(QtCore.QObject):
                     komponenta = 'NOx'
                 value = self.cfg.get_konfig_element(self.izabraniZrak, komponenta)
                 value = 2*float(value) #get_konfig_element vraca string..za U(k=1)
-                self.set_sljedivostCistiZrak(value)
+                self.set_sljedivostCistiZrak(value, recalculate=False)
             except Exception as err:
                 logging.error(str(err), exc_info=True)
+            self.emit(QtCore.SIGNAL('promjena_izabraniZrak(PyQt_PyObject)'),
+                      output)
 
     def get_izabraniZrak(self):
         """Getter izabranog generatora cistog zraka"""
         return self.izabraniZrak
 
-    def set_izabranaDilucija(self, x):
+    def set_izabranaDilucija(self, x, recalculate=True):
         """Setter izabrane dilucijske jedinice. Ulazna vrijednost je string."""
         x = str(x)
         if not x in self.listaDilucija:
@@ -878,8 +902,7 @@ class DokumentModel(QtCore.QObject):
             raise ValueError(msg)
         if x != self.izabranaDilucija:
             self.izabranaDilucija = x
-            self.emit(QtCore.SIGNAL('promjena_izabranaDilucija(PyQt_PyObject)'),
-                      self.izabranaDilucija)
+            output = [self.izabranaDilucija, recalculate]
             #promjena povezanih polja
             # dilucija proizvodjac
             try:
@@ -900,12 +923,14 @@ class DokumentModel(QtCore.QObject):
                           self.sljedivostDilucija)
             except Exception as err:
                 logging.error(str(err), exc_info=True)
+            self.emit(QtCore.SIGNAL('promjena_izabranaDilucija(PyQt_PyObject)'),
+                      output)
 
     def get_izabranaDilucija(self):
         """Getter izabrane dilucijske jedinice"""
         return self.izabranaDilucija
 
-    def set_izabranoMjerenje(self, x):
+    def set_izabranoMjerenje(self, x, recalculate=True):
         """Setter izabranog mjerenja (komponente). Ulazna vrijednost je string"""
         x = str(x)
         if not x in self.listaMjerenja:
@@ -913,8 +938,7 @@ class DokumentModel(QtCore.QObject):
             raise ValueError(msg)
         if x != self.izabranoMjerenje:
             self.izabranoMjerenje = x
-            self.emit(QtCore.SIGNAL('promjena_izabranoMjerenje(PyQt_PyObject)'),
-                      self.izabranoMjerenje)
+            output = [self.izabranoMjerenje, recalculate]
             #promjena povezanih polja
             try:
                 # promjena mjerne jedinice
@@ -928,13 +952,12 @@ class DokumentModel(QtCore.QObject):
                 self.set_izvorCRM(value)
                 self.emit(QtCore.SIGNAL('promjena_izvorCRM(PyQt_PyObject)'),
                           self.izvorCRM)
-
             except Exception as err:
                 logging.error(str(err), exc_info=True)
             try:
                 # promjena max opsega mjerenja
                 value = self.uredjaji[self.izabraniUredjaj]['analitickaMetoda']['o']['max']
-                self.set_opseg(value)
+                self.set_opseg(value, recalculate=False)
             except Exception as err:
                 logging.error(str(err), exc_info=True)
             try:
@@ -945,7 +968,6 @@ class DokumentModel(QtCore.QObject):
                 self.set_norma(value)
                 self.emit(QtCore.SIGNAL('promjena_norma(PyQt_PyObject)'),
                           self.norma)
-
             except Exception as err:
                 logging.error(str(err), exc_info=True)
             try:
@@ -954,7 +976,6 @@ class DokumentModel(QtCore.QObject):
                 self.set_brojObrasca(value)
                 self.emit(QtCore.SIGNAL('promjena_brojObrasca(PyQt_PyObject)'),
                           self.brojObrasca)
-
             except Exception as err:
                 logging.error(str(err), exc_info=True)
             try:
@@ -972,9 +993,12 @@ class DokumentModel(QtCore.QObject):
                     komponenta = 'NOx'
                 value = self.cfg.get_konfig_element(self.izabraniZrak, komponenta)
                 value = 2 * float(value) #radi se U(k=2)
-                self.set_sljedivostCistiZrak(value)
+                self.set_sljedivostCistiZrak(value, recalculate=False)
             except Exception as err:
                 logging.error(str(err), exc_info=True)
+            #emit promjenu
+            self.emit(QtCore.SIGNAL('promjena_izabranoMjerenje(PyQt_PyObject)'),
+                      output)
 
     def get_izabranoMjerenje(self):
         """Getter izabranog mjerenja"""
@@ -988,9 +1012,9 @@ class DokumentModel(QtCore.QObject):
                       self.listaZrak)
             if self.listaZrak:
                 #ako lista nije prazna izaberi prvi element
-                self.set_izabraniZrak(self.listaZrak[0])
+                self.set_izabraniZrak(self.listaZrak[0], recalculate=False)
             else:
-                self.set_izabraniZrak('None')
+                self.set_izabraniZrak('None', recalculate=False)
 
 
     def get_listaZrak(self):
@@ -1011,9 +1035,9 @@ class DokumentModel(QtCore.QObject):
                       self.listaDilucija)
             #ako lista nije prazna izaberi prvi element
             if self.listaDilucija:
-                self.set_izabranaDilucija(self.listaDilucija[0])
+                self.set_izabranaDilucija(self.listaDilucija[0], recalculate=False)
             else:
-                self.set_izabranaDilucija('None')
+                self.set_izabranaDilucija('None', recalculate=False)
 
     def get_listaDilucija(self):
         """Gettet liste dilucijskih jedinica"""
@@ -1023,7 +1047,7 @@ class DokumentModel(QtCore.QObject):
         lista = self.cfg.get_listu_dilucija()
         self.set_listaDilucija(lista)
 
-    def set_listaMjerenja(self, x):
+    def set_listaMjerenja(self, x, recalculate=True):
         """Setter liste mjerenja (komponente). Ulazna vrijednost je list"""
         if x != self.listaMjerenja:
             self.listaMjerenja = x
@@ -1031,9 +1055,9 @@ class DokumentModel(QtCore.QObject):
                       self.listaMjerenja)
             #ako lista nije prazna izaberi prvi element
             if self.listaMjerenja:
-                self.set_izabranoMjerenje(self.listaMjerenja[0])
+                self.set_izabranoMjerenje(self.listaMjerenja[0], recalculate=recalculate)
             else:
-                self.set_izabranoMjerenje('None')
+                self.set_izabranoMjerenje('None', recalculate=False)
 
     def get_listaMjerenja(self):
         """Getter za listu mjerenja"""

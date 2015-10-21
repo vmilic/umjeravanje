@@ -14,12 +14,6 @@ ideja:
 u testu koristim mock mapu i objekte koji su slicni ili identicni objektima u aplikaciji
 
 ako se program pokrene samostalno... generirati ce pdf file u istom folderu.
-
-#TODO!
-dokument headers
-norma
-brojObrasca
-revizija
 """
 
 import logging
@@ -725,6 +719,54 @@ class ReportGenerator(object):
 
         return tablica
 
+    def generiraj_tablicu_funkcije_prilagodbe_za_plin(self, plin=None, data=None):
+        """generiranje tablice sa koeficijentima pravca prilagodbe verzija2"""
+        if data == None:
+            data = [np.NaN, np.NaN, np.NaN, np.NaN]
+        if plin == None:
+            plin = 'n/a'
+
+        stil1 = self.generate_paragraph_style(font='FreeSansBold', align=TA_CENTER)
+        stil2 = self.generate_paragraph_style(align=TA_CENTER)
+        stil3 = self.generate_paragraph_style(font='FreeSansBold')
+        stil4 = self.generate_paragraph_style()
+
+        prilagodbaA = str(round(data[2],3))
+        prilagodbaB = str(round(data[3], 1))
+
+        a1 = Paragraph('FUNKCIJA PRILAGODBE ZA {0}'.format(str(plin)), stil1)
+        b1 = Paragraph('C = A * Cm + b', stil2)
+        c1 = Paragraph('A=', stil3)
+        c2 = Paragraph(prilagodbaA, stil4)
+        c3 = Paragraph('B=', stil3)
+        c4 = Paragraph(prilagodbaB, stil4)
+
+        layout_tablice = [
+            [a1, '', '', ''],
+            [b1, '', '', ''],
+            [c1, c2, c3, c4]]
+
+        stil_tablice = TableStyle(
+            [
+            ('SPAN', (0, 0), (-1, 0)),
+            ('SPAN', (0, 1), (-1, 1)),
+            ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
+            ('BOX', (0, 0), (-1, -1), 1, colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE')
+            ])
+
+        sirina_stupaca = [0.5*inch, inch, 0.5*inch, inch]
+
+        tablica = Table(layout_tablice,
+                        colWidths=sirina_stupaca,
+                        hAlign='LEFT')
+
+        tablica.setStyle(stil_tablice)
+
+        return tablica
+
+
     def generiraj_tablicu_funkcije_prilagodbe(self, argmap=None):
         """
         generiranje tablice sa koefiicjentima pravca prilagodbe
@@ -836,9 +878,15 @@ class ReportGenerator(object):
         tabla10 = self.generiraj_tablicu_kriterija(argmap=argmap)
         parts.append(tabla10)
         parts.append(razmak)
-        tabla11 = self.generiraj_tablicu_funkcije_prilagodbe(argmap=argmap)
-        parts.append(tabla11)
-        parts.append(razmak)
+        #prikaz podataka funkcije prilagodbe za sve plinove
+        prilagodbe = argmap['reportSlope']
+        tablicePrilagodbe = () #prazni tuple
+        for plin in prilagodbe:
+            tempTabla = self.generiraj_tablicu_funkcije_prilagodbe_za_plin(plin=plin, data=prilagodbe[plin])
+            tablicePrilagodbe = tablicePrilagodbe + (tempTabla,)
+        for tablica in tablicePrilagodbe:
+            parts.append(tablica)
+            parts.append(razmak)
         annotation2_stil = self.generate_paragraph_style()
         annotation2 = Paragraph('Kraj ispitnog izvješća', annotation2_stil)
         parts.append(annotation2)
