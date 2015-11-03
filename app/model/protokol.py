@@ -9,9 +9,8 @@ import logging
 
 def checksum(string):
     """xor svih elemenata iterable objekta string, vraca integer"""
-    ite = list(string)
-    c = ord(ite[0])
-    for i in ite[1:]:
+    c = 0
+    for i in list(string):
         c=c^ord(i)
     return c
 
@@ -55,14 +54,16 @@ class RS232Protokol(object):
         """metoda razdvaja poruku na dva elementa, tekst poruke i bcc te provjerava
         da li checksum odgovara. U slucaju loseg formata poruke ili ako checksum
         nije dobar raise ValueError"""
-        s = poruka.find(self.start)
-        e = poruka.find(self.end)
+        poruka2=poruka.decode("utf-8") 
+        print("eee:"+poruka2)
+        s = poruka2.find(self.start)
+        e = poruka2.find(self.end)
         #razdvajanje na start i end dio
         if s != -1 and e != -1:
-            msg = poruka[s:e+1]
-            bcc = int(poruka[e+1:e+3], 16) #convert hex to int
+            msg = poruka2[s:e+1]
+            bcc = int(poruka2[e+1:e+3], 16) #convert hex to int
         else:
-            tekst = 'Krivo formatirana poruka : ' + poruka
+            tekst = 'Krivo formatirana poruka : ' + poruka2
             raise ValueError(tekst)
         #provjera checksuma poruke
         check = checksum(msg)

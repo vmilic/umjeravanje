@@ -9,6 +9,7 @@ import datetime
 import time
 import logging
 from PyQt4 import QtCore
+import sys
 
 class KomunikacijskiObjekt(QtCore.QObject):
     """
@@ -43,10 +44,15 @@ class KomunikacijskiObjekt(QtCore.QObject):
             while self.stopValue == False:
                 start = datetime.datetime.now()
                 #posalji request za podacima
-                self.veza.salji(self.protokol.generiraj_upit())
+                upit = self.protokol.generiraj_upit()
+
+                #sys.stdout.buffer.write(upit)
+                self.veza.salji(upit)
                 time.sleep(0.2)
                 #prezumi podatke
-                podatak = self.protokol.parse_rezultat(self.veza.primi())
+                response=self.veza.primi()
+                #sys.stdout.buffer.write(response[0])
+                podatak = self.protokol.parse_rezultat(response)
                 #emitiraj vrijednost podatka slusateljima
                 self.emit(QtCore.SIGNAL('nova_vrijednost_od_veze(PyQt_PyObject)'),
                           podatak)
