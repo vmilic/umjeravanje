@@ -9,7 +9,6 @@ import numpy as np
 import datetime
 import logging
 from PyQt4 import QtGui
-import matplotlib
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigCanvas
 from matplotlib.figure import Figure
 
@@ -164,3 +163,95 @@ class KanvasMjerenja(Kanvas):
                 x.append(valueX)
                 y.append(valueY)
         return x, y
+
+class GrafPreuzetihPodataka(FigCanvas):
+    """kanvas za graficki prikaz preuzetih podataka"""
+    def __init__(self, meta=None, parent=None, width=9, height=5, dpi=100):
+        self.fig = Figure(figsize=(width, height), dpi=dpi)
+        self.axes = self.fig.add_subplot(111)
+        FigCanvas.__init__(self, self.fig)
+        self.setParent(parent)
+        FigCanvas.setSizePolicy(self,
+                                QtGui.QSizePolicy.MinimumExpanding,
+                                QtGui.QSizePolicy.Fixed)
+        FigCanvas.updateGeometry(self)
+        self.meta = meta
+        self.setup_labels()
+        self.fig.set_tight_layout(True)
+        #dodatni niz random boja za graf
+        self.randomBoje = [
+            (0.09, 0.58, 0.58),
+            (0.09, 0.09, 0.58),
+            (0.09, 0.58, 0.09),
+            (0.58, 0.09, 0.09)]
+        rc = [tuple(np.random.random(size=3)) for i in range(10)]
+        for i in rc:
+            self.randomBoje.append(i)
+
+    def setup_labels(self):
+        try:
+            self.axes.set_xlabel(self.meta['xlabel'], fontsize=8)
+            self.axes.set_ylabel(self.meta['ylabel'], fontsize=8)
+            self.axes.set_title(self.meta['title'], fontsize=10)
+        except (KeyError, ValueError, TypeError):
+            pass
+
+    def clear_graf(self):
+        """
+        clear graf & redo labels
+        """
+        self.axes.clear()
+        self.setup_labels()
+
+    def reset_graf(self):
+        self.clear_graf()
+        self.draw()
+
+    def crtaj(self, frejm=None, raspon=None):
+        """
+        metoda za crtanje podataka na graf
+        frejm --> pandas datafrejm sa podacima
+        raspon --> integer broj minuta za prikaz na grafu
+        """
+        self.clear_graf()
+        zadnji = frejm.index[-1] #zadnji indeks
+        prvi = zadnji - datetime.timedelta(minutes=raspon) #prvi indeks
+        if frejm.index[0] > prvi:
+            prozor = frejm
+            shift = False
+        else:
+            prozor = frejm[(frejm.index >= prvi) & (frejm.index <= zadnji)]
+            shift = True
+
+        vrijeme = list(prozor.index)
+        for column in prozor.columns:
+            y = prozor.loc[:, column]
+            i = list(prozor.columns).index(column)
+            boja = self.randomBoje[i]
+            #plot
+            txt=" ".join(['Plin',str(column)])
+            self.axes.plot(vrijeme,
+                           y,
+                           linewidth=1,
+                           color=boja,
+                           alpha=0.5,
+                           label=txt)
+        if shift:
+            minimum = max(vrijeme) - datetime.timedelta(minutes=raspon)
+            maksimum = max(vrijeme)
+        else:
+            minimum = min(vrijeme)
+            maksimum = min(vrijeme) + datetime.timedelta(minutes=raspon)
+        delta = (maksimum - minimum) / 20
+        minimum = minimum - delta
+        maksimum = maksimum + delta
+        self.axes.set_xlim((minimum, maksimum))
+        allXLabels = self.axes.get_xticklabels(which='both') #dohvati sve labele
+        for label in allXLabels:
+            label.set_rotation(20)
+            label.set_fontsize(8)
+
+        self.legenda = self.axes.legend(loc=1,
+                                        fontsize=8,
+                                        fancybox=True)
+        self.draw()

@@ -4,9 +4,6 @@
 Created on Mon May 18 12:21:15 2015
 
 @author: DHMZ-Milic
-
-#TODO!
-- dijalog za edit tocke ne provjerava granice prilikom postavljanja vrijednosti
 """
 
 import sys
@@ -24,12 +21,10 @@ def setup_logging(file='applog.log', mode='a', lvl='INFO'):
                   'WARNING': logging.WARNING,
                   'ERROR': logging.ERROR,
                   'CRITICAL': logging.CRITICAL}
-    # lvl parametar
     if lvl in DOZVOLJENI:
         lvl = DOZVOLJENI[lvl]
     else:
         lvl = logging.ERROR
-    #filemode
     if mode not in ['a', 'w']:
         mode = 'a'
     try:
@@ -51,14 +46,11 @@ def main():
     except OSError:
         logging.error('Pogreska prilikom ucitavanja konfiguracije.', exc_info=True)
         raise SystemExit('Kriticna pogreska, izlaz iz aplikacije.')
-    # dohvati postavke za logger
     filename = config.get('LOG_SETUP', 'file', fallback='applog.log')
     filemode = config.get('LOG_SETUP', 'mode', fallback='a')
     level = config.get('LOG_SETUP', 'lvl', fallback='INFO')
-    #setup logging
     setup_logging(file=filename, mode=filemode, lvl=level)
     aplikacija = QtGui.QApplication(sys.argv)
-    #TODO!
     mainwindow = display.GlavniProzor(cfg=config)
     mainwindow.show()
     sys.exit(aplikacija.exec_())

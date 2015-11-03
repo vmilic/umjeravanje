@@ -335,10 +335,10 @@ class TablicaKonverterParametri(QtGui.QWidget):
         ulazni parametar value je lista sa 4 elementa (str): [Ec1 , Ec2, Ec3, Ec]
         """
         e1, e2, e3, e = value
-        self.valueEc1.setText(e1)
-        self.valueEc2.setText(e2)
-        self.valueEc3.setText(e3)
-        self.valueEc.setText(e)
+        self.valueEc1.setText(str(e1))
+        self.valueEc2.setText(str(e2))
+        self.valueEc3.setText(str(e3))
+        self.valueEc.setText(str(e))
 
     def reset_value(self):
         """

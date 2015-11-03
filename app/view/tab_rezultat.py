@@ -7,25 +7,19 @@ Created on Mon Oct  5 10:50:23 2015
 import sip
 import gc
 import logging
+import numpy as np
 from PyQt4 import QtGui, QtCore, uic
 import app.view.canvas as canvas
 import app.view.pomocni as view_helpers
 
 
-BASE5, FORM5 = uic.loadUiType('./app/view/uiFiles/rezultat_panel.ui')
-class RezultatPanel(BASE5, FORM5):
+BASE4, FORM4 = uic.loadUiType('./app/view/uiFiles/tab_rezultat.ui')
+class RezultatPanel(BASE4, FORM4):
     """
     Panel za prikaz rezultata umjeravanja.
-
-    layouts:
-        self.graf1Layout --> graf c/cref
-        self.graf2Layout --> graf vrijeme/tocke
-        self.rezultatiLayout --> tablica frejma rezultata (cref, c, U, delta...)
-        self.slopeLayout --> tablica sa parametrime prilagodbe
-        self.kriterijLayout --> tablica kriterija prihvatljivosti
     """
     def __init__(self, dokument=None, plin=None, parent=None):
-        super(BASE5, self).__init__(parent)
+        super(BASE4, self).__init__(parent)
         self.setupUi(self)
         self.dokument = dokument
         self.plin = plin
@@ -48,32 +42,31 @@ class RezultatPanel(BASE5, FORM5):
         #kriterij
         self.tablicaParametri = view_helpers.TablicaUmjeravanjeKriterij()
         self.kriterijLayout.addWidget(self.tablicaParametri)
+        #postavi provjeru linearnosti
+        self.checkBoxLinearnost.setChecked(self.dokument.get_provjeraLinearnosti())
 
-    def get_pdf_elements(self):
-        """metoda vraca elemente za pdf report u obliku dicta"""
-        #TODO!
-        pass
-        #kriterij
-        #tablica rezultata
-        #prilagodba
+        self.setup_connections()
 
+    def setup_connections(self):
+        ### connection za promjenu linearnosti ###
+        self.checkBoxLinearnost.toggled.connect(self.promjena_provjere_linearnosti)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_provjeraLinearnosti(PyQt_PyObject)'),
+                     self.set_checkLinearnost)
 
-    def update_rezultat(self, mapa):
-        """
-        update gui elemenata panela ovisno o prosljedjenim parametrima u mapi
-        """
-        rezultat = mapa['rezultat']
-        slopeData = mapa['slopeData'] #lista(slope, offset, prilagodbaA, prilagodbaB)
-        kriterij = mapa['kriterij'] #nested lista(srz, srs, rz, rmax), svaki ima podatke o kriteriju
-        #grafovi
-        self.prikazi_grafove(rezultat, slopeData)
-        #rezultati
-        self.postavi_tablicu_rezultata_umjeravanja(rezultat)
-        #prilagodba
-        prilagodba = [str(round(slopeData[2], 3)), str(round(slopeData[3], 1))]
-        self.tablicaPrilagodba.set_values(prilagodba)
-        #kriterij
-        self.tablicaParametri.set_values(kriterij)
+    def inicijalizacija_grafova(self, plin):
+        """inicijalizacija i postavljanje kanvasa za grafove u layout.
+        ulazni parametar plin je naziv (string) izabranog plina"""
+        meta1 = {'xlabel':'referentna koncentracija, cref',
+                 'ylabel':'koncentracija, c',
+                 'title':", ".join(['Cref / koncentracija graf', str(plin)])}
+        meta2 = {'xlabel':'vrijeme',
+                 'ylabel':'koncentracija, c',
+                 'title':", ".join(['Individualna mjerenja', str(plin)])}
+        self.crefCanvas = canvas.Kanvas(meta=meta1)
+        self.mjerenjaCanvas = canvas.KanvasMjerenja(meta=meta2)
+        self.graf1Layout.addWidget(self.crefCanvas)
+        self.graf2Layout.addWidget(self.mjerenjaCanvas)
 
     def postavi_tablicu_rezultata_umjeravanja(self, rezultat):
         """
@@ -136,22 +129,40 @@ class RezultatPanel(BASE5, FORM5):
         """metoda za editiranje umjerne tocke uz pomoc dijaloga"""
         red = self.tablicaRezultataUmjeravanja.get_redak()
         red = red - 1
-        self.emit(QtCore.SIGNAL('panel_makni_umjernu_tocku(PyQt_PyObject)'),
+        self.emit(QtCore.SIGNAL('panel_edit_umjernu_tocku(PyQt_PyObject)'),
                   red)
 
-    def inicijalizacija_grafova(self, plin):
-        """inicijalizacija i postavljanje kanvasa za grafove u layout.
-        ulazni parametar plin je naziv (string) izabranog plina"""
-        meta1 = {'xlabel':'referentna koncentracija, cref',
-                 'ylabel':'koncentracija, c',
-                 'title':", ".join(['Cref / koncentracija graf', str(plin)])}
-        meta2 = {'xlabel':'vrijeme',
-                 'ylabel':'koncentracija, c',
-                 'title':", ".join(['Individualna mjerenja', str(plin)])}
-        self.crefCanvas = canvas.Kanvas(meta=meta1)
-        self.mjerenjaCanvas = canvas.KanvasMjerenja(meta=meta2)
-        self.graf1Layout.addWidget(self.crefCanvas)
-        self.graf2Layout.addWidget(self.mjerenjaCanvas)
+    def rezultat_request_recalculate(self):
+        """emit zahtjeva za ponovnim racunanjem rezultata"""
+        self.emit(QtCore.SIGNAL('rezultat_request_recalculate'))
+
+    def promjena_provjere_linearnosti(self, x):
+        """emit zahtjeva za promjenom provjere linearnosti"""
+        self.dokument.set_provjeraLinearnosti(x)
+
+    def set_checkLinearnost(self, x):
+        """metoda postavlja check linearnosti iz dokumenta u gui widget"""
+        self.checkBoxLinearnost.setChecked(x[0])
+
+    def update_rezultat(self, mapa):
+        """
+        update gui elemenata panela ovisno o prosljedjenim parametrima u mapi
+        """
+        rezultat = mapa['rezultat']
+        slopeData = mapa['slopeData'] #lista(slope, offset, prilagodbaA, prilagodbaB)
+        kriterij = mapa['kriterij'] #nested lista(srz, srs, rz, rmax), svaki ima podatke o kriteriju
+        #grafovi
+        self.prikazi_grafove(rezultat, slopeData)
+        #rezultati
+        self.postavi_tablicu_rezultata_umjeravanja(rezultat)
+        #prilagodba
+        prilagodba = [str(round(slopeData[2], 3)), str(round(slopeData[3], 1))]
+        self.tablicaPrilagodba.set_values(prilagodba)
+        #kriterij
+        kriterij =  [i for i in kriterij if not np.isnan(i[3])] #makni nanove iz kriterija
+        self.tablicaParametri.set_values(kriterij)
+        #update checkboxa za provjeru lienarnosti
+        self.checkBoxLinearnost.setChecked(self.dokument.get_provjeraLinearnosti())
 
     def prikazi_grafove(self, rezultat, slopeData):
         """
