@@ -151,10 +151,6 @@ class SiroviFrameModel(QtCore.QAbstractTableModel):
             n = int(indeks.row()) #redni broj indeksa
         else:
             n = indeks
-        delta = n - self.startIndeks #odmak od prijasnjeg starta
-        for tocka in self.tocke:
-            value = set([ind + delta for ind in list(tocka.indeksi)])
-            tocka.indeksi = value
         self.startIndeks = n
         self.layoutChanged.emit()
 
@@ -334,6 +330,7 @@ class KonverterFrameModel(QtCore.QAbstractTableModel):
         if orientation == QtCore.Qt.Horizontal:
             if role == QtCore.Qt.DisplayRole:
                 return str(self.dataFrejm.columns[section])
+
 
 class KonverterRezultatModel(QtCore.QAbstractTableModel):
     """
@@ -531,6 +528,7 @@ class BaseFrejmModel(QtCore.QAbstractTableModel):
             if role == QtCore.Qt.DisplayRole:
                 return str(self.dataFrejm.columns[section])
 
+
 class EfikasnostKonverteraModel(QtCore.QAbstractTableModel):
     """
     Model za prikaz podataka sa slope, offset, prilagodba A i prilagodba B
@@ -606,3 +604,46 @@ class EfikasnostKonverteraModel(QtCore.QAbstractTableModel):
             elif orientation == QtCore.Qt.Vertical:
                 value = self.indeksi[section]
                 return str(value)
+
+
+class BareFrameModel(QtCore.QAbstractTableModel):
+    """
+    Model za prikaz preuzetih podataka
+    """
+    def __init__(self, frejm=None, parent=None):
+        QtCore.QAbstractTableModel.__init__(self, parent)
+        if frejm is None:
+            frejm = pd.DataFrame()
+        self.set_frejm(frejm)
+
+    def set_frejm(self, frejm):
+        self.dataFrejm = frejm
+        self.layoutChanged.emit()
+
+    def rowCount(self, parent=QtCore.QModelIndex()):
+        return len(self.dataFrejm)
+
+    def columnCount(self, parent=QtCore.QModelIndex()):
+        return len(self.dataFrejm.columns)
+
+    def flags(self, index):
+        if index.isValid():
+            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+
+    def data(self, index, role):
+        if not index.isValid():
+            return None
+        row = index.row()
+        col = index.column()
+        if role == QtCore.Qt.DisplayRole:
+            return round(float(self.dataFrejm.iloc[row, col]), 1)
+        if role == QtCore.Qt.ToolTipRole:
+            return str(self.dataFrejm.iloc[row, col])
+
+    def headerData(self, section, orientation, role):
+        if orientation == QtCore.Qt.Vertical:
+            if role == QtCore.Qt.DisplayRole:
+                return str(self.dataFrejm.index[section].time())
+        if orientation == QtCore.Qt.Horizontal:
+            if role == QtCore.Qt.DisplayRole:
+                return str(self.dataFrejm.columns[section])

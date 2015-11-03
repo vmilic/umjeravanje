@@ -606,7 +606,7 @@ class ProvjeraKonvertera(object):
         Funkcija vraca True ako sve valja, False inace.
         """
         try:
-            frejm = self.doc.get_konverterPodaci()
+            frejm = self.doc.get_siroviPodaci()
             kdots = self.doc.get_tockeKonverter()
             opseg = self.doc.get_opseg()
             cnox50 = self.doc.get_cNOx50()
@@ -752,7 +752,7 @@ class ProvjeraKonvertera(object):
         Tocka je jedna od definiranih u konfig objektu
         stupac je string (stupac u datafrejmu)
         """
-        frejm = self.doc.get_konverterPodaci()
+        frejm = self.doc.get_siroviPodaci()
         columns = list(frejm.columns)
         ind = columns.index(stupac)
         start = min(tocka.indeksi)

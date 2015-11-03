@@ -532,31 +532,18 @@ class ReportGenerator(object):
 
         return tablica
 
-    def generiraj_tablicu_ocjene_umjeravanja(self, argmap=None):
+    def generiraj_tablicu_ocjene_umjeravanja(self, zadovoljava='NE', komponenta=''):
         """
         tablica ocjene umjeravanja
         """
-        if argmap == None:
-            argmap = {}
-
         stil1 = self.generate_paragraph_style(font='FreeSansBold', align=TA_CENTER)
         stil2 = self.generate_paragraph_style(font='FreeSansBold')
 
-        ocjena_umjeravanja = True
-        try:
-            parametri = argmap['parametriRezultata']
-            for parametar in parametri:
-                value = parametar[5] #zadnji element
-                value = value.lower()
-                if value == 'ne':
-                    ocjena_umjeravanja = False
-                    break
-        except LookupError as err:
-            logging.error(str(err), exc_info=True)
-            pass
-        a1 = Paragraph('REZULTATI ISPITIVANJA:', stil1)
+        naslov = " ".join(['REZULTATI ISPITIVANJA:', komponenta])
+
+        a1 = Paragraph(naslov, stil1)
         b1 = Paragraph('Ocjena:', stil2)
-        if ocjena_umjeravanja:
+        if zadovoljava:
             b2 = Paragraph('Mjerni uređaj ZADOVOLJAVA uvjete norme', stil2)
         else:
             b2 = Paragraph('Mjerni uređaj NE ZADOVOLJAVA uvjete norme', stil2)
@@ -581,7 +568,7 @@ class ReportGenerator(object):
 
         return tablica
 
-    def generiraj_tablicu_rezultata_umjeravanja(self, argmap=None):
+    def generiraj_tablicu_rezultata_umjeravanja(self, argmap=None, frejm=None):
         """
         izrada tablice sa parametrima umjeravanja, cref, U, sr....
         """
@@ -591,10 +578,10 @@ class ReportGenerator(object):
         stil1 = self.generate_paragraph_style(align=TA_CENTER)
 
         jedinica = '[mjerna_jedinica]'
-        frejm = pd.DataFrame(index=list(range(5)), columns=list(range(6)))
+        if not isinstance(frejm, pd.core.frame.DataFrame):
+            frejm = pd.DataFrame(index=list(range(5)), columns=list(range(6)))
 
         try:
-            frejm = argmap['rezultatUmjeravanja']
             jedinica = argmap['mjernaJedinica']
         except LookupError as err:
             logging.error(str(err), exc_info=True)
@@ -649,27 +636,24 @@ class ReportGenerator(object):
 
         return tablica
 
-    def generiraj_tablicu_kriterija(self, argmap=None):
+    def generiraj_tablicu_kriterija(self, argmap=None, kriterij=None):
         """
         metoda generira tablicu sa kriterijima umjeravanja
         7stupaca (n + bitni stupci)
         ? redaka (header + 2 do 7 redaka)
         """
+        #nedostaje key 'parametriRezultata'
         if argmap == None:
             argmap = {}
+        if kriterij == None:
+            kriterij = []
 
         stil1 = self.generate_paragraph_style(align=TA_CENTER)
         stil2 = self.generate_paragraph_style()
 
-        parametri = []
-        try:
-            parametri = argmap['parametriRezultata']
-            for parametar in parametri:
-                #round vrijednosti na 1 decimalu
-                parametar[3] = str(round(parametar[3], 1))
-        except LookupError as err:
-            logging.error(str(err), exc_info=True)
-            pass
+        for parametar in kriterij:
+            #round vrijednosti na 1 decimalu
+            parametar[3] = str(round(parametar[3], 1))
 
         a2 = Paragraph('Naziv kriterija', stil1)
         a3 = Paragraph('Točka norme', stil1)
@@ -682,14 +666,14 @@ class ReportGenerator(object):
         layout_tablice = []
         layout_tablice.append(headeri)
 
-        for i in range(len(parametri)):
+        for i in range(len(kriterij)):
             red = []
             red.append(Paragraph(str(i+1), stil1))
             for j in range(6): #elementi reda iz parametara (bez rednog broja)
                 if j == 0:
-                    red.append(Paragraph(str(parametri[i][j]), stil2))
+                    red.append(Paragraph(str(kriterij[i][j]), stil2))
                 else:
-                    red.append(Paragraph(str(parametri[i][j]), stil1))
+                    red.append(Paragraph(str(kriterij[i][j]), stil1))
             layout_tablice.append(red)
 
         stil_tablice = TableStyle(
@@ -709,7 +693,7 @@ class ReportGenerator(object):
                           1.725*inch,
                           0.8*inch]
 
-        visina_stupaca = [0.5*inch for i in range(len(parametri)+1)]
+        visina_stupaca = [0.5*inch for i in range(len(kriterij)+1)]
 
         tablica = Table(layout_tablice,
                         colWidths=sirina_stupaca,
@@ -766,69 +750,19 @@ class ReportGenerator(object):
 
         return tablica
 
-
-    def generiraj_tablicu_funkcije_prilagodbe(self, argmap=None):
-        """
-        generiranje tablice sa koefiicjentima pravca prilagodbe
-        """
-        if argmap == None:
-            argmap = {}
-
-        stil1 = self.generate_paragraph_style(font='FreeSansBold', align=TA_CENTER)
-        stil2 = self.generate_paragraph_style(align=TA_CENTER)
-        stil3 = self.generate_paragraph_style(font='FreeSansBold')
-        stil4 = self.generate_paragraph_style()
-
-        prilagodbaA = ''
-        prilagodbaB = ''
-
-        try:
-            lista = argmap['slopeData']
-            prilagodbaA = str(round(lista[2],3))
-            prilagodbaB = str(round(lista[3], 1))
-        except LookupError as err:
-            logging.error(str(err), exc_info=True)
-            pass
-
-        a1 = Paragraph('FUNKCIJA PRILAGODBE', stil1)
-        b1 = Paragraph('C = A * Cm + b', stil2)
-        c1 = Paragraph('A=', stil3)
-        c2 = Paragraph(prilagodbaA, stil4)
-        c3 = Paragraph('B=', stil3)
-        c4 = Paragraph(prilagodbaB, stil4)
-
-        layout_tablice = [
-            [a1, '', '', ''],
-            [b1, '', '', ''],
-            [c1, c2, c3, c4]]
-
-        stil_tablice = TableStyle(
-            [
-            ('SPAN', (0, 0), (-1, 0)),
-            ('SPAN', (0, 1), (-1, 1)),
-            ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
-            ('BOX', (0, 0), (-1, -1), 1, colors.black),
-            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE')
-            ])
-
-        sirina_stupaca = [0.5*inch, inch, 0.5*inch, inch]
-
-        tablica = Table(layout_tablice,
-                        colWidths=sirina_stupaca,
-                        hAlign='LEFT')
-
-        tablica.setStyle(stil_tablice)
-
-        return tablica
-
-    def generiraj_report(self, ime, argmap):
+    def generiraj_report(self, ime, argmap, rezultati):
         """
         metoda za generiranje izvjestaja.
 
         ime je naziv (path) buduceg pdf filea  (string)
         argmap je dict podataka koji ispunjavaju report (podaci...)
+        rezultati je nesteddict rezultata podataka za report,
+            {plin:{'rezultati':frejm rezultata,
+                   'kriterij':kriterij prilagodbe (nested lista),
+                   'slopeData':podaci za slope i offset}}
         """
+        nStranica = len(rezultati) + 1
+        trenutnaStranica = 1
         #pdf templata
         doc = SimpleDocTemplate(ime,
                                 pagesize=A4,
@@ -839,7 +773,9 @@ class ReportGenerator(object):
         #lista flowable elemenata za report
         parts = []
         razmak = Spacer(1, 0.15*inch)
-        head1 = self.generiraj_header_tablicu(argmap=argmap, stranica=1)
+        head1 = self.generiraj_header_tablicu(argmap=argmap,
+                                              stranica=trenutnaStranica,
+                                              total=nStranica)
         parts.append(head1)
         parts.append(razmak)
         tabla1 = self.generiraj_tablicu_podataka_o_uredjaju(argmap=argmap)
@@ -862,31 +798,53 @@ class ReportGenerator(object):
         parts.append(razmak)
         tabla7 = self.generiraj_tablicu_datum_mjeritelj_voditelj()
         parts.append(tabla7)
-        #kraj prve stranice... page break
-        parts.append(PageBreak())
-        head2 = self.generiraj_header_tablicu(argmap=argmap, stranica=2)
-        parts.append(head2)
-        parts.append(razmak)
-        parts.append(razmak)
-        tabla8 = self.generiraj_tablicu_ocjene_umjeravanja(argmap=argmap)
-        parts.append(tabla8)
-        parts.append(razmak)
-        parts.append(razmak)
-        tabla9 = self.generiraj_tablicu_rezultata_umjeravanja(argmap=argmap)
-        parts.append(tabla9)
-        parts.append(razmak)
-        tabla10 = self.generiraj_tablicu_kriterija(argmap=argmap)
-        parts.append(tabla10)
-        parts.append(razmak)
-        #prikaz podataka funkcije prilagodbe za sve plinove
-        prilagodbe = argmap['reportSlope']
-        tablicePrilagodbe = () #prazni tuple
-        for plin in prilagodbe:
-            tempTabla = self.generiraj_tablicu_funkcije_prilagodbe_za_plin(plin=plin, data=prilagodbe[plin])
-            tablicePrilagodbe = tablicePrilagodbe + (tempTabla,)
-        for tablica in tablicePrilagodbe:
-            parts.append(tablica)
+        #kraj prve stranice
+        #loop kroz sve komponente
+        for plin in rezultati:
+            parts.append(PageBreak()) #page break
+            trenutnaStranica += 1 #pomakni broj stranice
+            head2 = self.generiraj_header_tablicu(argmap=argmap,
+                                                  stranica=trenutnaStranica,
+                                                  total=nStranica)
+            parts.append(head2)
             parts.append(razmak)
+            parts.append(razmak)
+            ocjena = True
+            try:
+                parametri = rezultati[plin]['kriterij']
+                for parametar in parametri:
+                    value = parametar[5] #zadnji element
+                    value = value.lower()
+                    if value == 'ne':
+                        ocjena = False
+                        break
+            except Exception as err:
+                logging.error(str(err), exc_info=True)
+                ocjena = False
+            if ocjena:
+                tabla8 = self.generiraj_tablicu_ocjene_umjeravanja(zadovoljava='DA',
+                                                                   komponenta=str(plin))
+            else:
+                tabla8 = self.generiraj_tablicu_ocjene_umjeravanja(zadovoljava='NE',
+                                                                   komponenta=str(plin))
+            parts.append(tabla8)
+            parts.append(razmak)
+            parts.append(razmak)
+            frejm_rezultata = rezultati[plin]['rezultat']
+            tabla9 = self.generiraj_tablicu_rezultata_umjeravanja(argmap=argmap,
+                                                                  frejm=frejm_rezultata)
+            parts.append(tabla9)
+            parts.append(razmak)
+            kriterij = rezultati[plin]['kriterij']
+            kriterij = [i for i in kriterij if not np.isnan(i[3])] #manki nan vrijednosti
+            tabla10 = self.generiraj_tablicu_kriterija(argmap=argmap, kriterij=kriterij)
+            parts.append(tabla10)
+            parts.append(razmak)
+            prilagodba = rezultati[plin]['slopeData']
+            tabla11 = self.generiraj_tablicu_funkcije_prilagodbe_za_plin(plin=plin, data=prilagodba)
+            parts.append(tabla11)
+            parts.append(razmak)
+        #generiraj kraj ispitnog izvjesca
         annotation2_stil = self.generate_paragraph_style()
         annotation2 = Paragraph('Kraj ispitnog izvješća', annotation2_stil)
         parts.append(annotation2)
