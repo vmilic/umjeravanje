@@ -122,6 +122,10 @@ class GlavniProzor(BASE, FORM):
         self.connect(self.dokument,
                      QtCore.SIGNAL('promjena_izabraniPathCSV(PyQt_PyObject)'),
                      self.set_labelDatoteka)
+        #povratna informacija od widgeta za prikupljanje podataka dokumentu sa novim podacima za umjeravanje
+        self.connect(self.tabPrikupljanje,
+                     QtCore.SIGNAL('spremi_preuzete_podatke(PyQt_PyObject)'),
+                     self.spremi_ucitane_podatke)
 
     def clear_tabove_rezultata(self):
         """
@@ -425,3 +429,15 @@ class GlavniProzor(BASE, FORM):
                         mapa['kriterij'].append(ecKonverter)
             output[plin] = copy.deepcopy(mapa)
         return output
+
+    def spremi_ucitane_podatke(self, mapa):
+        """
+        Metoda preuzima mapu sa ucitanim podacima i postavlja je u dokument.
+        dict mapa sadrzi :
+        {'podaci':frejm sa podacima,
+         'uredjaj':string, naziv uredjaja}
+        """
+        #TODO!
+        for key in mapa:
+            print(mapa[key])
+            print()

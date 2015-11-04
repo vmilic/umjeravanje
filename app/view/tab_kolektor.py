@@ -145,38 +145,35 @@ class Kolektor(BASE2, FORM2):
         #TODO! nije potpuno implementirano
         tempFrejm = self.frejm.copy()
         tempFrejm = tempFrejm.resample('1min', how=np.average, closed='right', label='right')
-        print('originalni stupci')
-        print(tempFrejm)
         moguceKomponente = self.doc.uredjaji[self.spojeni_uredjaj]['komponente']
-        #TODO! dijalog/widget za preimenovanje stupaca nije potpuno testiran
         izborStupaca = izbor_stupaca.IzborNazivaStupacaWizard(frejm=tempFrejm, moguci=moguceKomponente)
         prihvacen = izborStupaca.exec_()
         if prihvacen:
             stupci = izborStupaca.get_listu_stupaca()
-            tempFrejm.columns = stupci
-            print('renamed stupci')
-            print(tempFrejm)
+            oldlist = list(tempFrejm.columns)
+            mapa = dict(zip(oldlist, stupci))
+            tempFrejm.rename(columns=mapa, inplace=True)
         #TODO! pakiranje i emit podataka aplikaciji? ili direktni set na dokument
-#        output = {'podaci':tempFrejm,
-#                  'uredjaj':self.spojeni_uredjaj}
+        output = {'podaci':tempFrejm,
+                  'uredjaj':self.spojeni_uredjaj}
+        self.emit(QtCore.SIGNAL('spremi_preuzete_podatke(PyQt_PyObject)'),
+                  output)
 
     def prikazi_wizard_postavki(self):
         """
         Promjena postavki veze. Ovisno o rezultatima wizarda treba inicijalizirati
         nove objekte Protokol() i Veza() te ih postaviti u komunikacijski objekt
         """
-        mapaUredjaja = self.doc.get_uredjaji()
-        uredjaji = sorted(list(mapaUredjaja.keys()))
-        wiz = postavke_veze.PostavkeVezeWizard(uredjaji=uredjaji)
+        wiz = postavke_veze.PostavkeVezeWizard(dokument=self.doc)
         prihvacen = wiz.exec_()
         if prihvacen:
             postavke = wiz.get_postavke_veze()
             if postavke['veza'] == 'RS-232':
                 self.spojeni_uredjaj = postavke['uredjaj']
-                tekst = 'Uredjaj {0}, veza: {1}, port: {2}'.format(postavke['uredjaj'], postavke['veza'], postavke['port'])
+                tekst = 'Uredjaj {0}, veza: {1}, protokol: {2}, port: {3}'.format(postavke['uredjaj'], postavke['veza'], postavke['protokol'], postavke['port'])
                 self.opisLabel.setText(tekst)
-                self.protokol = prot.RS232Protokol()
                 self.veza = veza.RS232Veza()
+                self.protokol = prot.RS232Protokol()
                 self.veza.setup_veze(port=postavke['port'],
                                      baudrate=postavke['brzina'],
                                      bytesize=postavke['brojBitova'],

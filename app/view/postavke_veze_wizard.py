@@ -44,12 +44,13 @@ class PostavkeVezeWizard(QtGui.QWizard):
     """
     Wizard klasa postavke veze sa uredjajem kojeg umjeravamo
     """
-    def __init__(self, parent=None, uredjaji=None):
+    def __init__(self, parent=None, dokument=None):
         QtGui.QWizard.__init__(self, parent)
-        if uredjaji == None:
-            self.uredjaji = []
-        else:
-            self.uredjaji = uredjaji
+        if dokument == None:
+            raise ValueError('Wizard nije inicijaliziran sa instancom dokumenta.')
+        self.doc = dokument
+        mapaUredjaja = self.doc.get_uredjaji()
+        self.uredjaji = sorted(list(mapaUredjaja.keys()))
         # opcije
         self.setWizardStyle(QtGui.QWizard.ModernStyle)
         self.setMinimumSize(600, 600)
@@ -140,6 +141,14 @@ class PageIzborProtokola(QtGui.QWizardPage):
     """Stranica za izbor protokola veze (stranica3)"""
     def __init__(self, parent=None):
         QtGui.QWizardPage.__init__(self, parent)
+
+        #rs232 defaults
+        self.rs232defaults = {
+            'baudrate':str(self.dohvati_konfig_element('RS232', 'baudrate', 9600)),
+            'bytesize':str(self.dohvati_konfig_element('RS232', 'bytesize', 8)),
+            'stopbits':str(self.dohvati_konfig_element('RS232', 'stopbits', 1)),
+            'parity':str(self.dohvati_konfig_element('RS232', 'parity', 'none'))}
+
         self.setTitle('Izbor protokola')
         self.setSubTitle('Izaberi postavke komunikacijskog protokola')
         self.postavkeProtokola = {}
@@ -147,9 +156,9 @@ class PageIzborProtokola(QtGui.QWizardPage):
         self.ipAddressLabel = QtGui.QLabel('IP adresa :')
         self.ipAddress = QtGui.QLineEdit()
 
-        self.tipRS232vezeLabel = QtGui.QLabel('Tip RS-232 veze :')
+        self.tipRS232vezeLabel = QtGui.QLabel('Izbor protokola :')
         self.tipRS232veze = QtGui.QComboBox()
-        tipoviRS232veze = ['Hessen', 'Standard']
+        tipoviRS232veze = ['Default', 'Hessen']
         self.tipRS232veze.addItems(tipoviRS232veze)
 
         self.portLabel = QtGui.QLabel('Port :')
@@ -198,6 +207,13 @@ class PageIzborProtokola(QtGui.QWizardPage):
 
         self.tipRS232veze.currentIndexChanged.connect(self.promjena_tipa_veze)
 
+    def dohvati_konfig_element(self, section, option, fallback):
+        try:
+            string_value = self.wizard().doc.cfg.get_konfig_element(section, option)
+            return string_value
+        except Exception:
+            return fallback
+
     def promjena_tipa_veze(self, x):
         tip = self.tipRS232veze.currentText()
         if tip == 'Hessen':
@@ -205,11 +221,11 @@ class PageIzborProtokola(QtGui.QWizardPage):
             self.brojBitova.setCurrentIndex(self.brojBitova.findText('7'))
             self.stopBitovi.setCurrentIndex(self.stopBitovi.findText('2'))
             self.paritet.setCurrentIndex(self.paritet.findText('even'))
-        elif tip == 'Standard':
-            self.brzina.setCurrentIndex(self.brzina.findText('19200'))
-            self.brojBitova.setCurrentIndex(self.brojBitova.findText('8'))
-            self.stopBitovi.setCurrentIndex(self.stopBitovi.findText('1'))
-            self.paritet.setCurrentIndex(self.paritet.findText('none'))
+        elif tip == 'Default':
+            self.brzina.setCurrentIndex(self.brzina.findText(self.rs232defaults['baudrate']))
+            self.brojBitova.setCurrentIndex(self.brojBitova.findText(self.rs232defaults['bytesize']))
+            self.stopBitovi.setCurrentIndex(self.stopBitovi.findText(self.rs232defaults['stopbits']))
+            self.paritet.setCurrentIndex(self.paritet.findText(self.rs232defaults['parity']))
         else:
             pass
 
@@ -263,6 +279,7 @@ class PageIzborProtokola(QtGui.QWizardPage):
             self.postavkeProtokola['paritet'] = self.paritet.currentText()
             self.postavkeProtokola['brojBitova'] = int(self.brojBitova.currentText())
             self.postavkeProtokola['stopBitovi'] = int(self.stopBitovi.currentText())
+            self.postavkeProtokola['protokol'] = self.tipRS232veze.currentText()
         else:
             pass
         return self.postavkeProtokola

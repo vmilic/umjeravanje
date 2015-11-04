@@ -572,6 +572,7 @@ class ReportGenerator(object):
         """
         izrada tablice sa parametrima umjeravanja, cref, U, sr....
         """
+        linearnost = True
         if argmap == None:
             argmap = {}
 
@@ -581,58 +582,97 @@ class ReportGenerator(object):
         if not isinstance(frejm, pd.core.frame.DataFrame):
             frejm = pd.DataFrame(index=list(range(5)), columns=list(range(6)))
 
+        #korekcije zbog provjere linearnosti
+        stupac = list(frejm.columns).index('c') #indeks stupca 'c'
+        droplist = [i for i in range(len(frejm.index)) if np.isnan(frejm.iloc[i, stupac])]
+        frejm.drop(frejm.index[droplist], inplace=True)
+        isl = list(frejm.columns).index('r') #indeks stupca linearnosti
+        if np.isnan(frejm.iloc[1, isl]):
+            frejm.drop(frejm.columns[isl], inplace=True, axis=1) #drop column provjera linearnosti
+            linearnost = False
+
         try:
             jedinica = argmap['mjernaJedinica']
         except LookupError as err:
             logging.error(str(err), exc_info=True)
             pass
 
-        h0 = Paragraph('N:', stil1)
-        h1 = Paragraph('cref ({0})'.format(str(jedinica)), stil1)
-        h2 = Paragraph('U ({0})'.format(str(jedinica)), stil1)
-        h3 = Paragraph('c ({0})'.format(str(jedinica)), stil1)
-        h4 = Paragraph('\u0394 ({0})'.format(str(jedinica)), stil1)
-        h5 = Paragraph('sr ({0})'.format(str(jedinica)), stil1)
-        h6 = Paragraph('Odstupanje od linearnosti', stil1)
+        if linearnost:
+            h0 = Paragraph('N:', stil1)
+            h1 = Paragraph('cref ({0})'.format(str(jedinica)), stil1)
+            h2 = Paragraph('U ({0})'.format(str(jedinica)), stil1)
+            h3 = Paragraph('c ({0})'.format(str(jedinica)), stil1)
+            h4 = Paragraph('\u0394 ({0})'.format(str(jedinica)), stil1)
+            h5 = Paragraph('sr ({0})'.format(str(jedinica)), stil1)
+            h6 = Paragraph('Odstupanje od linearnosti', stil1)
+            headeri = [h0, h1, h2, h3, h4, h5, h6]
+            rows = [[str(a+1)] for a in range(len(frejm))] #nested lista
+            for row in range(len(rows)):
+                for col in range(6):
+                    value = frejm.iloc[row, col]
+                    value = round(value, 2)
+                    if np.isnan(value):
+                        value = ''
+                    value = str(value)
+                    if col == 5:
+                        if frejm.iloc[row, 0] == 0:
+                            value = value + ' ({0})'.format(jedinica)
+                        elif value != '':
+                            value = value + ' (%)'
+                    value = Paragraph(value, stil1)
+                    rows[row].append(value)
+            layout_tablice = []
+            layout_tablice.append(headeri)
+            for row in rows:
+                layout_tablice.append(row)
+            stil_tablice = TableStyle(
+                [
+                ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
+                ('BOX', (0, 0), (-1, -1), 1, colors.black),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE')
+                ])
+            s = (1.05)*inch
+            sirina_stupaca = [0.45*inch, s, s, s, s, s, s]
+            tablica = Table(layout_tablice,
+                            colWidths=sirina_stupaca)
+            tablica.setStyle(stil_tablice)
+        else:
+            h0 = Paragraph('N:', stil1)
+            h1 = Paragraph('cref ({0})'.format(str(jedinica)), stil1)
+            h2 = Paragraph('U ({0})'.format(str(jedinica)), stil1)
+            h3 = Paragraph('c ({0})'.format(str(jedinica)), stil1)
+            h4 = Paragraph('\u0394 ({0})'.format(str(jedinica)), stil1)
+            h5 = Paragraph('sr ({0})'.format(str(jedinica)), stil1)
+            headeri = [h0, h1, h2, h3, h4, h5]
+            rows = [[str(a+1)] for a in range(len(frejm))] #nested lista
+            for row in range(len(rows)):
+                for col in range(5):
+                    value = frejm.iloc[row, col]
+                    value = round(value, 2)
+                    if np.isnan(value):
+                        value = ''
+                    value = str(value)
+                    value = Paragraph(value, stil1)
+                    rows[row].append(value)
+            layout_tablice = []
+            layout_tablice.append(headeri)
+            for row in rows:
+                layout_tablice.append(row)
+            stil_tablice = TableStyle(
+                [
+                ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
+                ('BOX', (0, 0), (-1, -1), 1, colors.black),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE')
+                ])
 
-        headeri = [h0, h1, h2, h3, h4, h5, h6]
+            s = (1.26)*inch
+            sirina_stupaca = [0.45*inch, s, s, s, s, s]
+            tablica = Table(layout_tablice,
+                            colWidths=sirina_stupaca)
+            tablica.setStyle(stil_tablice)
 
-        rows = [[str(a+1)] for a in range(len(frejm))] #nested lista
-        for row in range(len(rows)):
-            for col in range(6):
-                value = frejm.iloc[row, col]
-                value = round(value, 2)
-                if np.isnan(value):
-                    value = ''
-                value = str(value)
-                if col == 5:
-                    if frejm.iloc[row, 0] == 0:
-                        value = value + ' ({0})'.format(jedinica)
-                    elif value != '':
-                        value = value + ' (%)'
-                value = Paragraph(value, stil1)
-                rows[row].append(value)
-
-        layout_tablice = []
-        layout_tablice.append(headeri)
-        for row in rows:
-            layout_tablice.append(row)
-
-        stil_tablice = TableStyle(
-            [
-            ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
-            ('BOX', (0, 0), (-1, -1), 1, colors.black),
-            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE')
-            ])
-
-        s = (1.05)*inch
-        sirina_stupaca = [0.45*inch, s, s, s, s, s, s]
-
-        tablica = Table(layout_tablice,
-                        colWidths=sirina_stupaca)
-
-        tablica.setStyle(stil_tablice)
 
         return tablica
 
@@ -773,9 +813,15 @@ class ReportGenerator(object):
         #lista flowable elemenata za report
         parts = []
         razmak = Spacer(1, 0.15*inch)
-        head1 = self.generiraj_header_tablicu(argmap=argmap,
-                                              stranica=trenutnaStranica,
-                                              total=nStranica)
+        #nox specijalni slucaj
+        if 'NO' in rezultati.keys():
+            head1 = self.generiraj_header_tablicu(argmap=argmap,
+                                                  stranica=trenutnaStranica,
+                                                  total=2)
+        else:
+            head1 = self.generiraj_header_tablicu(argmap=argmap,
+                                                  stranica=trenutnaStranica,
+                                                  total=nStranica)
         parts.append(head1)
         parts.append(razmak)
         tabla1 = self.generiraj_tablicu_podataka_o_uredjaju(argmap=argmap)
@@ -800,12 +846,14 @@ class ReportGenerator(object):
         parts.append(tabla7)
         #kraj prve stranice
         #loop kroz sve komponente
-        for plin in rezultati:
+        #TODO! NO slucaj
+        if 'NO' in rezultati.keys():
+            plin = 'NO'
             parts.append(PageBreak()) #page break
             trenutnaStranica += 1 #pomakni broj stranice
             head2 = self.generiraj_header_tablicu(argmap=argmap,
                                                   stranica=trenutnaStranica,
-                                                  total=nStranica)
+                                                  total=2)
             parts.append(head2)
             parts.append(razmak)
             parts.append(razmak)
@@ -840,13 +888,60 @@ class ReportGenerator(object):
             tabla10 = self.generiraj_tablicu_kriterija(argmap=argmap, kriterij=kriterij)
             parts.append(tabla10)
             parts.append(razmak)
-            prilagodba = rezultati[plin]['slopeData']
-            tabla11 = self.generiraj_tablicu_funkcije_prilagodbe_za_plin(plin=plin, data=prilagodba)
-            parts.append(tabla11)
-            parts.append(razmak)
+            for gas in rezultati:
+                prilagodba = rezultati[gas]['slopeData']
+                tabla11 = self.generiraj_tablicu_funkcije_prilagodbe_za_plin(plin=gas, data=prilagodba)
+                parts.append(tabla11)
+                parts.append(razmak)
+        else:
+            #loop kroz sve komponente
+            for plin in rezultati:
+                parts.append(PageBreak()) #page break
+                trenutnaStranica += 1 #pomakni broj stranice
+                head2 = self.generiraj_header_tablicu(argmap=argmap,
+                                                      stranica=trenutnaStranica,
+                                                      total=nStranica)
+                parts.append(head2)
+                parts.append(razmak)
+                parts.append(razmak)
+                ocjena = True
+                try:
+                    parametri = rezultati[plin]['kriterij']
+                    for parametar in parametri:
+                        value = parametar[5] #zadnji element
+                        value = value.lower()
+                        if value == 'ne':
+                            ocjena = False
+                            break
+                except Exception as err:
+                    logging.error(str(err), exc_info=True)
+                    ocjena = False
+                if ocjena:
+                    tabla8 = self.generiraj_tablicu_ocjene_umjeravanja(zadovoljava='DA',
+                                                                       komponenta=str(plin))
+                else:
+                    tabla8 = self.generiraj_tablicu_ocjene_umjeravanja(zadovoljava='NE',
+                                                                       komponenta=str(plin))
+                parts.append(tabla8)
+                parts.append(razmak)
+                parts.append(razmak)
+                frejm_rezultata = rezultati[plin]['rezultat']
+                tabla9 = self.generiraj_tablicu_rezultata_umjeravanja(argmap=argmap,
+                                                                      frejm=frejm_rezultata)
+                parts.append(tabla9)
+                parts.append(razmak)
+                kriterij = rezultati[plin]['kriterij']
+                kriterij = [i for i in kriterij if not np.isnan(i[3])] #manki nan vrijednosti
+                tabla10 = self.generiraj_tablicu_kriterija(argmap=argmap, kriterij=kriterij)
+                parts.append(tabla10)
+                parts.append(razmak)
+                prilagodba = rezultati[plin]['slopeData']
+                tabla11 = self.generiraj_tablicu_funkcije_prilagodbe_za_plin(plin=plin, data=prilagodba)
+                parts.append(tabla11)
+                parts.append(razmak)
         #generiraj kraj ispitnog izvjesca
-        annotation2_stil = self.generate_paragraph_style()
-        annotation2 = Paragraph('Kraj ispitnog izvješća', annotation2_stil)
-        parts.append(annotation2)
+#        annotation2_stil = self.generate_paragraph_style()
+#        annotation2 = Paragraph('Kraj ispitnog izvješća', annotation2_stil)
+#        parts.append(annotation2)
         #zavrsna naredba za konstrukciju dokumenta
         doc.build(parts)

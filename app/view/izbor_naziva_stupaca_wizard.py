@@ -26,7 +26,7 @@ class IzborNazivaStupacaWizard(QtGui.QWizard):
         self.setOption(QtGui.QWizard.IndependentPages, on=False)
         # stranice wizarda
         self.izborStupaca = PageIzborStupaca(parent=self)
-        self.setPage(1, self.izborUredjaja)
+        self.setPage(1, self.izborStupaca)
         self.setStartId(1)
 
     def get_listu_stupaca(self):
@@ -76,20 +76,24 @@ class PageIzborStupaca(QtGui.QWizardPage):
         -svi nazivi stupaca moraju biti unikatni (osim 'None')
         -mora biti barem jedan stupac
         """
+        #TODO! treba srediti validaciju podataka !!!
         izabraniStupci = [i for i in self.model.cols if i != 'None']
         izabraniStupci = [i for i in izabraniStupci if i != '']
         setIzabranih = set(izabraniStupci)
-        if len(izabraniStupci) == (len(self.moguci) - 1):
-            if len(setIzabranih) == len(izabraniStupci):
-                return True
-            else:
-                msg = 'Isti naziv je koristen na vise stupaca. Naziv se smije koristiti samo jednom.'
-                QtGui.QMessageBox.information(self, 'Problem.', msg)
-                return False
-        else:
-            msg = 'Sve dozvoljene komponente moraju biti izabrane.'
-            QtGui.QMessageBox.information(self, 'Problem.', msg)
-            return False
+        print(setIzabranih)
+        print(self.moguci)
+        return True
+#        if len(izabraniStupci) == (len(self.moguci) - 1):
+#            if len(setIzabranih) == len(izabraniStupci):
+#                return True
+#            else:
+#                msg = 'Isti naziv je koristen na vise stupaca. Naziv se smije koristiti samo jednom.'
+#                QtGui.QMessageBox.information(self, 'Problem.', msg)
+#                return False
+#        else:
+#            msg = 'Sve dozvoljene komponente moraju biti izabrane.'
+#            QtGui.QMessageBox.information(self, 'Problem.', msg)
+#            return False
 
     def dinamicki_update_opcija_comboa(self, ind):
         """
