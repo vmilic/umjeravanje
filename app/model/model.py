@@ -95,6 +95,8 @@ class DokumentModel(QtCore.QObject):
         self.init_tockeUmjeravanja()
         self.set_konverterPodaciStart(0, recalculate=recalculate)
         self.set_siroviPodaciStart(0, recalculate=recalculate)
+        self.set_tockeKonverter(self.tockeKonverter, recalculate=recalculate)
+        self.set_tockeUmjeravanja(self.tockeUmjeravanja, recalculate=recalculate)
 
     def generiraj_nan_frejm_rezultata_umjeravanja(self):
         """

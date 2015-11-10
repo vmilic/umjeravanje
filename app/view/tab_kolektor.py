@@ -9,8 +9,7 @@ Sve potrebno za tab 'Prikupljanje podataka'
 
 import logging
 import pandas as pd
-import numpy as np
-from PyQt4 import QtCore, uic
+from PyQt4 import QtCore, QtGui, uic
 import app.model.komunikacija as kom
 import app.model.protokol as prot
 import app.model.veza as veza
@@ -25,7 +24,7 @@ class Kolektor(BASE2, FORM2):
     """
     Panel za prikupljanje podataka od instrumenta
     """
-    def __init__(self, dokument=None, parent=None):
+    def __init__(self, dokument=None, parent=None, uid=0):
         super(BASE2, self).__init__(parent)
         self.setupUi(self)
 
@@ -33,7 +32,7 @@ class Kolektor(BASE2, FORM2):
         self.komThread = QtCore.QThread()
 
         self.veza = veza.RS232Veza()
-        self.protokol = prot.RS232Protokol()
+        self.protokol = prot.HessenBCC()
 
         self.komObjekt = kom.KomunikacijskiObjekt(veza=self.veza,
                                                   protokol=self.protokol,
@@ -49,6 +48,7 @@ class Kolektor(BASE2, FORM2):
         self.layoutZaGraf.addWidget(self.graf)
 
         ### setup tablice i ostalih membera ###
+        self.uid = uid #unique ID
         self.doc = dokument
         self.spojeni_uredjaj = None
         self.frejm = pd.DataFrame()
@@ -75,6 +75,20 @@ class Kolektor(BASE2, FORM2):
         self.connect(self.komObjekt,
                      QtCore.SIGNAL('nova_vrijednost_od_veze(PyQt_PyObject)'),
                      self.dodaj_vrijednost_frejmu)
+        #callback za error u radu komunikaicjskog objekta
+        self.connect(self.komObjekt,
+                     QtCore.SIGNAL('problem_sa_prikupljanjem_podataka(PyQt_PyObject)'),
+                     self.prikazi_warning_popup)
+
+    def closeEvent(self, event):
+        """overloaded signal za close - cilj je zaustaviti prikupljanje podataka"""
+        self.stop_handle()
+        event.accept()
+
+    def prikazi_warning_popup(self, poruka):
+        """ popup warning dijalog as opisom problema i zaustavi prikupljanje"""
+        self.stop_handle()
+        QtGui.QMessageBox.warning(self, 'Problem', poruka)
 
     def start_handle(self):
         """
@@ -142,22 +156,17 @@ class Kolektor(BASE2, FORM2):
         """spremanje frejma... po potrebi resample na minutni raspon, koristeci
         average
         """
-        #TODO! nije potpuno implementirano
         tempFrejm = self.frejm.copy()
-        tempFrejm = tempFrejm.resample('1min', how=np.average, closed='right', label='right')
         moguceKomponente = self.doc.uredjaji[self.spojeni_uredjaj]['komponente']
         izborStupaca = izbor_stupaca.IzborNazivaStupacaWizard(frejm=tempFrejm, moguci=moguceKomponente)
         prihvacen = izborStupaca.exec_()
-        if prihvacen:
-            stupci = izborStupaca.get_listu_stupaca()
-            oldlist = list(tempFrejm.columns)
-            mapa = dict(zip(oldlist, stupci))
-            tempFrejm.rename(columns=mapa, inplace=True)
-        #TODO! pakiranje i emit podataka aplikaciji? ili direktni set na dokument
-        output = {'podaci':tempFrejm,
-                  'uredjaj':self.spojeni_uredjaj}
-        self.emit(QtCore.SIGNAL('spremi_preuzete_podatke(PyQt_PyObject)'),
-                  output)
+        if prihvacen and izborStupaca.izbor: #ako je wizard prihvacen i ako je prebacivanje podataka True
+            minutniFrejm = izborStupaca.get_minutni_frejm()
+            #pakiranje i emit podataka aplikaciji
+            output = {'podaci':minutniFrejm,
+                      'uredjaj':self.spojeni_uredjaj}
+            self.emit(QtCore.SIGNAL('spremi_preuzete_podatke(PyQt_PyObject)'),
+                      output)
 
     def prikazi_wizard_postavki(self):
         """
@@ -168,16 +177,22 @@ class Kolektor(BASE2, FORM2):
         prihvacen = wiz.exec_()
         if prihvacen:
             postavke = wiz.get_postavke_veze()
+            #set veze
             if postavke['veza'] == 'RS-232':
                 self.spojeni_uredjaj = postavke['uredjaj']
                 tekst = 'Uredjaj {0}, veza: {1}, protokol: {2}, port: {3}'.format(postavke['uredjaj'], postavke['veza'], postavke['protokol'], postavke['port'])
                 self.opisLabel.setText(tekst)
                 self.veza = veza.RS232Veza()
-                self.protokol = prot.RS232Protokol()
                 self.veza.setup_veze(port=postavke['port'],
                                      baudrate=postavke['brzina'],
                                      bytesize=postavke['brojBitova'],
                                      parity=postavke['paritet'],
                                      stopbits=postavke['stopBitovi'])
-                self.komObjekt.set_veza(self.veza)
-                self.komObjekt.set_protokol(self.protokol)
+            self.komObjekt.set_veza(self.veza)
+            #set protokola komunikacije
+            temp = postavke['protokol']
+            if temp == 'Hessen, BCC':
+                self.protokol = prot.HessenBCC()
+            elif temp == 'Hessen, text':
+                self.protokol = prot.HessenText()
+            self.komObjekt.set_protokol(self.protokol)

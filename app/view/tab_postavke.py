@@ -20,6 +20,9 @@ class PostavkeTab(BASE1, FORM1):
         self.set_connections()
 
     def set_connections(self):
+        # ukljucivanje taba za provjeru konvertera
+        self.checkBoxKonverterTab.toggled.connect(self.toggle_konverter_tab)
+
         #promjena izabranog mjerenja
         self.comboMjerenje.currentIndexChanged.connect(self.promjena_comboMjerenje)
         self.connect(self.dokument,
@@ -145,6 +148,11 @@ class PostavkeTab(BASE1, FORM1):
     def postavke_request_recalculate(self):
         """emit zahtjeva za ponovnim racunajnem"""
         self.emit(QtCore.SIGNAL('postavke_request_recalculate'))
+
+    def toggle_konverter_tab(self, x):
+        """emitiranje zahtjeva za prikazom ili skrivanjem taba za provjeru konvertera"""
+        self.emit(QtCore.SIGNAL('enable_tab_konverter(PyQt_PyObject)'),
+                  x)
 
     def promjena_comboMjerenje(self, x):
         """slot koji dokumentu javlja promjenu izabranog mjerenja"""

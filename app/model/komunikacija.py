@@ -9,7 +9,6 @@ import datetime
 import time
 import logging
 from PyQt4 import QtCore
-import sys
 
 class KomunikacijskiObjekt(QtCore.QObject):
     """
@@ -60,6 +59,9 @@ class KomunikacijskiObjekt(QtCore.QObject):
                 time.sleep(self.sampleRate - delta.total_seconds())
         except Exception as err:
             logging.error(str(err), exc_info=True)
+            tekst = 'Problem sa prikupljanjem podataka.\n'+str(err)
+            self.emit(QtCore.SIGNAL('problem_sa_prikupljanjem_podataka(PyQt_PyObject)'),
+                      tekst)
         finally:
             self.veza.zatvori_vezu()
 

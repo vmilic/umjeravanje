@@ -182,9 +182,12 @@
      <string>&amp;File</string>
     </property>
     <addaction name="action_ucitaj_podatke"/>
+    <addaction name="action_otvori_kolektor"/>
     <addaction name="separator"/>
     <addaction name="action_spremi"/>
     <addaction name="action_ucitaj"/>
+    <addaction name="separator"/>
+    <addaction name="action_Napravi_pdf_report"/>
     <addaction name="separator"/>
     <addaction name="action_Exit"/>
    </widget>
@@ -202,6 +205,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="action_ucitaj_podatke"/>
+   <addaction name="action_otvori_kolektor"/>
    <addaction name="action_Napravi_pdf_report"/>
   </widget>
   <action name="action_Exit">
@@ -236,6 +240,11 @@
   <action name="action_Napravi_pdf_report">
    <property name="text">
     <string>&amp;Napravi pdf report</string>
+   </property>
+  </action>
+  <action name="action_otvori_kolektor">
+   <property name="text">
+    <string>&amp;Prikupljanje podataka</string>
    </property>
   </action>
  </widget>

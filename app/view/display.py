@@ -3,6 +3,7 @@
 Created on Fri Aug 28 09:41:20 2015
 
 @author: DHMZ-Milic
+
 """
 import gc
 import sip
@@ -46,17 +47,16 @@ class GlavniProzor(BASE, FORM):
         self.kalkulator = calc.RacunUmjeravanja(doc=self.dokument)
         self.konverterKalkulator = calc.ProvjeraKonvertera(doc=self.dokument)
 
-        ### setup dict tabova rezultata ###
+        ### setup membere ###
         self.dictTabRezultata = {}
+        self.otvoreniProzori = {}
+        self.idCounter = 1
 
         ### setup konstantne tabove ###
         self.tabPostavke = postavke.PostavkeTab(dokument=self.dokument)
-        self.tabPrikupljanje = kolektor.Kolektor(dokument=self.dokument)
         self.tabKonverter = konverter.KonverterPanel(dokument=self.dokument)
 
         self.glavniTabWidget.addTab(self.tabPostavke, 'Postavke')
-        self.glavniTabWidget.addTab(self.tabPrikupljanje, 'Prikupljanje podataka')
-        #self.glavniTabWidget.addTab(self.tabKonverter, 'Provjera konvertera')
 
         ### Setup modela za prikaz sirovih podataka###
         self.siroviPodaciModel = modeli.SiroviFrameModel()
@@ -70,9 +70,24 @@ class GlavniProzor(BASE, FORM):
         self.dokument.init_listaDilucija()
         self.dokument.init_listaZrak()
 
+    def otvori_prozor(self):
+        """otvori prozor, spoji sa necim"""
+        #create prozor i spremi ga u mapu sa unikatnim id
+        prozor = kolektor.Kolektor(dokument=self.dokument, uid=self.idCounter)
+        tekst = 'Prikupljanje podataka {0}'.format(str(self.idCounter))
+        prozor.setWindowTitle(tekst)
+        self.otvoreniProzori[self.idCounter] = prozor
+        self.otvoreniProzori[self.idCounter].show()
+        #connect signal i slot
+        self.connect(self.otvoreniProzori[self.idCounter],
+                     QtCore.SIGNAL('spremi_preuzete_podatke(PyQt_PyObject)'),
+                     self.aktiviraj_ucitane_podatke)
+        self.idCounter = self.idCounter + 1
+
     def setup_signal_connections(self):
         """definiranje komunikacije iumedju objekata"""
         ### actions ###
+        self.action_otvori_kolektor.triggered.connect(self.otvori_prozor)
         self.action_Exit.triggered.connect(self.close)
         self.action_ucitaj_podatke.triggered.connect(self.read_data_from_csv)
         self.action_spremi.triggered.connect(self.save_umjeravanje_to_file)
@@ -122,10 +137,11 @@ class GlavniProzor(BASE, FORM):
         self.connect(self.dokument,
                      QtCore.SIGNAL('promjena_izabraniPathCSV(PyQt_PyObject)'),
                      self.set_labelDatoteka)
-        #povratna informacija od widgeta za prikupljanje podataka dokumentu sa novim podacima za umjeravanje
-        self.connect(self.tabPrikupljanje,
-                     QtCore.SIGNAL('spremi_preuzete_podatke(PyQt_PyObject)'),
-                     self.spremi_ucitane_podatke)
+
+        ### toggle tabova ###
+        self.connect(self.tabPostavke,
+                     QtCore.SIGNAL('enable_tab_konverter(PyQt_PyObject)'),
+                     self.toggle_tab_konverter)
 
     def clear_tabove_rezultata(self):
         """
@@ -134,10 +150,6 @@ class GlavniProzor(BASE, FORM):
         """
         # prebaci aktivni tab na 'Postavke' jer se on nikada ne brise
         self.glavniTabWidget.setCurrentWidget(self.tabPostavke)
-        # makni konverter tab ako ga ima
-        indeks = self.glavniTabWidget.indexOf(self.tabKonverter) # -1 if not found
-        if indeks != -1:
-            self.glavniTabWidget.removeTab(indeks)
         # makni tabove sa reultatima
         for tab in self.dictTabRezultata:
             widget = self.dictTabRezultata[tab]
@@ -189,9 +201,6 @@ class GlavniProzor(BASE, FORM):
             self.connect(tab,
                          QtCore.SIGNAL('rezultat_request_recalculate'),
                          self.recalculate)
-        #po potrebi dodaj NOx
-        if self.test_for_nox():
-            self.glavniTabWidget.addTab(self.tabKonverter, 'Provjera konvertera')
 
     def set_ucitane_sirove_podatke_load(self, x):
         """setter sirovih podataka ucitanih iz spremljenog filea umjeravanja.
@@ -430,14 +439,37 @@ class GlavniProzor(BASE, FORM):
             output[plin] = copy.deepcopy(mapa)
         return output
 
-    def spremi_ucitane_podatke(self, mapa):
+    def aktiviraj_ucitane_podatke(self, mapa):
         """
         Metoda preuzima mapu sa ucitanim podacima i postavlja je u dokument.
         dict mapa sadrzi :
         {'podaci':frejm sa podacima,
          'uredjaj':string, naziv uredjaja}
         """
-        #TODO!
-        for key in mapa:
-            print(mapa[key])
-            print()
+        frejm = mapa['podaci']
+        lokacija = 'učitani podaci'
+        uredjaj = mapa['uredjaj']
+        path = 'učitani podaci'
+        # postavi info o ucitanom fileu
+        self.dokument.set_izabraniUredjaj(uredjaj)
+        self.dokument.set_izabranaPostaja(lokacija)
+        self.dokument.set_izabraniPathCSV(path)
+        self.clear_tabove_rezultata()
+        self.dokument.set_siroviPodaci(frejm)
+        #reset start umjeravanja na 0 ... reinit tocke i start
+        self.dokument.reinitialize_tocke_i_start(recalculate=False)
+        #update combobox za izbor mjerenja
+        komponente = set(self.dokument.uredjaji[uredjaj]['komponente'])
+        komponente.remove('None')
+        komponente = list(komponente)
+        self.dokument.set_listaMjerenja(komponente)
+        self.recalculate()
+
+    def toggle_tab_konverter(self, x):
+        """prikaz taba za provjeru konvertera ovisno o booleanu x"""
+        if x:
+            self.glavniTabWidget.addTab(self.tabKonverter, 'Provjera konvertera')
+        else:
+            indeks = self.glavniTabWidget.indexOf(self.tabKonverter) # -1 if not found
+            if indeks != -1:
+                self.glavniTabWidget.removeTab(indeks)
