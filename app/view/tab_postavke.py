@@ -20,9 +20,18 @@ class PostavkeTab(BASE1, FORM1):
         self.set_connections()
 
     def set_connections(self):
+        # checkbox za umjeravanje
+        self.checkUmjeravanje.toggled.connect(self.toggle_umjeravanje)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_provjeraUmjeravanje(PyQt_PyObject)'),
+                     self.set_checkUmjeravanje)
+        # checkbox za provjeru ponovljivosti
+        self.checkPonovljivost.toggled.connect(self.toggle_ponovljivost)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_provjeraPonovljivost(PyQt_PyObject)'),
+                     self.set_checkPonovljivost)
         # ukljucivanje taba za provjeru konvertera
         self.checkBoxKonverterTab.toggled.connect(self.toggle_konverter_tab)
-
         #promjena izabranog mjerenja
         self.comboMjerenje.currentIndexChanged.connect(self.promjena_comboMjerenje)
         self.connect(self.dokument,
@@ -148,6 +157,28 @@ class PostavkeTab(BASE1, FORM1):
     def postavke_request_recalculate(self):
         """emit zahtjeva za ponovnim racunajnem"""
         self.emit(QtCore.SIGNAL('postavke_request_recalculate'))
+
+    def toggle_umjeravanje(self, x):
+        """emitiranje vrijednosti checka za test umjeravanja"""
+        self.dokument.set_provjeraUmjeravanje(x)
+
+    def set_checkUmjeravanje(self, x):
+        """Metoda postavlja checkbox checkUmjeravanje u zadano stanje.
+        x je lista [boolean za checkbox, boolean za recalculate]"""
+        self.checkUmjeravanje.setChecked(x[0])
+        if x[1]:
+            self.postavke_request_recalculate()
+
+    def toggle_ponovljivost(self, x):
+        """emitiranje vrijednosti checka za test ponovljivosti(zero i span)"""
+        self.dokument.set_provjeraPonovljivost(x)
+
+    def set_checkPonovljivost(self, x):
+        """Metoda postavlja checkbox checkPonovljivost u zadano stanje.
+        x je lista [boolean za checkbox, boolean za recalculate]"""
+        self.checkPonovljivost.setChecked(x[0])
+        if x[1]:
+            self.postavke_request_recalculate()
 
     def toggle_konverter_tab(self, x):
         """emitiranje zahtjeva za prikazom ili skrivanjem taba za provjeru konvertera"""

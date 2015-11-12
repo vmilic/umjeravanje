@@ -29,10 +29,34 @@ class RacunUmjeravanja(QtCore.QObject):
         self.prilagodbaB = np.NaN
         self.slope = np.NaN
         self.offset = np.NaN
-        self.srz = ['', '', '', np.NaN, '', 'NE']
-        self.srs = ['', '', '', np.NaN, '', 'NE']
-        self.rz = ['', '', '', np.NaN, '', 'NE']
-        self.rmax = ['', '', '', np.NaN, '', 'NE']
+        self.srz = ['Ponovljivost standardne devijacije u nuli',
+                    '',
+                    'S<sub>r,z</sub> =',
+                    np.NaN,
+                    '',
+                    'NE']
+        self.srs = ['Ponovljivost standardne devijacije pri koncentraciji ct',
+                    '',
+                    'S<sub>r,ct</sub> =',
+                    np.NaN,
+                    '',
+                    'NE']
+        self.rz = ['Odstupanje od linearnosti u nuli',
+                   '',
+                   'r<sub>z</sub> =',
+                   np.NaN,
+                   '',
+                   'NE']
+        self.rmax = ['Maksimalno relativno odstupanje od linearnosti',
+                     '',
+                     'r<sub>z,rel</sub> =',
+                     np.NaN,
+                     '',
+                     'NE']
+        self.rezultatiTestova = {'srs':self.srs,
+                                 'srz':self.srz,
+                                 'rz':self.rz,
+                                 'rmax':self.rmax}
         logging.debug('All result members reset to np.NaN')
 
     def set_dokument(self, x):
@@ -148,11 +172,23 @@ class RacunUmjeravanja(QtCore.QObject):
             self.rezultat.loc[row, 'r'] = self._izracunaj_r(tocka)
             self.rezultat.loc[row, 'U'] = self._izracunaj_UR(tocka)
 
-        # provjera ispravnosti parametara umjeravanja u odnosu na normu
-        self.srz = self._provjeri_ponovljivost_stdev_u_nuli()
-        self.srs = self._provjeri_ponovljivost_stdev_za_vrijednost()
-        self.rz = self._provjeri_odstupanje_od_linearnosti_u_nuli()
-        self.rmax = self._provjeri_maksimalno_relativno_odstupanje_od_linearnosti()
+#        # provjera ispravnosti parametara umjeravanja u odnosu na normu
+#        self.srz = self._provjeri_ponovljivost_stdev_u_nuli()
+#        self.srs = self._provjeri_ponovljivost_stdev_za_vrijednost()
+#        self.rz = self._provjeri_odstupanje_od_linearnosti_u_nuli()
+#        self.rmax = self._provjeri_maksimalno_relativno_odstupanje_od_linearnosti()
+
+        #TODO! sklapanje rezultata testova
+        if self.doc.get_provjeraPonovljivost():
+            self.srz = self._provjeri_ponovljivost_stdev_u_nuli()
+            self.srs = self._provjeri_ponovljivost_stdev_za_vrijednost()
+            self.rezultatiTestova['srz'] = self.srz
+            self.rezultatiTestova['srs'] = self.srs
+        if self.doc.get_provjeraLinearnosti():
+            self.rz = self._provjeri_odstupanje_od_linearnosti_u_nuli()
+            self.rmax = self._provjeri_maksimalno_relativno_odstupanje_od_linearnosti()
+            self.rezultatiTestova['rz'] = self.rz
+            self.rezultatiTestova['rmax'] = self.rmax
 
     def _izracunaj_regresijske_koef(self):
         """
@@ -402,7 +438,13 @@ class RacunUmjeravanja(QtCore.QObject):
                 return output
         except Exception as err1:
             logging.debug(str(err1), exc_info=True)
-            return ['', '', '', np.NaN, '', 'NE']
+            output = ['Ponovljivost standardne devijacije u nuli',
+                      '',
+                      'S<sub>r,z</sub> =',
+                      np.NaN,
+                      '',
+                      'NE']
+            return output
 
     def _provjeri_ponovljivost_stdev_za_vrijednost(self):
         """
@@ -438,7 +480,13 @@ class RacunUmjeravanja(QtCore.QObject):
                 return output
         except Exception as err1:
             logging.debug(str(err1), exc_info=True)
-            return ['', '', '', np.NaN, '', 'NE']
+            output = ['Ponovljivost standardne devijacije pri koncentraciji ct',
+                      '',
+                      'S<sub>r,ct</sub> =',
+                      np.NaN,
+                      '',
+                      'NE']
+            return output
 
     def _provjeri_odstupanje_od_linearnosti_u_nuli(self):
         """
@@ -474,7 +522,13 @@ class RacunUmjeravanja(QtCore.QObject):
                 return output
         except Exception as err1:
             logging.debug(str(err1), exc_info=True)
-            return ['', '', '', np.NaN, '', 'NE']
+            output = ['Odstupanje od linearnosti u nuli',
+                      '',
+                      'r<sub>z</sub> =',
+                      np.NaN,
+                      '',
+                      'NE']
+            return output
 
     def _provjeri_maksimalno_relativno_odstupanje_od_linearnosti(self):
         """
@@ -512,7 +566,13 @@ class RacunUmjeravanja(QtCore.QObject):
                 return output
         except Exception as err1:
             logging.debug(str(err1), exc_info=True)
-            return ['', '', '', np.NaN, '', 'NE']
+            output = ['Maksimalno relativno odstupanje od linearnosti',
+                      '',
+                      'r<sub>z,rel</sub> =',
+                      np.NaN,
+                      '',
+                      'NE']
+            return output
 
     def pronadji_zero_span(self):
         """
@@ -547,23 +607,12 @@ class RacunUmjeravanja(QtCore.QObject):
 
     def get_provjeru_parametara(self):
         """
-        Metoda dohvaca listu provjera kao nested listu.
+        Metoda vraca testova. kljucevi su : 'srz', 'srs', 'rz', 'rmax'
 
-        Svaki element liste je lista sa elemetima :
+        Svaki element mape je lista sa elemetima :
         [naziv, tocka norme, kratka oznaka, vrijednost, uvijet prihvatljivosti, ispunjeno]
-
-        Elementi se dodaju samo ako su odredjene vrijednosti izracunate.
         """
-        out = []
-        if self.srz[0] != '':
-            out.append(self.srz)
-        if self.srs[0] != '':
-            out.append(self.srs)
-        if self.rz[0] != '':
-            out.append(self.rz)
-        if self.rmax[0] != '':
-            out.append(self.rmax)
-        return out
+        return self.rezultatiTestova
 
     def get_slope_and_offset_list(self):
         """
@@ -634,10 +683,8 @@ class ProvjeraKonvertera(object):
         """
         self.reset_results()
         if self.provjeri_parametre_prije_racunanja:
-            test = self.doc.get_provjeraKonvertera()
-            if test:
-                kdots = self.doc.get_tockeKonverter()
-                self.get_provjera_konvertera_za_listu_tocaka(kdots)
+            kdots = self.doc.get_tockeKonverter()
+            self.get_provjera_konvertera_za_listu_tocaka(kdots)
 
     def get_provjera_konvertera_za_listu_tocaka(self, tocke):
         """
@@ -775,7 +822,13 @@ class ProvjeraKonvertera(object):
     def get_ec_parametar(self):
         """metoda vraca formatirani parametar za procjenu efikasnosti konvertera"""
         if np.isnan(self.ec):
-            return None
+            output = ['Efikasnost konvertera dušikovih oksida',
+                      '',
+                      'Ec =',
+                      np.NaN,
+                      '\u2265 95 %',
+                      'NE']
+            return output
         else:
             value = self.ec*100
             output = ['Efikasnost konvertera dušikovih oksida',

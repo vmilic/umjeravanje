@@ -7,7 +7,6 @@ Created on Mon Oct  5 10:50:23 2015
 import sip
 import gc
 import logging
-import numpy as np
 from PyQt4 import QtGui, QtCore, uic
 import app.view.canvas as canvas
 import app.view.pomocni as view_helpers
@@ -42,17 +41,6 @@ class RezultatPanel(BASE4, FORM4):
         #kriterij
         self.tablicaParametri = view_helpers.TablicaUmjeravanjeKriterij()
         self.kriterijLayout.addWidget(self.tablicaParametri)
-        #postavi provjeru linearnosti
-        self.checkBoxLinearnost.setChecked(self.dokument.get_provjeraLinearnosti())
-
-        self.setup_connections()
-
-    def setup_connections(self):
-        ### connection za promjenu linearnosti ###
-        self.checkBoxLinearnost.toggled.connect(self.promjena_provjere_linearnosti)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_provjeraLinearnosti(PyQt_PyObject)'),
-                     self.set_checkLinearnost)
 
     def inicijalizacija_grafova(self, plin):
         """inicijalizacija i postavljanje kanvasa za grafove u layout.
@@ -140,17 +128,13 @@ class RezultatPanel(BASE4, FORM4):
         """emit zahtjeva za promjenom provjere linearnosti"""
         self.dokument.set_provjeraLinearnosti(x)
 
-    def set_checkLinearnost(self, x):
-        """metoda postavlja check linearnosti iz dokumenta u gui widget"""
-        self.checkBoxLinearnost.setChecked(x[0])
-
     def update_rezultat(self, mapa):
         """
         update gui elemenata panela ovisno o prosljedjenim parametrima u mapi
         """
         rezultat = mapa['rezultat']
         slopeData = mapa['slopeData'] #lista(slope, offset, prilagodbaA, prilagodbaB)
-        kriterij = mapa['kriterij'] #nested lista(srz, srs, rz, rmax), svaki ima podatke o kriteriju
+        testovi = mapa['testovi'] #dictionary... koji ima kljuceve : srz, srs, rz, rmax...
         #grafovi
         self.prikazi_grafove(rezultat, slopeData)
         #rezultati
@@ -158,11 +142,26 @@ class RezultatPanel(BASE4, FORM4):
         #prilagodba
         prilagodba = [str(round(slopeData[2], 3)), str(round(slopeData[3], 1))]
         self.tablicaPrilagodba.set_values(prilagodba)
-        #kriterij
-        kriterij =  [i for i in kriterij if not np.isnan(i[3])] #makni nanove iz kriterija
+        #XXX! hide ako je umjeravanje off
+        if self.dokument.get_provjeraUmjeravanje():
+            self.rezultatiGroupBox.show()
+            self.slopeGroupBox.show()
+        else:
+            self.rezultatiGroupBox.hide()
+            self.slopeGroupBox.hide()
+        #XXX! testovi
+        kriterij = []
+        if self.dokument. get_provjeraPonovljivost():
+            kriterij.append(testovi['srz'])
+            kriterij.append(testovi['srs'])
+        if self.dokument.get_provjeraLinearnosti():
+            kriterij.append(testovi['rz'])
+            kriterij.append(testovi['rmax'])
         self.tablicaParametri.set_values(kriterij)
-        #update checkboxa za provjeru lienarnosti
-        self.checkBoxLinearnost.setChecked(self.dokument.get_provjeraLinearnosti())
+        if len(kriterij):
+            self.kriterijGroupBox.show()
+        else:
+            self.kriterijGroupBox.hide()
 
     def prikazi_grafove(self, rezultat, slopeData):
         """

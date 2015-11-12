@@ -63,6 +63,8 @@ class DokumentModel(QtCore.QObject):
         self.krajUmjeravanja = ''
         self.oznakaModelaUredjaja = ''
         self.proizvodjacUredjaja = ''
+        self.provjeraUmjeravanje = True
+        self.provjeraPonovljivost = False
         self.init_uredjaje_i_postaje_sa_REST()
 
     def init_tockeUmjeravanja(self, tocke=None):
@@ -85,18 +87,18 @@ class DokumentModel(QtCore.QObject):
         else:
             self.tockeKonverter = tocke
 
-
     def reinitialize_tocke_i_start(self, recalculate=True):
         """Reinicijalizacija tocaka umjeravnja, tocaka provjere konvertera
         te pocetnog indeksa za umjeravanje i provjeru konvertera. Metoda sluzi za
         konzistentno ponasanje tablice sa podacima prilikom ucitavanja novih
         podataka. """
-        self.init_tockeKonverter()
-        self.init_tockeUmjeravanja()
-        self.set_konverterPodaciStart(0, recalculate=recalculate)
+#        self.init_tockeKonverter()
+#        self.init_tockeUmjeravanja()
+#        self.set_konverterPodaciStart(0, recalculate=recalculate)
+#        self.siroviPodaciStart = 0
         self.set_siroviPodaciStart(0, recalculate=recalculate)
-        self.set_tockeKonverter(self.tockeKonverter, recalculate=recalculate)
-        self.set_tockeUmjeravanja(self.tockeUmjeravanja, recalculate=recalculate)
+#        self.set_tockeKonverter(self.tockeKonverter, recalculate=recalculate)
+#        self.set_tockeUmjeravanja(self.tockeUmjeravanja, recalculate=recalculate)
 
     def generiraj_nan_frejm_rezultata_umjeravanja(self):
         """
@@ -545,6 +547,32 @@ class DokumentModel(QtCore.QObject):
         """Getter max opsega mjerenja"""
         return self.opseg
 
+    def set_provjeraUmjeravanje(self, x, recalculate=True):
+        """setter za test umjeravanja. ulazni parametar je boolean"""
+        x = bool(x)
+        if x != self.provjeraUmjeravanje:
+            self.provjeraUmjeravanje = x
+            output = [self.provjeraUmjeravanje, recalculate]
+            self.emit(QtCore.SIGNAL('promjena_provjeraUmjeravanje(PyQt_PyObject)'),
+                      output)
+
+    def get_provjeraUmjeravanje(self):
+        """getter za provjeru umjeravanja"""
+        return self.provjeraUmjeravanje
+
+    def set_provjeraPonovljivost(self, x, recalculate=True):
+        """setter za test ponovljivosti (zero, span). ulazni parametar je boolean"""
+        x = bool(x)
+        if x != self.provjeraPonovljivost:
+            self.provjeraPonovljivost = x
+            output = [self.provjeraPonovljivost, recalculate]
+            self.emit(QtCore.SIGNAL('promjena_provjeraPonovljivost(PyQt_PyObject)'),
+                      output)
+
+    def get_provjeraPonovljivost(self):
+        """getter za provjeru ponovljivosti"""
+        return self.provjeraPonovljivost
+
     def set_provjeraLinearnosti(self, x, recalculate=True):
         """Setter za provjeru linearnosti prilikom racunanja umjeravanja. Ulazni
         parametar x je boolean"""
@@ -559,14 +587,11 @@ class DokumentModel(QtCore.QObject):
         """Getter za boolean provjere linearnosti"""
         return self.provjeraLinearnosti
 
-    def set_provjeraKonvertera(self, x, recalculate=True):
+    def set_provjeraKonvertera(self, x):
         """Setter za boolean koji definira da li se radi provjera konvertera."""
         x = bool(x)
         if x != self.provjeraKonvertera:
             self.provjeraKonvertera = x
-            output = [self.provjeraKonvertera, recalculate]
-            self.emit(QtCore.SIGNAL('promjena_provjeraKonvertera(PyQt_PyObject)'),
-                      output)
 
     def get_provjeraKonvertera(self):
         """Getter za boolean provjere konvertera"""
@@ -603,10 +628,13 @@ class DokumentModel(QtCore.QObject):
         if not isinstance(x, pd.core.frame.DataFrame):
             msg = 'Ulazna vrijednost mora biti pandas DataFrame'
             raise TypeError(msg)
-        if not x.equals(self.siroviPodaci):
-            self.siroviPodaci = x
-            self.emit(QtCore.SIGNAL('promjena_siroviPodaci(PyQt_PyObject)'),
-                      self.siroviPodaci)
+        self.siroviPodaci = x
+        self.emit(QtCore.SIGNAL('promjena_siroviPodaci(PyQt_PyObject)'),
+                  self.siroviPodaci)
+#        if not x.equals(self.siroviPodaci):
+#            self.siroviPodaci = x
+#            self.emit(QtCore.SIGNAL('promjena_siroviPodaci(PyQt_PyObject)'),
+#                      self.siroviPodaci)
 
     def get_siroviPodaci(self):
         """Getter sirovih podataka ucitanih iz csv filea"""
@@ -996,6 +1024,8 @@ class DokumentModel(QtCore.QObject):
         output['opseg'] = self.opseg
         output['oznakaModelaUredjaja'] = self.oznakaModelaUredjaja
         output['proizvodjacUredjaja'] = self.proizvodjacUredjaja
+        output['provjeraUmjeravanje'] = self.provjeraUmjeravanje
+        output['provjeraPonovljivost'] = self.provjeraPonovljivost
         return output
 
     def load_dokument(self, filename=None):
@@ -1028,19 +1058,6 @@ class DokumentModel(QtCore.QObject):
         self.set_listaZrak(mapa['listaZrak'])
         self.set_siroviPodaci(mapa['siroviPodaci'])
         self.siroviPodaciStart = mapa['siroviPodaciStart']
-        self.konverterPodaciStart = mapa['konverterPodaciStart']
-        #potrebno je rekonstruirati objekt Tocka()
-        konverterTocke = []
-        tocke = mapa['tockeKonverter']
-        for tocka in tocke:
-            dot = Tocka()
-            dot.ime = tocka['ime']
-            dot.indeksi = tocka['indeksi']
-            dot.crefFaktor = tocka['crefFaktor']
-            r, g, b, a = tocka['rgba']
-            dot.boja = QtGui.QColor(r, g, b, a)
-            konverterTocke.append(dot)
-        self.set_tockeKonverter(konverterTocke, recalculate=False)
         #potrebno je rekonstruirati objekt Tocka()
         umjerneTocke = []
         tocke = mapa['tockeUmjeravanja']
@@ -1061,7 +1078,27 @@ class DokumentModel(QtCore.QObject):
         self.set_izabranaDilucija(mapa['izabranaDilucija'], recalculate=False)
         self.set_izabraniZrak(mapa['izabraniZrak'], recalculate=False)
         self.set_provjeraLinearnosti(mapa['provjeraLinearnosti'], recalculate=False)
-        self.set_provjeraKonvertera(mapa['provjeraKonvertera'], recalculate=False)
+        self.set_provjeraUmjeravanje(mapa['provjeraUmjeravanje'], recalculate=False)
+        self.set_provjeraPonovljivost(mapa['provjeraPonovljivost'], recalculate=False)
+        self.set_provjeraKonvertera(mapa['provjeraKonvertera'])
+        #trebam upaliti tab za konverter sa postavkama koji su u dokumentu a ne inicijalnima
+        if self.provjeraKonvertera:
+            self.emit(QtCore.SIGNAL('load_saved_tab_konverter'))
+
+        self.konverterPodaciStart = mapa['konverterPodaciStart']
+        #potrebno je rekonstruirati objekt Tocka()
+        konverterTocke = []
+        tocke = mapa['tockeKonverter']
+        for tocka in tocke:
+            dot = Tocka()
+            dot.ime = tocka['ime']
+            dot.indeksi = tocka['indeksi']
+            dot.crefFaktor = tocka['crefFaktor']
+            r, g, b, a = tocka['rgba']
+            dot.boja = QtGui.QColor(r, g, b, a)
+            konverterTocke.append(dot)
+        self.tockeKonverter = konverterTocke
+
         self.set_cNOx50(mapa['cNOx50'])
         self.set_cNOx95(mapa['cNOx95'])
 

@@ -16,7 +16,6 @@ class KonverterPanel(BASE3, FORM3):
         self.dokument = dokument
 
         ### postavljanje inicijalnih vrijednosti kontrolnih elemenata ###
-        self.checkKonverter.setChecked(self.dokument.get_provjeraKonvertera())
         self.konverterOpseg.setValue(self.dokument.get_opseg())
         self.cnox50SpinBox.setValue(self.dokument.get_cNOx50())
         self.cnox95SpinBox.setValue(self.dokument.get_cNOx95())
@@ -34,8 +33,13 @@ class KonverterPanel(BASE3, FORM3):
 
         self.tablicaKonverter = view_helpers.TablicaKonverterParametri()
         self.tablicaKonverter.set_values([np.NaN, np.NaN, np.NaN, np.NaN])
+
         self.layoutKonverterParametri.addWidget(self.tablicaKonverter)
         self.layoutKonverterParametri.addStretch(-1)
+
+        self.tablicaKriterija = view_helpers.TablicaKonverterKriterij()
+        self.layoutKonverterKriterij.addWidget(self.tablicaKriterija)
+        self.layoutKonverterKriterij.addStretch(-1)
 
         self.setup_connections()
 
@@ -55,27 +59,10 @@ class KonverterPanel(BASE3, FORM3):
         self.connect(self.dokument,
                      QtCore.SIGNAL('promjena_cNOx95(PyQt_PyObject)'),
                      self.set_cnox95SpinBox)
-        #provjera konvertera
-        self.checkKonverter.toggled.connect(self.promjena_checkKonverter)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_provjeraKonvertera(PyQt_PyObject)'),
-                     self.set_checkKonverter)
 
     def konverter_request_recalculate(self):
         """emit zahtjeva za ponovnim racunanjem rezultata"""
         self.emit(QtCore.SIGNAL('konverter_request_recalculate'))
-
-    def promjena_checkKonverter(self, x):
-        """slot koji zapisuje promjenu provjere konvertera u dokument (checkbox)"""
-        value = self.checkKonverter.isChecked()
-        self.dokument.set_provjeraKonvertera(value)
-
-    def set_checkKonverter(self, x):
-        """metoda postavlja ckeck provjere konvertera iz dokumenta u gui widget.
-        x je lista [value, boolean]"""
-        self.checkKonverter.setChecked(x[0])
-        if x[1]:
-            self.konverter_request_recalculate()
 
     def promjena_konverterOpseg(self, x):
         """slot koji zapisuje opseg konvertera u dokument (povezan sa opsegom
@@ -116,13 +103,17 @@ class KonverterPanel(BASE3, FORM3):
         """update gui elemenata za prikaz rezultata sa novim podacima
         x je mapa:
         {'rezultat':frejm sa podacima,
-         'efikasnost':lista efikasnosti konvertera}"""
+         'efikasnost':lista efikasnosti konvertera,
+         'ec_kriterij':nested lista podataka za prikaz kriterija prihvatljivosti}"""
         jedinica = self.dokument.get_mjernaJedinica()
         tocke = self.dokument.get_tockeKonverter()
         frejm = x['rezultat']
         eff = x['efikasnost']
+        krit = x['ec_kriterij']
+        krit[3] = str(round(krit[3], 1)) #round i adapt rezultat u string
         efikasnost = [str(round(i, 1)) for i in eff]
         self.konverterRezultatView.set_mjerna_jedinica(jedinica)
         self.konverterRezultatView.set_tocke(tocke)
         self.konverterRezultatView.set_data(frejm)
         self.tablicaKonverter.set_values(efikasnost)
+        self.tablicaKriterija.set_values(krit)

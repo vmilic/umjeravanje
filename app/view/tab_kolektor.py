@@ -196,3 +196,7 @@ class Kolektor(BASE2, FORM2):
             elif temp == 'Hessen, text':
                 self.protokol = prot.HessenText()
             self.komObjekt.set_protokol(self.protokol)
+            return True
+        else:
+            #cancel slucaj
+            return False

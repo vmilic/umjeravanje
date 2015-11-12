@@ -74,15 +74,17 @@ class GlavniProzor(BASE, FORM):
         """otvori prozor, spoji sa necim"""
         #create prozor i spremi ga u mapu sa unikatnim id
         prozor = kolektor.Kolektor(dokument=self.dokument, uid=self.idCounter)
-        tekst = 'Prikupljanje podataka {0}'.format(str(self.idCounter))
-        prozor.setWindowTitle(tekst)
-        self.otvoreniProzori[self.idCounter] = prozor
-        self.otvoreniProzori[self.idCounter].show()
-        #connect signal i slot
-        self.connect(self.otvoreniProzori[self.idCounter],
-                     QtCore.SIGNAL('spremi_preuzete_podatke(PyQt_PyObject)'),
-                     self.aktiviraj_ucitane_podatke)
-        self.idCounter = self.idCounter + 1
+        accepted = prozor.prikazi_wizard_postavki()
+        if accepted:
+            tekst = 'Prikupljanje podataka {0}'.format(str(self.idCounter))
+            prozor.setWindowTitle(tekst)
+            self.otvoreniProzori[self.idCounter] = prozor
+            self.otvoreniProzori[self.idCounter].show()
+            #connect signal i slot
+            self.connect(self.otvoreniProzori[self.idCounter],
+                         QtCore.SIGNAL('spremi_preuzete_podatke(PyQt_PyObject)'),
+                         self.aktiviraj_ucitane_podatke)
+            self.idCounter = self.idCounter + 1
 
     def setup_signal_connections(self):
         """definiranje komunikacije iumedju objekata"""
@@ -142,6 +144,9 @@ class GlavniProzor(BASE, FORM):
         self.connect(self.tabPostavke,
                      QtCore.SIGNAL('enable_tab_konverter(PyQt_PyObject)'),
                      self.toggle_tab_konverter)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('load_saved_tab_konverter'),
+                     self.load_saved_tab_konverter)
 
     def clear_tabove_rezultata(self):
         """
@@ -150,6 +155,8 @@ class GlavniProzor(BASE, FORM):
         """
         # prebaci aktivni tab na 'Postavke' jer se on nikada ne brise
         self.glavniTabWidget.setCurrentWidget(self.tabPostavke)
+        # makni tab sa provjerom konvertera (prebaci checkbox za toggle u postavkama)...
+        self.tabPostavke.checkBoxKonverterTab.setChecked(False)
         # makni tabove sa reultatima
         for tab in self.dictTabRezultata:
             widget = self.dictTabRezultata[tab]
@@ -274,7 +281,7 @@ class GlavniProzor(BASE, FORM):
         input - string plina (stupac u frejmu dokument.siroviPodaci)
         output - mapa {'rezultat':frejm rezultata,
                        'slopeData':podaci za slope i offset,
-                       'kriterij':kriterij prilagodbe}
+                       'testovi':testovi (kriteriji prihvatljivosti)}
         """
         stariPlin = self.dokument.get_izabranoMjerenje()
         self.dokument.block_all_signals()
@@ -284,21 +291,21 @@ class GlavniProzor(BASE, FORM):
         self.kalkulator.racunaj()
         rez = self.kalkulator.rezultat
         slopedata = self.kalkulator.get_slope_and_offset_list()
-        kriterij = self.kalkulator.get_provjeru_parametara()
+        testovi = self.kalkulator.get_provjeru_parametara()
         mapa = {'rezultat':rez,
                 'slopeData':slopedata,
-                'kriterij':kriterij}
+                'testovi':testovi}
         #vrati dokument u po etno stanje
         self.dokument.izabranoMjerenje = stariPlin
         self.dokument.unblock_all_signals()
         return mapa
 
-
     def recalculate(self):
         """
         racunanje umjeravanja za sve stupce u sirovim podacima
         """
-        print('recalculating')
+        #TODO! wait cursor?
+        print('recalculate')
         #potrebne postavke
         plin = self.dokument.get_izabranoMjerenje()
         frejm = self.dokument.get_siroviPodaci()
@@ -319,10 +326,11 @@ class GlavniProzor(BASE, FORM):
         self.konverterKalkulator.racunaj()
         rezultatKonverter = self.konverterKalkulator.rezultat
         listaEfikasnosti = self.konverterKalkulator.get_listu_efikasnosti()
+        eckriterij = self.konverterKalkulator.get_ec_parametar()
         mapa = {'rezultat':rezultatKonverter,
-                'efikasnost':listaEfikasnosti}
+                'efikasnost':listaEfikasnosti,
+                'ec_kriterij':eckriterij}
         self.tabKonverter.update_rezultat(mapa)
-
 
     def is_konverter_tab_active(self):
         """
@@ -355,7 +363,8 @@ class GlavniProzor(BASE, FORM):
     def update_tablice_sirovih_podataka(self, x):
         """
         update izgleda tablice sa novim podacima preuzetim iz dokumenta.
-        x je lista [self.tockeUmjeravanja, self.siroviPodaciStart, recalculate]
+        x je lista [self.tockeUmjeravanja, self.siroviPodaciStart, recalculate] ili
+        [self.tockeKonverter, self.konverterPodaciStart, recalculate]
         """
         tocke = x[0]
         start = x[1]
@@ -377,6 +386,8 @@ class GlavniProzor(BASE, FORM):
                                                      caption='Spremi file',
                                                      filter='Umjeravanje save files (*.usf);;all (*.*)')
         if filepath:
+            if not filepath.endswith('.usf'):
+                filepath = filepath + '.usf'
             self.dokument.save_dokument(filepath)
 
     def load_umjeravanje_from_file(self):
@@ -409,13 +420,11 @@ class GlavniProzor(BASE, FORM):
                                                 caption='Spremi pdf report',
                                                 filter = 'pdf file (*.pdf)')
         if ime:
-            mapa = self.dokument.dokument_to_dict()
-            mapa = copy.deepcopy(mapa)
             #rezultati svih komponenti
             rezultati = self.pripremi_rezultate_za_report()
             report = pdfreport.ReportGenerator()
             try:
-                report.generiraj_report(ime, mapa, rezultati)
+                report.generiraj_report(ime, self.dokument, rezultati)
             except Exception as err:
                 logging.error(str(err), exc_info=True)
                 msg = "\n".join(['Izvještaj nije uspješno generiran.', str(err)])
@@ -435,7 +444,7 @@ class GlavniProzor(BASE, FORM):
                 ecKonverter = self.konverterKalkulator.get_ec_parametar()
                 if ecKonverter != None:
                     if not np.isnan(ecKonverter[3]):
-                        mapa['kriterij'].append(ecKonverter)
+                        mapa['testovi']['ec'] = ecKonverter
             output[plin] = copy.deepcopy(mapa)
         return output
 
@@ -468,8 +477,22 @@ class GlavniProzor(BASE, FORM):
     def toggle_tab_konverter(self, x):
         """prikaz taba za provjeru konvertera ovisno o booleanu x"""
         if x:
+            self.dokument.set_provjeraKonvertera(x) #toggle check u dokumentu
             self.glavniTabWidget.addTab(self.tabKonverter, 'Provjera konvertera')
+            #reinicijalizacija tocaka i postavljanje pocetka na 0
+            self.dokument.init_tockeKonverter()
+            self.dokument.konverterPodaciStart = 0
+            self.recalculate_konverter()
         else:
+            self.dokument.set_provjeraKonvertera(x)
             indeks = self.glavniTabWidget.indexOf(self.tabKonverter) # -1 if not found
             if indeks != -1:
                 self.glavniTabWidget.removeTab(indeks)
+
+    def load_saved_tab_konverter(self):
+        """load taba konverter iz spremljenog umjeravanja"""
+        #upali tab, (prebaci check toggle u postavkama)
+        self.tabPostavke.checkBoxKonverterTab.setChecked(True)
+        self.recalculate_konverter()
+
+

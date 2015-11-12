@@ -6,11 +6,22 @@ Created on Mon May 18 12:21:15 2015
 @author: DHMZ-Milic
 """
 
+"""
+#DONE!
+- poravnavanje reporta
+- prozor za prikupljanje podataka prije nego sto se upali digne dijalog za postavke veze
+- tab konverter nema jasan prikaz testa ispravnosti --- do this next
+
+#TODO!
+- display testova u tabovima treba biti povezan sa ukljucenim opcijama
+"""
+
 import sys
 import logging
 import configparser
 from PyQt4 import QtGui
 from app.view import display
+
 
 def setup_logging(file='applog.log', mode='a', lvl='INFO'):
     """

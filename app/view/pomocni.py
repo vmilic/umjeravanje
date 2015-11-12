@@ -39,6 +39,132 @@ class CustomLabel(QtGui.QLabel):
         stil = "QLabel {background-color: rgba(" +"{0},{1},{2},{3}%)".format(r, g, b, a)+"}"
         self.setStyleSheet(stil)
 
+
+class TablicaKonverterKriterij(QtGui.QWidget):
+    """
+    Tablica za prikaz kriterija prilagodbe za konverter
+
+    inicijalno se postavlja prazan... setter uzima listu kao parametar
+    [naziv, tocka norme, 'Ec=', vrijednost, uvijet prihvatljivosti, 'DA' ili 'NE']
+    """
+    def __init__(self, parent=None):
+        QtGui.QWidget.__init__(self, parent=parent)
+        # definicija layouta
+        self.gridLayout = QtGui.QGridLayout()
+        self.gridLayout.setHorizontalSpacing(1)
+        self.gridLayout.setVerticalSpacing(1)
+        self.gridLayout.setContentsMargins(0,0,0,0)
+
+        self.pos00 = CustomLabel(tekst='')
+        self.pos01 = CustomLabel(tekst='<b> Naziv kriterija </b>', center=True)
+        self.pos02 = CustomLabel(tekst='<b> Točka norme </b>', center=True)
+        self.pos03 = CustomLabel(tekst='<b> Rezultati </b>', center=True)
+        self.pos04 = CustomLabel(tekst='')
+        self.pos05 = CustomLabel(tekst='<b> Uvijet prihvatljivosti </b>', center=True)
+        self.pos06 = CustomLabel(tekst='<b> Ispunjeno </b>', center=True)
+        self.pos10 = CustomLabel(tekst='<b> 1 </b>', center=True)
+        self.pos11 = CustomLabel()
+        self.pos12 = CustomLabel()
+        self.pos13 = CustomLabel()
+        self.pos14 = CustomLabel()
+        self.pos15 = CustomLabel(center=True)
+        self.pos16 = CustomLabel(center=True)
+
+        self.gridLayout.addWidget(self.pos00, 0, 0, 1, 1)
+        self.gridLayout.addWidget(self.pos01, 0, 1, 1, 1)
+        self.gridLayout.addWidget(self.pos02, 0, 2, 1, 1)
+        self.gridLayout.addWidget(self.pos03, 0, 3, 1, 2)
+        self.gridLayout.addWidget(self.pos05, 0, 5, 1, 1)
+        self.gridLayout.addWidget(self.pos06, 0, 6, 1, 1)
+        self.gridLayout.addWidget(self.pos10, 1, 0, 1, 1)
+        self.gridLayout.addWidget(self.pos11, 1, 1, 1, 1)
+        self.gridLayout.addWidget(self.pos12, 1, 2, 1, 1)
+        self.gridLayout.addWidget(self.pos13, 1, 3, 1, 1)
+        self.gridLayout.addWidget(self.pos14, 1, 4, 1, 1)
+        self.gridLayout.addWidget(self.pos15, 1, 5, 1, 1)
+        self.gridLayout.addWidget(self.pos16, 1, 6, 1, 1)
+
+        self.set_minimum_height_for_row(0, 30)
+        self.set_minimum_height_for_row(1, 30)
+        self.set_minimum_width_for_column(0, 30)
+        self.set_minimum_width_for_column(1, 200)
+        self.set_minimum_width_for_column(2, 75)
+        self.set_minimum_width_for_column(3, 75)
+        self.set_minimum_width_for_column(4, 75)
+        self.set_minimum_width_for_column(5, 150)
+        self.set_minimum_width_for_column(6, 75)
+
+        # slaganje layouta u tablicu
+        self.setLayout(self.gridLayout)
+
+    def set_minimum_width_for_column(self, col, size):
+        self.gridLayout.setColumnMinimumWidth(col, size)
+
+    def set_minimum_height_for_row(self, row, size):
+        self.gridLayout.setRowMinimumHeight(row, size)
+
+    def find_needed_color(self, check):
+        """
+        helepr metoda koja vraca zelenu boju ako check ima vrijednost 'Da'. U
+        protivnom vraca crvenu boju.
+        """
+        test = check
+        test = test.lower()
+        if test == 'da':
+            color = QtGui.QColor(QtGui.QColor(0, 255, 0, 90))
+        else:
+            color = QtGui.QColor(QtGui.QColor(255, 0, 0, 90))
+        return color
+
+    def clear_results(self):
+        """
+        Clear rezultata tablice
+        """
+        #resert color
+        self.set_row_background_color(QtGui.QColor(QtCore.Qt.white))
+        self.pos11.setText('')
+        self.pos12.setText('')
+        self.pos13.setText('')
+        self.pos14.setText('')
+        self.pos15.setText('')
+        self.pos16.setText('')
+
+    def set_values(self, data):
+        """
+        setter vrijednosti u tablicu
+        ulazni parametar je nested lista s potenicijalno 0 elemenata i max 5.
+        svaki element sadrzi listu sa:
+        [naziv, tocka norme, kratka oznaka, vrijednost, uvijet prihvatljivosti, ispunjeno]
+        """
+        self.clear_results()
+        try:
+            self.pos11.setText(data[0])
+            self.pos12.setText(data[1])
+            self.pos13.setText(data[2])
+            self.pos14.setText(data[3])
+            self.pos15.setText(data[4])
+            ispunjeno = data[5]
+            self.pos16.setText(ispunjeno)
+            color = self.find_needed_color(ispunjeno)
+            self.set_row_background_color(color)
+        except Exception:
+            pass
+
+    def set_row_background_color(self, color):
+        """
+        metoda za promjenu pozadinske boje reda u tablici
+        ulazni parametar je boja (QColor)
+        """
+        self.pos10.set_color(color)
+        self.pos11.set_color(color)
+        self.pos12.set_color(color)
+        self.pos13.set_color(color)
+        self.pos14.set_color(color)
+        self.pos15.set_color(color)
+        self.pos16.set_color(color)
+
+
+
 class TablicaUmjeravanjeKriterij(QtGui.QWidget):
     """
     Tablica za parametre umjeravanja (kriterij prihvatljivosti)
@@ -290,6 +416,7 @@ class TablicaKonverterParametri(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent=parent)
 
         self.naslov = CustomLabel(tekst='<b> Efikasnost konvertera (%) </b>', center=True)
+        self.n0 = CustomLabel(tekst='<b>#</b>', center=True)
         self.n1 = CustomLabel(tekst=' <b>Ec1 = </b> ', center=True)
         self.n2 = CustomLabel(tekst=' <b>Ec2 = </b> ', center=True)
         self.n3 = CustomLabel(tekst=' <b>Ec3 = </b> ', center=True)
@@ -306,6 +433,7 @@ class TablicaKonverterParametri(QtGui.QWidget):
         self.gridLayout.setContentsMargins(0,0,0,0)
 
         self.gridLayout.addWidget(self.naslov, 0, 1, 1, 1)
+        self.gridLayout.addWidget(self.n0, 0, 0, 1, 1)
         self.gridLayout.addWidget(self.n1, 1, 0, 1, 1)
         self.gridLayout.addWidget(self.n2, 2, 0, 1, 1)
         self.gridLayout.addWidget(self.n3, 3, 0, 1, 1)
