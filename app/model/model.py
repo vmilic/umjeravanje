@@ -65,6 +65,8 @@ class DokumentModel(QtCore.QObject):
         self.proizvodjacUredjaja = ''
         self.provjeraUmjeravanje = True
         self.provjeraPonovljivost = False
+        self.provjeraOdaziv = False #TODO!
+        #TODO! nedostaje member koji drzi spremljenu mapu za odaziv (load i save)
         self.init_uredjaje_i_postaje_sa_REST()
 
     def init_tockeUmjeravanja(self, tocke=None):
@@ -559,6 +561,16 @@ class DokumentModel(QtCore.QObject):
     def get_provjeraUmjeravanje(self):
         """getter za provjeru umjeravanja"""
         return self.provjeraUmjeravanje
+
+    def set_provjeraOdaziv(self, x):
+        """setter za provjeru vremena odaziva, rise i fall"""
+        x = bool(x)
+        if x != self.provjeraOdaziv:
+            self.provjeraOdaziv = x
+
+    def get_provjeraOdaziv(self):
+        """getter za provjeru odaziva (rise , fall)"""
+        return self.provjeraOdaziv
 
     def set_provjeraPonovljivost(self, x, recalculate=True):
         """setter za test ponovljivosti (zero, span). ulazni parametar je boolean"""

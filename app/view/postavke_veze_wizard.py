@@ -233,6 +233,11 @@ class PageIzborProtokola(QtGui.QWizardPage):
         listaStopBitova = ['1', '2']
         self.stopBitovi.addItems(listaStopBitova)
 
+        self.flowControlLabel = QtGui.QLabel('Kontrola :')
+        self.flowControl = QtGui.QComboBox()
+        listaKontrole = ['None', 'XON/XOFF (software)', 'RTS/CTS (hardware)']
+        self.flowControl.addItems(listaKontrole)
+
         layout = QtGui.QGridLayout()
         layout.addWidget(self.ipAddressLabel, 0, 0, 1, 1)
         layout.addWidget(self.ipAddress, 0, 1, 1, 1)
@@ -248,6 +253,8 @@ class PageIzborProtokola(QtGui.QWizardPage):
         layout.addWidget(self.brojBitova, 5 ,1 ,1, 1)
         layout.addWidget(self.stopBitoviLabel, 6 ,0 ,1, 1)
         layout.addWidget(self.stopBitovi, 6 ,1 ,1, 1)
+        layout.addWidget(self.flowControlLabel, 7, 0, 1, 1)
+        layout.addWidget(self.flowControl, 7, 1, 1, 1)
         self.setLayout(layout)
 
     def dohvati_konfig_element(self, section, option, fallback):
@@ -273,6 +280,8 @@ class PageIzborProtokola(QtGui.QWizardPage):
             self.brojBitova.setVisible(False)
             self.stopBitoviLabel.setVisible(False)
             self.stopBitovi.setVisible(False)
+            self.flowControlLabel.setVisible(False)
+            self.flowControl.setVisible(False)
         elif veza == 'RS-232':
             self.ipAddressLabel.setVisible(False)
             self.ipAddress.setVisible(False)
@@ -288,6 +297,9 @@ class PageIzborProtokola(QtGui.QWizardPage):
             self.brojBitova.setVisible(True)
             self.stopBitoviLabel.setVisible(True)
             self.stopBitovi.setVisible(True)
+            self.flowControlLabel.setVisible(True)
+            self.flowControl.setVisible(True)
+
         else:
             pass
 
@@ -307,6 +319,16 @@ class PageIzborProtokola(QtGui.QWizardPage):
             self.postavkeProtokola['brojBitova'] = int(self.brojBitova.currentText())
             self.postavkeProtokola['stopBitovi'] = int(self.stopBitovi.currentText())
             self.postavkeProtokola['protokol'] = self.tipRS232veze.currentText()
+            value = self.flowControl.currentText()
+            if value == 'None':
+                self.postavkeProtokola['xon/xoff'] = False
+                self.postavkeProtokola['rts/cts'] = False
+            elif value == 'XON/XOFF (software)':
+                self.postavkeProtokola['xon/xoff'] = True
+                self.postavkeProtokola['rts/cts'] = False
+            elif value == 'RTS/CTS (hardware)':
+                self.postavkeProtokola['xon/xoff'] = False
+                self.postavkeProtokola['rts/cts'] = True
         else:
             pass
         return self.postavkeProtokola

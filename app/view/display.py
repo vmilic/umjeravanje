@@ -22,6 +22,7 @@ import app.view.tab_rezultat as rezultat
 import app.view.tab_postavke as postavke
 import app.view.tab_kolektor as kolektor
 import app.view.tab_konverter as konverter
+import app.view.tab_odaziv as odaziv
 
 
 BASE, FORM = uic.loadUiType('./app/view/uiFiles/display.ui')
@@ -55,6 +56,7 @@ class GlavniProzor(BASE, FORM):
         ### setup konstantne tabove ###
         self.tabPostavke = postavke.PostavkeTab(dokument=self.dokument)
         self.tabKonverter = konverter.KonverterPanel(dokument=self.dokument)
+        self.tabOdaziv = odaziv.RiseFallGlavniProzor(dokument=self.dokument)
 
         self.glavniTabWidget.addTab(self.tabPostavke, 'Postavke')
 
@@ -147,6 +149,9 @@ class GlavniProzor(BASE, FORM):
         self.connect(self.dokument,
                      QtCore.SIGNAL('load_saved_tab_konverter'),
                      self.load_saved_tab_konverter)
+        self.connect(self.tabPostavke,
+                     QtCore.SIGNAL('enable_tab_odaziv(PyQt_PyObject)'),
+                     self.toggle_tab_odaziv)
 
     def clear_tabove_rezultata(self):
         """
@@ -304,8 +309,7 @@ class GlavniProzor(BASE, FORM):
         """
         racunanje umjeravanja za sve stupce u sirovim podacima
         """
-        #TODO! wait cursor?
-        print('recalculate')
+        print('recalculating...')
         #potrebne postavke
         plin = self.dokument.get_izabranoMjerenje()
         frejm = self.dokument.get_siroviPodaci()
@@ -389,6 +393,7 @@ class GlavniProzor(BASE, FORM):
             if not filepath.endswith('.usf'):
                 filepath = filepath + '.usf'
             self.dokument.save_dokument(filepath)
+            #TODO! nedostaje dio za rise /fall test
 
     def load_umjeravanje_from_file(self):
         """ucitavanje dokumenta iz spremljenog filea"""
@@ -398,6 +403,7 @@ class GlavniProzor(BASE, FORM):
         if filepath:
             self.clear_tabove_rezultata() #potrebno je makuti tabove...
             self.dokument.load_dokument(filename=filepath)
+            #TODO! nedostaje dio za rise/fall test
 
     def set_labelUredjaj(self, tekst):
         """Setter serijskog broja uredjaja (tekst) u label"""
@@ -429,6 +435,7 @@ class GlavniProzor(BASE, FORM):
                 logging.error(str(err), exc_info=True)
                 msg = "\n".join(['Izvještaj nije uspješno generiran.', str(err)])
                 QtGui.QMessageBox.information(self, 'Problem', msg)
+            #TODO! nedostaje integracija odaziva u report
 
     def pripremi_rezultate_za_report(self):
         """
@@ -474,17 +481,33 @@ class GlavniProzor(BASE, FORM):
         self.dokument.set_listaMjerenja(komponente)
         self.recalculate()
 
+    def toggle_tab_odaziv(self, x):
+        """prikaz taba za provjeru vremena odaziva"""
+        #TODO!
+        self.dokument.set_provjeraOdaziv(x) #toggle check u dokumentu
+        if x:
+            self.glavniTabWidget.addTab(self.tabOdaziv, 'Provjera odaziva')
+        else:
+            indeks = self.glavniTabWidget.indexOf(self.tabOdaziv)
+            if indeks != -1:
+                self.glavniTabWidget.removeTab(indeks)
+
+    def load_saved_tab_odaziv(self):
+        """load taba provjera odaziva iz spremljenog umjeravanja"""
+        #TODO!
+        self.tabPostavke.checkBoxRiseFall.setChecked(True)
+
+
     def toggle_tab_konverter(self, x):
         """prikaz taba za provjeru konvertera ovisno o booleanu x"""
+        self.dokument.set_provjeraKonvertera(x) #toggle check u dokumentu
         if x:
-            self.dokument.set_provjeraKonvertera(x) #toggle check u dokumentu
             self.glavniTabWidget.addTab(self.tabKonverter, 'Provjera konvertera')
             #reinicijalizacija tocaka i postavljanje pocetka na 0
             self.dokument.init_tockeKonverter()
             self.dokument.konverterPodaciStart = 0
             self.recalculate_konverter()
         else:
-            self.dokument.set_provjeraKonvertera(x)
             indeks = self.glavniTabWidget.indexOf(self.tabKonverter) # -1 if not found
             if indeks != -1:
                 self.glavniTabWidget.removeTab(indeks)
@@ -494,5 +517,3 @@ class GlavniProzor(BASE, FORM):
         #upali tab, (prebaci check toggle u postavkama)
         self.tabPostavke.checkBoxKonverterTab.setChecked(True)
         self.recalculate_konverter()
-
-

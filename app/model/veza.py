@@ -34,7 +34,9 @@ class RS232Veza(object):
                    bytesize=8,
                    parity='none',
                    stopbits=1,
-                   timeout=1):
+                   timeout=1,
+                   xonxoff=False,
+                   rtscts=False):
         """Otvaranje RS232 veze. Parametar postavke sadrzi podatke za konfiguraciju
         veze.
         --> port
@@ -50,6 +52,10 @@ class RS232Veza(object):
             - dopustene vrijednosti : [1, 1.5, 2]
         --> timeout
             - dopustene vrijednosti : None (blocking),  0 (non blocking), n sekundi (float)
+        --> xonxoff
+            - software flow control : boolean
+        --> rtscts
+            -hardware flow control (Ready To Send/Clear To Send) :boolean
         """
         bytesize = BYTESIZES[bytesize]
         stopbits = STOPBITS[stopbits]
@@ -62,6 +68,8 @@ class RS232Veza(object):
         self.connection.setStopbits(stopbits)
         self.connection.setTimeout(timeout)
         self.connection.setWriteTimeout(timeout)
+        self.connection.setXonXoff(xonxoff)
+        self.connection.setRtsCts(rtscts)
 
     def otvori_vezu(self):
         """ otvaranje veze """

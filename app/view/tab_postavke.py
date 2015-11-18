@@ -20,6 +20,8 @@ class PostavkeTab(BASE1, FORM1):
         self.set_connections()
 
     def set_connections(self):
+        # checkbox za provjeru odaziva (rise & fall)
+        self.checkBoxRiseFall.toggled.connect(self.toggle_tab_odaziv)
         # checkbox za umjeravanje
         self.checkUmjeravanje.toggled.connect(self.toggle_umjeravanje)
         self.connect(self.dokument,
@@ -157,6 +159,13 @@ class PostavkeTab(BASE1, FORM1):
     def postavke_request_recalculate(self):
         """emit zahtjeva za ponovnim racunajnem"""
         self.emit(QtCore.SIGNAL('postavke_request_recalculate'))
+
+    def toggle_tab_odaziv(self, x):
+        """emitiranje zahtjeva za prikazom ili skrivanjem taba za provjeru odaziva
+        (rise i fall)"""
+        self.emit(QtCore.SIGNAL('enable_tab_odaziv(PyQt_PyObject)'),
+                  x)
+        #TODO!
 
     def toggle_umjeravanje(self, x):
         """emitiranje vrijednosti checka za test umjeravanja"""

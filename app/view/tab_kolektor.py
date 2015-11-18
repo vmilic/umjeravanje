@@ -187,7 +187,9 @@ class Kolektor(BASE2, FORM2):
                                      baudrate=postavke['brzina'],
                                      bytesize=postavke['brojBitova'],
                                      parity=postavke['paritet'],
-                                     stopbits=postavke['stopBitovi'])
+                                     stopbits=postavke['stopBitovi'],
+                                     xonxoff=postavke['xon/xoff'],
+                                     rtscts=postavke['rts/cts'])
             self.komObjekt.set_veza(self.veza)
             #set protokola komunikacije
             temp = postavke['protokol']
