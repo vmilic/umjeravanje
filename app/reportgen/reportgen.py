@@ -717,99 +717,115 @@ class ReportGenerator(object):
             parts.append(tabla11)
         return (parts, trenutnaStranica)
 
-
-    def generiraj_report(self, ime, dokument, rezultati):
+    def generiraj_report(self, ime, dokument):
         """
         metoda za generiranje izvjestaja:
         ime --> path + naziv pdf filea
         dokument --> instanca dokumenta
-        rezultati --> nested dict rezultata podataka za report
+
+
+        1. treba dohvatiti koliko ima mjerenja, tj. koliko ima aktivnih mjerenja za report
+        2. odrediti ukupan broj stranica (naslovna + za svaki pojedini plin)
+        3. sastavljanje tablica ovisno o zadanim testovima pojedine provjere
         """
-        self.dokument = dokument
-        self.testLinearnosti = self.dokument.get_provjeraLinearnosti()
-        self.testUmjeravanje = self.dokument.get_provjeraUmjeravanje()
-        self.testPonovljivost = self.dokument.get_provjeraPonovljivost()
-        self.testKonverter = self.dokument.get_provjeraKonvertera()
-        self.testKriterij = self.testPonovljivost or self.testKonverter or self.testLinearnosti
+        #TODO! rework generiranja reporta:
+        rezultati = 10
+        dokument = dokument
 
-        nStranica = 1
-        NOStranica = 1
-        if self.testUmjeravanje:
-            nStranica = nStranica + len(rezultati)
-            NOStranica += 1
-        if self.testKriterij:
-            nStranica = nStranica + len(rezultati)
-            NOStranica += 1
-        trenutnaStranica = 1
+        #TODO! broj stranica
+        mjerenja = self.dokument.get_mjerenja()
+        listaAktivnihMjerenja = [i for i in mjerenja.keys() if mjerenja[i]['generateReportCheck'] == True]
 
-        #pdf templata
-        doc = SimpleDocTemplate(ime,
-                                pagesize=A4,
-                                topMargin=0.4*inch,
-                                bottomMargin=0.4*inch,
-                                leftMargin=0.5*inch,
-                                rightMargin=0.5*inch,
-                                allowSplitting=0)
-        #lista flowable elemenata za report
-        parts = []
-        razmak = Spacer(1, 0.29*inch)
-        #Generiranje prve stranice reporta (Uredjaj, CRM, vrijeme, okolisni uvijeti...)
-        if 'NO' in rezultati.keys():
-            head1 = self.generiraj_header_tablicu(stranica=trenutnaStranica,
-                                                  total=NOStranica)
-        else:
-            head1 = self.generiraj_header_tablicu(stranica=trenutnaStranica,
-                                                  total=nStranica)
-        parts.append(head1)
-        parts.append(razmak)
-        tabla1 = self.generiraj_tablicu_podataka_o_uredjaju()
-        parts.append(tabla1)
-        parts.append(razmak)
-        tabla2 = self.generiraj_crm_tablicu()
-        parts.append(tabla2)
-        parts.append(razmak)
-        tabla3 = self.generiraj_tablicu_kalibracijske_jedinice()
-        parts.append(tabla3)
-        parts.append(razmak)
-        tabla4 = self.generiraj_tablicu_izvora_cistog_zraka()
-        parts.append(tabla4)
-        parts.append(razmak)
-        tabla5 = self.generiraj_tablicu_vremena_pocetka_i_kraja_umjeravanja()
-        parts.append(tabla5)
-        parts.append(razmak)
-        tabla6 = self.generiraj_tablicu_okolisnih_uvijeta_tjekom_provjere()
-        parts.append(tabla6)
-        parts.append(razmak)
-        tabla7 = self.generiraj_tablicu_datum_mjeritelj_voditelj()
-        parts.append(tabla7)
-        #kraj prve stranice
-        if 'NO' in rezultati.keys():
-            plin = 'NO'
-            parts, trenutnaStranica = self.generiraj_stranice_reporta_za_zadani_plin(plin,
-                                                                                     rezultati,
-                                                                                     parts,
-                                                                                     trenutnaStranica,
-                                                                                     NOStranica,
-                                                                                     razmak)
-        else:
-            #loop kroz sve plinove
-            for plin in rezultati:
-                parts, trenutnaStranica = self.generiraj_stranice_reporta_za_zadani_plin(plin,
-                                                                                         rezultati,
-                                                                                         parts,
-                                                                                         trenutnaStranica,
-                                                                                         nStranica,
-                                                                                         razmak)
+        nStranica = 1 #zaglavlje
+        if 'konverter' in listaAktivnihMjerenja:
+            listaAktivnihMjerenja.remove('konverter')
+        print('lista aktivnih mjerenja')
+        print(listaAktivnihMjerenja)
 
-        parts.append(razmak)
-        #generiraj tablicu sa napomenom ako napomena postoji
-        tablicaNapomene = self.generiraj_tablicu_napomene()
-        if tablicaNapomene != None:
-            parts.append(tablicaNapomene)
-            parts.append(razmak)
-        #generiraj kraj ispitnog izvjesca
-        annotation2_stil = self.generate_paragraph_style()
-        annotation2 = Paragraph('Kraj ispitnog izvješća.', annotation2_stil)
-        parts.append(annotation2)
-        #zavrsna naredba za konstrukciju dokumenta
-        doc.build(parts)
+#        self.testLinearnosti = self.dokument.get_provjeraLinearnosti()
+#        self.testUmjeravanje = self.dokument.get_provjeraUmjeravanje()
+#        self.testPonovljivost = self.dokument.get_provjeraPonovljivost()
+#        self.testKonverter = self.dokument.get_provjeraKonvertera()
+#        self.testKriterij = self.testPonovljivost or self.testKonverter or self.testLinearnosti
+#
+#        nStranica = 1
+#        NOStranica = 1
+#        if self.testUmjeravanje:
+#            nStranica = nStranica + len(rezultati)
+#            NOStranica += 1
+#        if self.testKriterij:
+#            nStranica = nStranica + len(rezultati)
+#            NOStranica += 1
+#        trenutnaStranica = 1
+#
+#        #pdf templata
+#        doc = SimpleDocTemplate(ime,
+#                                pagesize=A4,
+#                                topMargin=0.4*inch,
+#                                bottomMargin=0.4*inch,
+#                                leftMargin=0.5*inch,
+#                                rightMargin=0.5*inch,
+#                                allowSplitting=0)
+#        #lista flowable elemenata za report
+#        parts = []
+#        razmak = Spacer(1, 0.29*inch)
+#        #Generiranje prve stranice reporta (Uredjaj, CRM, vrijeme, okolisni uvijeti...)
+#        if 'NO' in rezultati.keys():
+#            head1 = self.generiraj_header_tablicu(stranica=trenutnaStranica,
+#                                                  total=NOStranica)
+#        else:
+#            head1 = self.generiraj_header_tablicu(stranica=trenutnaStranica,
+#                                                  total=nStranica)
+#        parts.append(head1)
+#        parts.append(razmak)
+#        tabla1 = self.generiraj_tablicu_podataka_o_uredjaju()
+#        parts.append(tabla1)
+#        parts.append(razmak)
+#        tabla2 = self.generiraj_crm_tablicu()
+#        parts.append(tabla2)
+#        parts.append(razmak)
+#        tabla3 = self.generiraj_tablicu_kalibracijske_jedinice()
+#        parts.append(tabla3)
+#        parts.append(razmak)
+#        tabla4 = self.generiraj_tablicu_izvora_cistog_zraka()
+#        parts.append(tabla4)
+#        parts.append(razmak)
+#        tabla5 = self.generiraj_tablicu_vremena_pocetka_i_kraja_umjeravanja()
+#        parts.append(tabla5)
+#        parts.append(razmak)
+#        tabla6 = self.generiraj_tablicu_okolisnih_uvijeta_tjekom_provjere()
+#        parts.append(tabla6)
+#        parts.append(razmak)
+#        tabla7 = self.generiraj_tablicu_datum_mjeritelj_voditelj()
+#        parts.append(tabla7)
+#        #kraj prve stranice
+#        if 'NO' in rezultati.keys():
+#            plin = 'NO'
+#            parts, trenutnaStranica = self.generiraj_stranice_reporta_za_zadani_plin(plin,
+#                                                                                     rezultati,
+#                                                                                     parts,
+#                                                                                     trenutnaStranica,
+#                                                                                     NOStranica,
+#                                                                                     razmak)
+#        else:
+#            #loop kroz sve plinove
+#            for plin in rezultati:
+#                parts, trenutnaStranica = self.generiraj_stranice_reporta_za_zadani_plin(plin,
+#                                                                                         rezultati,
+#                                                                                         parts,
+#                                                                                         trenutnaStranica,
+#                                                                                         nStranica,
+#                                                                                         razmak)
+#
+#        parts.append(razmak)
+#        #generiraj tablicu sa napomenom ako napomena postoji
+#        tablicaNapomene = self.generiraj_tablicu_napomene()
+#        if tablicaNapomene != None:
+#            parts.append(tablicaNapomene)
+#            parts.append(razmak)
+#        #generiraj kraj ispitnog izvjesca
+#        annotation2_stil = self.generate_paragraph_style()
+#        annotation2 = Paragraph('Kraj ispitnog izvješća.', annotation2_stil)
+#        parts.append(annotation2)
+#        #zavrsna naredba za konstrukciju dokumenta
+#        doc.build(parts)

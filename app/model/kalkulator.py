@@ -7,24 +7,45 @@ Created on Tue May 12 10:05:56 2015
 import logging
 import numpy as np
 import pandas as pd
-from PyQt4 import QtCore
 
-
-class RacunUmjeravanja(QtCore.QObject):
-    """
-    Klasa za racunanje parametara umjeravanja.
-    """
-    def __init__(self, doc=None, parent=None):
-        QtCore.QObject.__init__(self, parent=parent)
-        self.doc = doc #dokument sa podacima za racunanje
+class Kalkulator(object):
+    """klasa za racunanje rezultata umjeravanja, ponovljivosti, linearnosti"""
+    def __init__(self, doc=None, mjerenje=None):
+        """inicijalizacija sa:
+        1. doc
+            -instancom dokumenta
+            -potrebna zbog globalnih postavki za racunanje
+        2. mjerenje
+            -string koji definira s kojom komponentom se racuna
+        """
+        self.set_dokument(doc)
+        self.set_mjerenje(mjerenje)
         self.reset_results()
+
+    def set_mjerenje(self, x):
+        """setter izabranog mjerenja"""
+        self.izabranoMjerenje = x
+
+    def get_mjerenje(self):
+        """getter izabranog mjerenja"""
+        return self.izabranoMjerenje
+
+    def set_dokument(self, x):
+        """setter instance dokumenta"""
+        self.doc = x
+
+    def get_dokument(self):
+        """getter instance dokumenta"""
+        return self.doc
 
     def reset_results(self):
         """
         Reset membera koji sadrze rezultate na defaultnu pocetnu vrijednost
         prije racunanja.
         """
-        self.rezultat = self.doc.generiraj_nan_frejm_rezultata_umjeravanja()
+        self.tocke = self.doc.init_tockeUmjeravanja()
+        self.frejm = pd.DataFrame()
+        self.rezultat = self.generiraj_nan_frejm_rezultata_umjeravanja()
         self.prilagodbaA = np.NaN
         self.prilagodbaB = np.NaN
         self.slope = np.NaN
@@ -59,34 +80,16 @@ class RacunUmjeravanja(QtCore.QObject):
                                  'rmax':self.rmax}
         logging.debug('All result members reset to np.NaN')
 
-    def set_dokument(self, x):
-        """Setter dokumenta u kalkulator"""
-        self.doc = x
-
-    def get_dokument(self):
-        """Getter dokumenta iz kalkulatora"""
-        return self.doc
-
-    def dohvati_slajs_tocke(self, tocka):
+    def generiraj_nan_frejm_rezultata_umjeravanja(self):
         """
-        Funkcija za dohvacanje slajsa podataka iz ciljanog frejma
-        Tocka je jedna od definiranih u konfig objektu
-
-        output je lista 3 minutno agregiranih vrijednosti podataka u slajsu
+        metoda generira datafrejm sa 6 stupaca i n redaka (n je broj umjernih
+        tocaka prezuetih iz konfiga), radi inicijalnog prikaza tablice
+        rezultata umjeravanja. Sve vrijednosti tog datafrejma su np.NaN
         """
-        frejm = self.doc.get_siroviPodaci()
-        cols = list(frejm.columns)
-        ind = cols.index(self.doc.get_izabranoMjerenje())
-        start = min(tocka.indeksi)
-        end = max(tocka.indeksi)
-        siroviSlajs = frejm.iloc[start:end+1, ind]
-        agregiraniSlajs = []
-        for i in range(0, len(siroviSlajs), 3):
-            s = siroviSlajs[i:i+3]
-            if len(s) == 3:
-                value = np.average(s)
-                agregiraniSlajs.append(value)
-        return agregiraniSlajs
+        frejm = pd.DataFrame(
+            columns=['cref', 'U', 'c', u'\u0394', 'sr', 'r'],
+            index=list(range(len(self.tocke))))
+        return frejm
 
     def provjeri_ispravnost_parametara(self):
         """
@@ -94,21 +97,20 @@ class RacunUmjeravanja(QtCore.QObject):
         Funkcija vraca True ako sve valja, False inace
         """
         try:
-            frejm = self.doc.get_siroviPodaci()
-            udots = self.doc.get_tockeUmjeravanja()
-            mjerenje = self.doc.get_izabranoMjerenje()
+            model = self.doc.get_model(mjerenje=self.izabranoMjerenje)
+            tocke = model.get_tocke()
+            frejm = model.get_frejm()
             opseg = self.doc.get_opseg()
             cCRM = self.doc.get_koncentracijaCRM()
             sCRM = self.doc.get_sljedivostCRM()
-            cf = [float(tocka.crefFaktor) for tocka in udots]
+            cf = [float(tocka.crefFaktor) for tocka in tocke]
             negativniFaktori = [faktor for faktor in cf if faktor < 0]
             dilucija = self.doc.get_izabranaDilucija()
             zrak = self.doc.get_izabraniZrak()
             #provjere
             assert(isinstance(frejm, pd.core.frame.DataFrame)), 'Podaci nisu dobro zadani.'
             assert(len(frejm) > 0), 'Nema podataka.'
-            assert(len(udots) >= 2), 'Zadano je manje od dvije tocke za umjeravanje.'
-            assert(mjerenje in list(frejm.columns)), 'Podaci nemaju trazenu komponentu. komponenta={0}.'.format(str(mjerenje))
+            assert(len(tocke) >= 2), 'Zadano je manje od dvije tocke za umjeravanje.'
             assert(opseg is not None and opseg > 0), 'Opseg nije dobro definiran.'
             assert(cCRM is not None and cCRM > 0), 'Koncentracija CRM nije dobro definirana.'
             assert(sCRM is not None and sCRM >= 0), 'Sljedivost CRM nije dobro definirana.'
@@ -123,17 +125,7 @@ class RacunUmjeravanja(QtCore.QObject):
             logging.debug(msg, exc_info=True)
             return False
 
-    def racunaj(self):
-        """
-        Glavna funkcija racuna sve parametre umjeravanja. Nakon postavljanja
-        konfiga i podataka u objekt, pozovi ovu metoda za racunanje.
-        """
-        self.reset_results()
-        if self.provjeri_ispravnost_parametara():
-            tocke = self.doc.get_tockeUmjeravanja()
-            self.racunaj_vrijednosti_umjeravanja_za_listu_tocaka(tocke)
-
-    def racunaj_vrijednosti_umjeravanja_za_listu_tocaka(self, tocke):
+    def racunaj_vrijednosti_umjeravanja_za_listu_tocaka(self):
         """
         Racunanje parametara umjeravanja sa provjerom linearnosti.
         Funkcija sprema rezultate u membere:
@@ -149,7 +141,7 @@ class RacunUmjeravanja(QtCore.QObject):
             offset dobiven regresijom na pravac metodom najmanjih kvadrata
         """
         # napravi indekse i stupce za rezultantni frejm
-        indeks = [str(tocka) for tocka in tocke]
+        indeks = [str(tocka) for tocka in self.tocke]
         columns = ['cref',
                    'U',
                    'c',
@@ -163,7 +155,7 @@ class RacunUmjeravanja(QtCore.QObject):
         # racun koeficijenata funkcije prilagodbe
         self.prilagodbaA, self.prilagodbaB = self._izracunaj_prilagodbu()
         # racunanje parametara umjeravanja
-        for tocka in tocke:
+        for tocka in self.tocke:
             row = str(tocka)
             self.rezultat.loc[row, 'cref'] = self._izracunaj_cref(tocka)
             self.rezultat.loc[row, 'c'] = self._izracunaj_c(tocka)
@@ -172,67 +164,78 @@ class RacunUmjeravanja(QtCore.QObject):
             self.rezultat.loc[row, 'r'] = self._izracunaj_r(tocka)
             self.rezultat.loc[row, 'U'] = self._izracunaj_UR(tocka)
 
-#        # provjera ispravnosti parametara umjeravanja u odnosu na normu
-#        self.srz = self._provjeri_ponovljivost_stdev_u_nuli()
-#        self.srs = self._provjeri_ponovljivost_stdev_za_vrijednost()
-#        self.rz = self._provjeri_odstupanje_od_linearnosti_u_nuli()
-#        self.rmax = self._provjeri_maksimalno_relativno_odstupanje_od_linearnosti()
-
-        #TODO! sklapanje rezultata testova
-        if self.doc.get_provjeraPonovljivost():
+        # sklapanje rezultata testova
+        if self.doc.get_testPonovljivost(mjerenje=self.izabranoMjerenje):
             self.srz = self._provjeri_ponovljivost_stdev_u_nuli()
             self.srs = self._provjeri_ponovljivost_stdev_za_vrijednost()
             self.rezultatiTestova['srz'] = self.srz
             self.rezultatiTestova['srs'] = self.srs
-        if self.doc.get_provjeraLinearnosti():
+        if self.doc.get_testLinearnost(mjerenje=self.izabranoMjerenje):
             self.rz = self._provjeri_odstupanje_od_linearnosti_u_nuli()
             self.rmax = self._provjeri_maksimalno_relativno_odstupanje_od_linearnosti()
             self.rezultatiTestova['rz'] = self.rz
             self.rezultatiTestova['rmax'] = self.rmax
 
-    def _izracunaj_regresijske_koef(self):
+    def racunaj(self):
         """
-        Racunanje slope i offset linearne regresije.
-        Koristi se np.linalg.lstsq
+        Glavna funkcija racuna sve parametre umjeravanja. Nakon postavljanja
+        konfiga i podataka u objekt, pozovi ovu metoda za racunanje.
+        """
+        self.reset_results()
+        if self.provjeri_ispravnost_parametara():
+            model = self.doc.get_model(mjerenje=self.izabranoMjerenje)
+            self.tocke = model.get_tocke()
+            self.frejm = model.get_frejm()
+            self.racunaj_vrijednosti_umjeravanja_za_listu_tocaka()
 
-        #izbacena span vrijednost iz racunice
+    def pronadji_zero_span(self):
         """
-        try:
-            lin = self.doc.get_provjeraLinearnosti()
-            udots = self.doc.get_tockeUmjeravanja()
-            if lin:
-                zero, span = self.pronadji_zero_span_tocke()
-                dots = [tocka for tocka in udots if tocka != span]
-                x = [self._izracunaj_cref(tocka) for tocka in dots]
-                y = [self._izracunaj_c(tocka) for tocka in dots]
-                # sastavljanje matrice koeficijenata linearnog sustava
-                const = np.ones(len(x))
-                A = np.vstack([x, const])
-                A = A.T
-                slope, offset = np.linalg.lstsq(A, y)[0]
-                return slope, offset
-            else:
-                return np.NaN, np.NaN
-        except Exception as err:
-            logging.error(str(err), exc_info=True)
-            return np.NaN, np.NaN
+        Metoda pronalazi indekse za zero i span.
 
-    def _izracunaj_prilagodbu(self):
+        Zero je prva tocka koja ima crefFaktor jednak 0.0, a ako niti jedna
+        tocka nema taj crefFaktor, onda se uzima ona sa najmanjim crefFaktorom.
+        Span je prva tocka sa crefFaktorom 0.8, a ako niti jedna tocka nema
+        taj crefFaktor, onda se uzima ona sa najvecim crefFaktorom
         """
-        Racunanje koeficijenata funkcije prilagodbe
+        cf = [float(tocka.crefFaktor) for tocka in self.tocke]
+        if 0.0 in cf:
+            zero = cf.index(0.0)
+        else:
+            zero = cf.index(min(cf))
+        if 0.8 in cf:
+            span = cf.index(0.8)
+        else:
+            span = cf.index(max(cf))
+        return zero, span
+
+    def pronadji_zero_span_tocke(self):
         """
-        try:
-            zero, span = self.pronadji_zero_span()
-            zero, span = self.pronadji_zero_span_tocke()
-            crefSpan = self._izracunaj_cref(span)
-            cSpan = self._izracunaj_c(span)
-            cZero = self._izracunaj_c(zero)
-            A = crefSpan / (cSpan - cZero)
-            B = -cZero / A
-            return A, B
-        except Exception as err:
-            logging.error(str(err), exc_info=True)
-            return np.NaN, np.NaN
+        metoda vraca tuple zero i span tocke
+        """
+        zeroIndeks, spanIndeks = self.pronadji_zero_span()
+        zero = self.tocke[zeroIndeks]
+        span = self.tocke[spanIndeks]
+        return zero, span
+
+    def dohvati_slajs_tocke(self, tocka):
+        """
+        Funkcija za dohvacanje slajsa podataka iz ciljanog frejma
+        Tocka je jedna od definiranih u konfig objektu
+
+        output je lista 3 minutno agregiranih vrijednosti podataka u slajsu
+        """
+        cols = list(self.frejm.columns)
+        ind = cols.index(self.izabranoMjerenje)
+        start = min(tocka.indeksi)
+        end = max(tocka.indeksi)
+        siroviSlajs = self.frejm.iloc[start:end+1, ind]
+        agregiraniSlajs = []
+        for i in range(0, len(siroviSlajs), 3):
+            s = siroviSlajs[i:i+3]
+            if len(s) == 3:
+                value = np.average(s)
+                agregiraniSlajs.append(value)
+        return agregiraniSlajs
 
     def _izracunaj_cref(self, tocka):
         """
@@ -252,7 +255,7 @@ class RacunUmjeravanja(QtCore.QObject):
         datafrejmu.
         """
         try:
-            lin = self.doc.get_provjeraLinearnosti()
+            lin = self.doc.get_testLinearnost(mjerenje=self.izabranoMjerenje)
             if not lin:
                 zero, span = self.pronadji_zero_span_tocke()
                 if tocka == zero or tocka == span:
@@ -272,7 +275,7 @@ class RacunUmjeravanja(QtCore.QObject):
         Racunanje razlike izmjerene koncentracije i referentne vrijednosti
         """
         try:
-            lin = self.doc.get_provjeraLinearnosti()
+            lin = self.doc.get_testLinearnost(mjerenje=self.izabranoMjerenje)
             if not lin:
                 zero, span = self.pronadji_zero_span_tocke()
                 if tocka == zero or tocka == span:
@@ -290,7 +293,7 @@ class RacunUmjeravanja(QtCore.QObject):
         Racunanje stdev za tocku
         """
         try:
-            lin = self.doc.get_provjeraLinearnosti()
+            lin = self.doc.get_testLinearnost(mjerenje=self.izabranoMjerenje)
             if not lin:
                 zero, span = self.pronadji_zero_span_tocke()
                 if tocka == zero or tocka == span:
@@ -310,7 +313,7 @@ class RacunUmjeravanja(QtCore.QObject):
         racunanje r za zadanu tocku.
         """
         try:
-            lin = self.doc.get_provjeraLinearnosti()
+            lin = self.doc.get_testLinearnost(mjerenje=self.izabranoMjerenje)
             if lin:
                 zero, span = self.pronadji_zero_span_tocke()
                 if tocka == span:
@@ -403,6 +406,48 @@ class RacunUmjeravanja(QtCore.QObject):
         except Exception as err:
             logging.error(str(err), exc_info=True)
             return np.NaN
+
+    def _izracunaj_regresijske_koef(self):
+        """
+        Racunanje slope i offset linearne regresije.
+        Koristi se np.linalg.lstsq
+
+        #izbacena span vrijednost iz racunice
+        """
+        try:
+            lin = self.doc.get_testLinearnost(mjerenje=self.izabranoMjerenje)
+            if lin:
+                zero, span = self.pronadji_zero_span_tocke()
+                dots = [tocka for tocka in self.tocke if tocka != span]
+                x = [self._izracunaj_cref(tocka) for tocka in dots]
+                y = [self._izracunaj_c(tocka) for tocka in dots]
+                # sastavljanje matrice koeficijenata linearnog sustava
+                const = np.ones(len(x))
+                A = np.vstack([x, const])
+                A = A.T
+                slope, offset = np.linalg.lstsq(A, y)[0]
+                return slope, offset
+            else:
+                return np.NaN, np.NaN
+        except Exception as err:
+            logging.error(str(err), exc_info=True)
+            return np.NaN, np.NaN
+
+    def _izracunaj_prilagodbu(self):
+        """
+        Racunanje koeficijenata funkcije prilagodbe
+        """
+        try:
+            zero, span = self.pronadji_zero_span_tocke()
+            crefSpan = self._izracunaj_cref(span)
+            cSpan = self._izracunaj_c(span)
+            cZero = self._izracunaj_c(zero)
+            A = crefSpan / (cSpan - cZero)
+            B = -cZero / A
+            return A, B
+        except Exception as err:
+            logging.error(str(err), exc_info=True)
+            return np.NaN, np.NaN
 
     def _provjeri_ponovljivost_stdev_u_nuli(self):
         """
@@ -543,13 +588,12 @@ class RacunUmjeravanja(QtCore.QObject):
         ispunjeno]
         """
         try:
-            udots = self.doc.get_tockeUmjeravanja()
             uredjaji = self.doc.get_uredjaji()
             uredjaj = self.doc.get_izabraniUredjaj()
             normMin = float(uredjaji[uredjaj]['analitickaMetoda']['rmax']['min'])
             normMax = float(uredjaji[uredjaj]['analitickaMetoda']['rmax']['max'])
             zero, span = self.pronadji_zero_span_tocke()
-            dots = [tocka for tocka in udots if (tocka != zero and tocka != span)]
+            dots = [tocka for tocka in self.tocke if (tocka != zero and tocka != span)]
             r = [self._izracunaj_r(tocka) for tocka in dots]
             value = max(r)
             prihvatljivost = " ".join(['\u2264', str(normMax), '%'])
@@ -567,66 +611,43 @@ class RacunUmjeravanja(QtCore.QObject):
         except Exception as err1:
             logging.debug(str(err1), exc_info=True)
             output = ['Maksimalno relativno odstupanje od linearnosti',
-                      '',
+                      '9.6.2',
                       'r<sub>z,rel</sub> =',
                       np.NaN,
                       '',
                       'NE']
             return output
 
-    def pronadji_zero_span(self):
-        """
-        Metoda pronalazi indekse za zero i span.
-
-        Zero je prva tocka koja ima crefFaktor jednak 0.0, a ako niti jedna
-        tocka nema taj crefFaktor, onda se uzima ona sa najmanjim crefFaktorom.
-        Span je prva tocka sa crefFaktorom 0.8, a ako niti jedna tocka nema
-        taj crefFaktor, onda se uzima ona sa najvecim crefFaktorom
-        """
-        udots = self.doc.get_tockeUmjeravanja()
-        cf = [float(tocka.crefFaktor) for tocka in udots]
-        if 0.0 in cf:
-            zero = cf.index(0.0)
-        else:
-            zero = cf.index(min(cf))
-        if 0.8 in cf:
-            span = cf.index(0.8)
-        else:
-            span = cf.index(max(cf))
-        return zero, span
-
-    def pronadji_zero_span_tocke(self):
-        """
-        metoda vraca tuple zero i span tocke
-        """
-        udots = self.doc.get_tockeUmjeravanja()
-        zeroIndeks, spanIndeks = self.pronadji_zero_span()
-        zero = udots[zeroIndeks]
-        span = udots[spanIndeks]
-        return zero, span
-
     def get_provjeru_parametara(self):
         """
-        Metoda vraca testova. kljucevi su : 'srz', 'srs', 'rz', 'rmax'
+        Metoda vraca dict rezultata testova. kljucevi su : 'srz', 'srs', 'rz', 'rmax'
 
         Svaki element mape je lista sa elemetima :
         [naziv, tocka norme, kratka oznaka, vrijednost, uvijet prihvatljivosti, ispunjeno]
         """
         return self.rezultatiTestova
 
-    def get_slope_and_offset_list(self):
+    def get_slope_and_offset_map(self):
         """
-        Metoda vraca listu [slope, offset, prilagodbaA, prilagodbaB]
+        Metoda vraca mapu sa kljucevima: slope, offset, prilagodbaA, prilagodbaB
         """
-        return [self.slope, self.offset, self.prilagodbaA, self.prilagodbaB]
+        output = {'slope':self.slope,
+                  'offset':self.offset,
+                  'prilagodbaA':self.prilagodbaA,
+                  'prilagodbaB':self.prilagodbaB}
+        return output
 
-
-class ProvjeraKonvertera(object):
+    def get_tablicu_rezultata(self):
+        """metoda vraca tablicu rezultata umjeravanja"""
+        return self.rezultat
+################################################################################
+################################################################################
+class KonverterKalkulator(object):
     """
     kalkulator za provjeru konvertera
     """
     def __init__(self, doc=None, parent=None):
-        self.doc = doc #dokument sa podacima za racunanje
+        self.doc = doc
         self.reset_results()
 
     def reset_results(self):
@@ -634,12 +655,14 @@ class ProvjeraKonvertera(object):
         Reset membera koji sadrze rezultate na defaultnu pocetnu vrijednost
         prije racunanja.
         """
-        self.rezultat = self.doc.generiraj_nan_frejm_rezultata_konvertera()
+        self.tocke = self.doc.init_tockeKonverter()
+        self.frejm = pd.DataFrame()
+
+        self.rezultat = self.generiraj_nan_frejm_rezultata_konvertera()
         self.ec1 = np.NaN
         self.ec2 = np.NaN
         self.ec3 = np.NaN
         self.ec = np.NaN
-        self.ec_list = [self.ec1, self.ec2, self.ec3, self.ec]
 
     def set_dokument(self, x):
         """Setter dokumenta u kalkulator"""
@@ -649,14 +672,26 @@ class ProvjeraKonvertera(object):
         """Getter dokumenta iz kalkulatora"""
         return self.doc
 
+    def generiraj_nan_frejm_rezultata_konvertera(self):
+        """
+        metoda generira datafrejm sa 4 stupca i 6 redaka radi inicijalnog prikaza
+        tablice rezultata umjeravanja. Sve vrijednosti tog datafrejma su np.NaN
+        """
+        indeks = [str(tocka) for tocka in self.tocke]
+        frejm = pd.DataFrame(
+            columns=['c, R, NOx', 'c, R, NO2', 'c, NO', 'c, NOx'],
+            index=indeks)
+        return frejm
+
     def provjeri_parametre_prije_racunanja(self):
         """
         Funkcija provjerava ispravnost parametara za provjeru konvertera.
         Funkcija vraca True ako sve valja, False inace.
         """
         try:
-            frejm = self.doc.get_siroviPodaci()
-            kdots = self.doc.get_tockeKonverter()
+            model = self.doc.get_model(mjerenje='konverter')
+            frejm = model.get_frejm()
+            tocke = model.get_tocke()
             opseg = self.doc.get_opseg()
             cnox50 = self.doc.get_cNOx50()
             cnox95 = self.doc.get_cNOx95()
@@ -667,7 +702,7 @@ class ProvjeraKonvertera(object):
             assert('NOx' in frejm.columns), 'Frejmu nedostaje stupac NOx'
             assert('NO' in frejm.columns), 'Frejmu nedostaje stupac NO'
             assert('NO2' in frejm.columns), 'Frejmu nedostaje stupac NO2'
-            assert(len(kdots) != 6), 'Za provjeru konvertera nuzno je tocno 6 tocaka. zadano ih je {0}'.format(len(kdots))
+            assert(len(tocke) == 6), 'Za provjeru konvertera nuzno je tocno 6 tocaka. zadano ih je {0}'.format(len(tocke))
             assert(opseg > 0), 'Opseg nije dobro zadan'
             assert(cnox50 > 0), 'cNOx50 nije dobro zadan'
             assert(cnox95 > 0), 'cNOx95 nije dobro zadan'
@@ -682,15 +717,17 @@ class ProvjeraKonvertera(object):
         racunanje provjere konvertera
         """
         self.reset_results()
-        if self.provjeri_parametre_prije_racunanja:
-            kdots = self.doc.get_tockeKonverter()
-            self.get_provjera_konvertera_za_listu_tocaka(kdots)
+        if self.provjeri_parametre_prije_racunanja():
+            model = self.doc.get_model(mjerenje='konverter')
+            self.tocke = model.get_tocke()
+            self.frejm = model.get_frejm()
+            self.racunaj_vrijednosti_provjere_konvertera()
 
-    def get_provjera_konvertera_za_listu_tocaka(self, tocke):
+    def racunaj_vrijednosti_provjere_konvertera(self):
         """
         metoda za racunanje rezultata provjere konvertera
         """
-        for tocka in tocke:
+        for tocka in self.tocke:
             row = str(tocka)
             self.rezultat.loc[row, 'c, R, NOx'] = self._izracunaj_crNOX(tocka)
             self.rezultat.loc[row, 'c, R, NO2'] = self._izracunaj_crNO2(tocka)
@@ -700,15 +737,13 @@ class ProvjeraKonvertera(object):
             self._izracunaj_ec2()
             self._izracunaj_ec3()
             self._izracunaj_ec()
-        self.ec_list = [self.ec1, self.ec2, self.ec3, self.ec]
 
     def _izracunaj_crNOX(self, tocka):
         """
         popunjavanje tablice sa ref vrijednostima koncentracije NOX
         """
-        kdots = self.doc.get_tockeKonverter()
         opseg = self.doc.get_opseg()
-        imena = [str(dot) for dot in kdots]
+        imena = [str(dot) for dot in self.tocke]
         ind = imena.index(str(tocka))
         if ind == 2:
             return 0
@@ -720,10 +755,9 @@ class ProvjeraKonvertera(object):
         """
         popunjavanje tablice sa ref vrijedsnotima koncentracije NO2
         """
-        kdots = self.doc.get_tockeKonverter()
         cnox50 = self.doc.get_cNOx50()
         cnox95 = self.doc.get_cNOx95()
-        imena = [str(dot) for dot in kdots]
+        imena = [str(dot) for dot in self.tocke]
         ind = imena.index(str(tocka))
         if ind == 1:
             return cnox50
@@ -756,9 +790,9 @@ class ProvjeraKonvertera(object):
 
     def _izracunaj_ec1(self):
         """funckija racuna ec1"""
-        numerator = self.rezultat.iloc[3, 3] - self.rezultat.iloc[4, 3]
-        denominator = self.rezultat.iloc[3, 2] - self.rezultat.iloc[4, 2]
         try:
+            numerator = self.rezultat.iloc[3, 3] - self.rezultat.iloc[4, 3]
+            denominator = self.rezultat.iloc[3, 2] - self.rezultat.iloc[4, 2]
             value = 1 - (numerator / denominator)
             self.ec1 = value * 100
         except ZeroDivisionError:
@@ -766,9 +800,9 @@ class ProvjeraKonvertera(object):
 
     def _izracunaj_ec2(self):
         """funckija racuna ec2"""
-        numerator = self.rezultat.iloc[0, 3] - self.rezultat.iloc[1, 3]
-        denominator = self.rezultat.iloc[0, 2] - self.rezultat.iloc[1, 2]
         try:
+            numerator = self.rezultat.iloc[0, 3] - self.rezultat.iloc[1, 3]
+            denominator = self.rezultat.iloc[0, 2] - self.rezultat.iloc[1, 2]
             value = 1 - (numerator / denominator)
             self.ec2 = value * 100
         except ZeroDivisionError:
@@ -776,9 +810,9 @@ class ProvjeraKonvertera(object):
 
     def _izracunaj_ec3(self):
         """funckija racuna ec3"""
-        numerator = self.rezultat.iloc[4, 3] - self.rezultat.iloc[5, 3]
-        denominator = self.rezultat.iloc[4, 2] - self.rezultat.iloc[5, 2]
         try:
+            numerator = self.rezultat.iloc[4, 3] - self.rezultat.iloc[5, 3]
+            denominator = self.rezultat.iloc[4, 2] - self.rezultat.iloc[5, 2]
             value = 1 - (numerator / denominator)
             self.ec3 = value * 100
         except ZeroDivisionError:
@@ -799,12 +833,11 @@ class ProvjeraKonvertera(object):
         Tocka je jedna od definiranih u konfig objektu
         stupac je string (stupac u datafrejmu)
         """
-        frejm = self.doc.get_siroviPodaci()
-        columns = list(frejm.columns)
+        columns = list(self.frejm.columns)
         ind = columns.index(stupac)
         start = min(tocka.indeksi)
         end = max(tocka.indeksi)
-        siroviSlajs = frejm.iloc[start:end+1, ind]
+        siroviSlajs = self.frejm.iloc[start:end+1, ind]
         agregiraniSlajs = []
         for i in range(0, len(siroviSlajs), 3):
             s = siroviSlajs[i:i+3]
@@ -813,11 +846,15 @@ class ProvjeraKonvertera(object):
                 agregiraniSlajs.append(value)
         return agregiraniSlajs
 
+    def get_rezultate_konvertera(self):
+        """vrati frejm tablicom rezultata provjere konvertera"""
+        return self.rezultat
+
     def get_listu_efikasnosti(self):
         """
         vrati listu provjere efikasnosti, [self.ec1, self.ec2, self.ec3, self.ec]
         """
-        return self.ec_list
+        return [self.ec1, self.ec2, self.ec3, self.ec]
 
     def get_ec_parametar(self):
         """metoda vraca formatirani parametar za procjenu efikasnosti konvertera"""

@@ -4,6 +4,12 @@
 Created on Mon May 18 12:21:15 2015
 
 @author: DHMZ-Milic
+
+#TODO! lokalni cache podataka sa resta...pokusaj ucitati kod loada (i update file), ako ne koristi file
+#TODO! definiranje novog uredjaja kroz dijalog (izbor komponenti/analitickih metoda...)
+
+#TODO! load spremljenih podataka (load odaziva) ne funkcionira dobro
+#TODO! report generator
 """
 
 import sys

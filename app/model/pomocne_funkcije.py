@@ -9,7 +9,23 @@ import copy
 import logging
 import xml.etree.ElementTree as ET
 import requests
+from functools import wraps
+from PyQt4 import QtGui, QtCore
 
+def activate_wait_spinner(function):
+    """dekorator za promjenu cursora u wait cursor prilikom dugotrajnih operacija"""
+    @wraps(function)
+    def new_func(*args, **kwargs):
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        try:
+            function(*args, **kwargs)
+        except Exception as err:
+            #reraise error
+            raise err
+        finally:
+            #return normal cursor shape
+            QtGui.QApplication.restoreOverrideCursor()
+    return new_func
 
 def parse_name_for_serial(fajl):
     """

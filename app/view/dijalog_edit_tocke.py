@@ -13,36 +13,30 @@ class EditTockuDijalog(BASE3, FORM3):
     """
     Dijalog za edit pojedine tocke
     """
-    def __init__(self, indeks=None, tocke=None, frejm=None, start=None, parent=None):
-        """
-        inicijalizacija sa:
-        -indeksom tocke koju editiramo
-        -listom tocaka
-        -frejmom sirovih podataka
-        -izabrani pocetni indeks
-        """
+    def __init__(self, parent=None, dokument=None, mjerenje=None, indeks=None):
+        """inicijalizacija sa instancom dokumenta, izabranim mjerenjem i indeksom
+        tocke s kojom radimo"""
         super(BASE3, self).__init__(parent)
         self.setupUi(self)
 
+        self.dokument = dokument
+        self.mjerenje = mjerenje
         self.indeks = indeks
-        self.tocke = copy.deepcopy(tocke)
+
+        docModel = self.dokument.get_model(mjerenje=self.mjerenje)
+        frejm = docModel.get_frejm().copy()
+        tocke = copy.deepcopy(docModel.get_tocke())
+        start = docModel.get_start()
+
+        self.model = modeli.SiroviFrameModel(frejm=frejm, tocke=tocke, start=start)
+        self.tocka = self.model.get_tocke()[self.indeks]
         self.frejm = frejm
-        self.startIndeks = start
-        self.selektiraniIndeks = None
-
-        self.dataModel = modeli.SiroviFrameModel()
-        self.dataModel.set_frejm(self.frejm)
-        self.dataModel.set_tocke(self.tocke)
-        self.dataModel.set_start(self.startIndeks)
-
-        self.tableViewPodaci.setModel(self.dataModel)
+        self.tableViewPodaci.setModel(self.model)
         self.tableViewPodaci.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
 
-        #PROBLEM sa dodavanjem i micanjem tocaka
-        self.tocka = self.tocke[self.indeks]
         try:
-            minIndeks = list(self.frejm.index)[min(self.tocka.indeksi)]
-            maxIndeks = list(self.frejm.index)[max(self.tocka.indeksi)]
+            minIndeks = list(frejm.index)[min(self.tocka.indeksi)]
+            maxIndeks = list(frejm.index)[max(self.tocka.indeksi)]
         except Exception:
             minIndeks = None
             maxIndeks = None
@@ -62,11 +56,11 @@ class EditTockuDijalog(BASE3, FORM3):
         self.gumbEnd.clicked.connect(self.set_end)
         self.tableViewPodaci.clicked.connect(self.set_selektirani_indeks)
 
-    def get_tocke(self):
+    def get_promjenjena_tocka(self):
         """
-        output modificiranih tocaka
+        output modificirane tocake
         """
-        return self.tocke
+        return self.tocka
 
     def set_selektirani_indeks(self, modelIndeks):
         """
@@ -94,7 +88,8 @@ class EditTockuDijalog(BASE3, FORM3):
             if len(raspon) < 15:
                 QtGui.QMessageBox.information(self, 'Pogreska', 'Tocka mora imati barem 15 minutnih vrijednosti.')
                 return
-            testPreklapanja = [tocka for tocka in self.tocke if tocka != self.tocka]
+            sveTocke = self.model.get_tocke()
+            testPreklapanja = [tocka for tocka in sveTocke if tocka != self.tocka]
             testPreklapanja = [tocka.test_indeksi_tocke_se_preklapaju(raspon) for tocka in testPreklapanja]
             if True in testPreklapanja:
                 QtGui.QMessageBox.information(self, 'Pogreska', 'Tocke se ne smiju preklapati.')
@@ -103,9 +98,8 @@ class EditTockuDijalog(BASE3, FORM3):
             noviStart = list(self.frejm.index)[minIndeks]
             self.labelStart.setText(str(noviStart))
             self.labelBrojPodataka.setText(str(len(self.tocka.indeksi)))
-            self.dataModel.layoutChanged.emit()
+            self.model.layoutChanged.emit()
             self.tableViewPodaci.update()
-
 
     def set_end(self):
         """
@@ -123,7 +117,8 @@ class EditTockuDijalog(BASE3, FORM3):
             if len(raspon) < 15:
                 QtGui.QMessageBox.information(self, 'Pogreska', 'Tocka mora imati barem 15 minutnih vrijednosti')
                 return
-            testPreklapanja = [tocka for tocka in self.tocke if tocka != self.tocka]
+            sveTocke = self.model.get_tocke()
+            testPreklapanja = [tocka for tocka in sveTocke if tocka != self.tocka]
             testPreklapanja = [tocka.test_indeksi_tocke_se_preklapaju(raspon) for tocka in testPreklapanja]
             if True in testPreklapanja:
                 QtGui.QMessageBox.information(self, 'Pogreska', 'Tocke se ne smiju preklapati.')
@@ -132,7 +127,7 @@ class EditTockuDijalog(BASE3, FORM3):
             noviKraj = list(self.frejm.index)[maxIndeks]
             self.labelEnd.setText(str(noviKraj))
             self.labelBrojPodataka.setText(str(len(self.tocka.indeksi)))
-            self.dataModel.layoutChanged.emit()
+            self.model.layoutChanged.emit()
             self.tableViewPodaci.update()
 
     def set_cref(self, value):

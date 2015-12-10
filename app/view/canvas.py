@@ -6,6 +6,7 @@ Created on Thu Apr  9 12:27:25 2015
 
 """
 import numpy as np
+import pandas as pd
 import datetime
 import logging
 from PyQt4 import QtGui
@@ -33,7 +34,7 @@ class Kanvas(FigCanvas):
         self.fig.set_tight_layout(True)
 
     def set_slope_offset(self, s, o):
-        """setter za slope i offsegt ako je provjera linearnosti ON"""
+        """setter za slope i offset ako je provjera linearnosti ON"""
         self.slope = s
         self.offset = o
 
@@ -90,9 +91,11 @@ class Kanvas(FigCanvas):
             korelacija = np.corrcoef(x, y)[0][1]
             if b > 0:
                 tekstl1 = 'pravac: c={0}*cref+{1}'.format(str(round(a, 2)), str(round(b, 2)))
-            else:
+            elif b < 0:
                 tekstl1 = 'pravac: c={0}*cref{1}'.format(str(round(a, 2)), str(round(b, 2)))
-            tekstl2 = 'korelacija = {0}'.format(str(round(korelacija, 3))) #round i ne radi ok...
+            else:
+                tekstl1 = 'pravac: c={0}*cref'.format(str(round(a, 2)))
+            tekstl2 = 'korelacija = {0}'.format(str(round(korelacija, 4)))
             tekst = "\n".join([tekstl1, tekstl2])
             self.axes.text(0.8,
                            0.2,
@@ -254,4 +257,108 @@ class GrafPreuzetihPodataka(FigCanvas):
         self.legenda = self.axes.legend(loc=1,
                                         fontsize=8,
                                         fancybox=True)
+        self.draw()
+
+
+class RiseFallKanvas(FigCanvas):
+    """
+    Canvas za prikaz grafova
+    init sa dictom lebela za osi
+    """
+    def __init__(self, meta=None, parent=None, width=8, height=5, dpi=100):
+        self.fig = Figure(figsize=(width, height), dpi=dpi)
+        self.axes = self.fig.add_subplot(111)
+        FigCanvas.__init__(self, self.fig)
+        self.setParent(parent)
+        FigCanvas.setSizePolicy(self,
+                                QtGui.QSizePolicy.MinimumExpanding,
+                                QtGui.QSizePolicy.Fixed)
+
+        FigCanvas.updateGeometry(self)
+        self.meta = meta
+        self.setup_labels()
+        self.fig.set_tight_layout(True)
+
+    def setup_labels(self):
+        """
+        Try to set labels to graph
+        """
+        try:
+            self.axes.set_xlabel(self.meta['xlabel'], fontsize=8)
+            self.axes.set_ylabel(self.meta['ylabel'], fontsize=8)
+            self.axes.set_title(self.meta['title'], fontsize=10)
+        except (KeyError, ValueError, TypeError):
+            pass
+
+    def clear_graf(self):
+        """
+        clear graf & redo labels
+        """
+        self.axes.clear()
+        self.setup_labels()
+
+    def crtaj(self, podaci=None, rezultati=None, high=90, low=10):
+        """
+        naredba za plot
+        -podaci su frejm sirovih podataka
+        -rezultati su frejm izabranih vremena upona i padova
+        """
+        self.clear_graf()
+        #print podataka
+        x = list(podaci.index)
+        y = list(podaci[:])
+        self.axes.plot(x,
+                       y,
+                       color='b',
+                       linewidth=0.8)
+        #set vertikalni raspon
+        ymin = 0
+        ymax = 10
+        if len(y):
+            ymin = min(y) #possible empty sequence on empty series..#TODO!
+            ymax = max(y)
+            delta = (ymax - ymin) / 20
+            ymin = ymin - delta
+            ymax = ymax + delta
+        self.axes.set_ylim((ymin, ymax))
+        #set horizontalni raspon
+        minimum = 0
+        maksimum = 10
+        if len(x):
+            minimum = min(x)
+            maksimum = max(x)
+            delta = (maksimum - minimum) / 100
+            minimum = minimum - delta
+            maksimum = maksimum + delta
+        self.axes.set_xlim((minimum, maksimum))
+        #label size & orientation
+        allXLabels = self.axes.get_xticklabels(which='both')
+        for label in allXLabels:
+            label.set_rotation(20)
+            label.set_fontsize(8)
+        #print vertikalnih linija iz rezultata
+        indeksi = rezultati.index
+        if len(indeksi) != 0:
+            for ind in indeksi:
+                value = rezultati.loc[ind, 'Naziv']
+                start = rezultati.loc[ind, 'Pocetak']
+                kraj= rezultati.loc[ind, 'Kraj']
+                delta = rezultati.loc[ind, 'Delta']
+                if isinstance(kraj, pd.tslib.NaTType):
+                    pass
+                else:
+                    if 'RISE' in value:
+                        self.axes.vlines(start, ymin, ymax, linestyles='dotted', color='g')
+                        self.axes.vlines(kraj, ymin, ymax, linestyles='dotted', color='g')
+                        self.axes.axvspan(start, kraj, color='g', alpha=0.2)
+                    elif 'FALL' in value:
+                        self.axes.vlines(start, ymin, ymax, linestyles='dotted', color='r')
+                        self.axes.vlines(kraj, ymin, ymax, linestyles='dotted', color='r')
+                        self.axes.axvspan(start, kraj, color='r', alpha=0.2)
+                    else:
+                        pass
+        # raspon za rise i fall
+        self.axes.hlines(low, minimum, maksimum, linestyles='dashed', color='k', alpha=0.4)
+        self.axes.hlines(high, minimum, maksimum, linestyles='dashed', color='k', alpha=0.4)
+        #zavrsna naredba za crtanje
         self.draw()

@@ -22,7 +22,7 @@ class IzborNazivaStupacaWizard(QtGui.QWizard):
         self.sekundniFrejm = self.frejm.copy()
         self.minutniFrejm = self.sekundniFrejm.resample('1min', how=np.average, closed='right', label='right')
         self.moguci = moguci
-        self.izbor = True
+        self.izbor = True #TODO!
 
         # opcije
         self.setWizardStyle(QtGui.QWizard.ModernStyle)
@@ -57,6 +57,15 @@ class IzborNazivaStupacaWizard(QtGui.QWizard):
 
     def get_minutni_frejm(self):
         return self.minutniFrejm
+
+    def get_ckecked_tabove(self):
+        """metoda odredjuje u koje tabove se spremaju preuzeti podaci"""
+        output = {}
+        for item in self.prebaciData.listaCheckboxeva: #lista checkboxeva
+            naziv = item.text()
+            value = item.isChecked()
+            output[naziv] = value
+        return output
 
 
 class PageSekundniToCsv(QtGui.QWizardPage):
@@ -247,24 +256,31 @@ class PagePrebaciData(QtGui.QWizardPage):
     def __init__(self, parent=None):
         QtGui.QWizard.__init__(self, parent)
         self.setTitle('Prebacivanje preuzetih podataka u radni dio aplikacije')
-        self.setSubTitle('Izaberite da li treba prebaciti prezuete podatke u radni dio aplikacije za umjeravanje.')
+        tekst = ['Izaberite u koje tabove treba prebaciti podatke.',
+                 'U tabove za mjerenje i provjeru konvertera spremaju se minutno usrednjeni podaci.',
+                 'U tabove za provjeru odaziva spremaju se sekundni podaci.']
+        t = ' '.join(tekst)
+        self.setSubTitle(t)
 
-        self.izbor = QtGui.QCheckBox('Umjeravanje sa ucitanim podacima :')
-
-        layout = QtGui.QHBoxLayout()
-        layout.addWidget(self.izbor)
-        self.setLayout(layout)
-
-        self.izbor.stateChanged.connect(self.promjena_izbora)
-
-    def promjena_izbora(self, x):
-        """
-        promjena checka za prebacivanje podataka u umjeravanje
-        """
-        self.wizard().izbor = self.izbor.isChecked()
+        self.lay = QtGui.QVBoxLayout()
+        self.setLayout(self.lay)
 
     def initializePage(self):
         """
         Funkcija se pokrece prilikom inicijalizacije stranice
         """
-        self.izbor.setChecked(True)
+        stupci = self.wizard().get_listu_stupaca()
+        if 'None' in stupci:
+            stupci.remove('None')
+
+        self.listaCheckboxeva = []
+
+        for stupac in stupci:
+            self.listaCheckboxeva.append(QtGui.QCheckBox(stupac))
+            name = stupac+'-odaziv'
+            self.listaCheckboxeva.append(QtGui.QCheckBox(name))
+        self.listaCheckboxeva.append(QtGui.QCheckBox('konverter'))
+
+        for item in self.listaCheckboxeva:
+            self.lay.addWidget(item)
+            item.setChecked(True)

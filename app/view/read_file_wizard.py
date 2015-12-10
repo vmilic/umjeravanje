@@ -6,10 +6,12 @@ Created on Wed Apr 29 12:15:30 2015
 """
 import os
 import logging
+import numpy as np
 import pandas as pd
 from PyQt4 import QtGui
 import app.model.pomocne_funkcije as helperi
 import app.model.frejm_model as modeli
+
 
 class CarobnjakZaCitanjeFilea(QtGui.QWizard):
     """
@@ -36,9 +38,11 @@ class CarobnjakZaCitanjeFilea(QtGui.QWizard):
         self.P1 = Page1Wizarda(parent=self)
         self.P2 = Page2Wizarda(parent=self)
         self.P3 = Page3Wizarda(parent=self)
+        self.P4 = Page4Wizarda(parent=self)
         self.setPage(1, self.P1)
         self.setPage(2, self.P2)
         self.setPage(3, self.P3)
+        self.setPage(4, self.P4)
         self.setStartId(1)
 
     def set_izbor(self, lista):
@@ -72,6 +76,23 @@ class CarobnjakZaCitanjeFilea(QtGui.QWizard):
                 outFrejm[stupci[i]] = self.P3.df.iloc[:,i]
         return outFrejm
 
+    def get_frejmovi(self):
+        """
+        Metoda vraca mapu sa frejmovima podataka nakon uspjesnog izlaska iz wizarda.
+        kljucevi su minutniPodaci, sekundniPodaci.
+        """
+        mapa = {}
+        frejm = self.get_frejm()
+        if self.P3.isMinutniPodaci():
+            mapa['minutni'] = frejm
+            mapa['sekundni'] = frejm
+        else:
+            minutni = frejm.resample('1min', how=np.average, closed='right', label='right')
+            mapa['sekundni'] = frejm
+            mapa['minutni'] = minutni
+            print('stuff')
+        return mapa
+
     def get_path_do_filea(self):
         """
         Vrati path do filea koji je ucitan nakon uspjesnog izlaska
@@ -102,6 +123,15 @@ class CarobnjakZaCitanjeFilea(QtGui.QWizard):
         else:
             return 'None'
 
+    def get_ckecked_tabove(self):
+        """metoda odredjuje u koje tabove se spremaju preuzeti podaci"""
+        output = {}
+        for item in self.P4.listaCheckboxeva: #lista checkboxeva
+            naziv = item.text()
+            value = item.isChecked()
+            output[naziv] = value
+        return output
+
 
 class Page1Wizarda(QtGui.QWizardPage):
     """
@@ -129,6 +159,7 @@ class Page1Wizarda(QtGui.QWizardPage):
         """
         self.registerField('filepath*', self.lineEditPath)
 
+    @helperi.activate_wait_spinner
     def initializePage(self):
         """
         overloaded funkcija koja odradjuje inicijalizaciju prilikom prvog prikaza
@@ -230,6 +261,7 @@ class Page2Wizarda(QtGui.QWizardPage):
         self.comboKomponenta.currentIndexChanged.connect(self.promjena_komponente)
         self.undoGumb.clicked.connect(self.undo_implementacija)
 
+    @helperi.activate_wait_spinner
     def initializePage(self):
         """
         Funkcija se poziva prilikom inicijalizacije stranice.
@@ -482,7 +514,7 @@ class Page3Wizarda(QtGui.QWizardPage):
         """
         QtGui.QWizard.__init__(self, parent)
         self.setTitle('Stranica 3')
-        self.setSubTitle('Izaberite komponente za pojedini stupac')
+        self.setSubTitle('Izaberite komponente za pojedini stupac. Odaberite da li su podaci prethodno minutno usrednjeni.')
 
         self.tableView = QtGui.QTableView()
         self.tableView.setWordWrap(True)
@@ -494,15 +526,33 @@ class Page3Wizarda(QtGui.QWizardPage):
                                      QtGui.QSizePolicy.Fixed)
         self.label1 = QtGui.QLabel('Datoteka :')
 
+        self.box = QtGui.QGroupBox('Tip podataka')
+        self.minutniRadio = QtGui.QRadioButton('Minutni podaci')
+        self.sekundniRadio = QtGui.QRadioButton('Sekundni podaci')
+        self.minutniRadio.toggle()
+
+        boxlayout = QtGui.QHBoxLayout()
+        boxlayout.addWidget(self.minutniRadio)
+        boxlayout.addWidget(self.sekundniRadio)
+        self.box.setLayout(boxlayout)
 
         fileLayout = QtGui.QHBoxLayout()
         fileLayout.addWidget(self.label1)
         fileLayout.addWidget(self.fileLabel)
         layout = QtGui.QVBoxLayout()
         layout.addLayout(fileLayout)
+        layout.addWidget(self.box)
         layout.addWidget(self.tableView)
         self.setLayout(layout)
 
+    def isMinutniPodaci(self):
+        """
+        Metoda sluzi za provjeru tipa podataka (minutni ili sekundni).
+        Metoda vraca True ako je radio button self.minutniRadio aktivan.
+        """
+        return self.minutniRadio.isChecked()
+
+    @helperi.activate_wait_spinner
     def initializePage(self):
         """
         Funkcija se pokrece prilikom inicijalizacije stranice
@@ -607,3 +657,37 @@ class Page3Wizarda(QtGui.QWizardPage):
                             sep=",",
                             encoding="iso-8859-1")
         return frejm
+
+class Page4Wizarda(QtGui.QWizardPage):
+    def __init__(self, parent=None):
+        """
+        Stranica wizarda za izbor stupaca u ucitanom frejmu.
+        """
+        QtGui.QWizard.__init__(self, parent)
+        self.setTitle('Stranica 4')
+        self.setSubTitle('Izaberite gdje ce se koristiti preuzeti podaci.')
+
+        self.lay = QtGui.QVBoxLayout()
+        self.setLayout(self.lay)
+
+    @helperi.activate_wait_spinner
+    def initializePage(self):
+        """
+        Funkcija se pokrece prilikom inicijalizacije stranice
+        """
+        frejm = self.wizard().get_frejm()
+        stupci = list(frejm.columns)
+
+        self.listaCheckboxeva = []
+
+        for stupac in stupci:
+            self.listaCheckboxeva.append(QtGui.QCheckBox(stupac))
+            name = stupac+'-odaziv'
+            self.listaCheckboxeva.append(QtGui.QCheckBox(name))
+        self.listaCheckboxeva.append(QtGui.QCheckBox('konverter'))
+
+        for item in self.listaCheckboxeva:
+            self.lay.addWidget(item)
+            item.setChecked(True)
+
+

@@ -7,6 +7,7 @@ Created on Fri Aug 28 10:40:16 2015
 from PyQt4 import QtGui, QtCore
 import numpy as np
 import pandas as pd
+import logging
 
 
 class CustomLabel(QtGui.QLabel):
@@ -769,4 +770,209 @@ class TablicaKonverterRezultati(QtGui.QWidget):
 
         self.setLayout(self.gridLayout)
 
+class ReportTablicaKriterijaRiseFall(QtGui.QWidget):
+    """
+    tablica za kriterij vremena odaziva (uspon, pad..)
+    """
+    def __init__(self, parent=None):
+        QtGui.QWidget.__init__(self, parent=parent)
+        # definicija layouta
+        self.gridLayout = QtGui.QGridLayout()
+        self.gridLayout.setHorizontalSpacing(1)
+        self.gridLayout.setVerticalSpacing(1)
+        self.gridLayout.setContentsMargins(0,0,0,0)
 
+        self.pos00 = CustomLabel(tekst='')
+        self.pos01 = CustomLabel(tekst='<b> Naziv kriterija </b>', center=True)
+        self.pos02 = CustomLabel(tekst='<b> Točka norme </b>', center=True)
+        self.pos03 = CustomLabel(tekst='<b> Rezultati </b>', center=True)
+        self.pos04 = CustomLabel(tekst='')
+        self.pos05 = CustomLabel(tekst='<b> Uvijet prihvatljivosti </b>', center=True)
+        self.pos06 = CustomLabel(tekst='<b> Ispunjeno </b>', center=True)
+        self.pos10 = CustomLabel(tekst='<b> 1 </b>', center=True)
+        self.pos20 = CustomLabel(tekst='<b> 2 </b>', center=True)
+        self.pos30 = CustomLabel(tekst='<b> 3 </b>', center=True)
+        self.pos11 = CustomLabel()
+        self.pos12 = CustomLabel()
+        self.pos13 = CustomLabel()
+        self.pos14 = CustomLabel()
+        self.pos15 = CustomLabel(center=True)
+        self.pos16 = CustomLabel(center=True)
+        self.pos21 = CustomLabel()
+        self.pos22 = CustomLabel()
+        self.pos23 = CustomLabel()
+        self.pos24 = CustomLabel()
+        self.pos25 = CustomLabel(center=True)
+        self.pos26 = CustomLabel(center=True)
+        self.pos31 = CustomLabel()
+        self.pos32 = CustomLabel()
+        self.pos33 = CustomLabel()
+        self.pos34 = CustomLabel()
+        self.pos35 = CustomLabel(center=True)
+        self.pos36 = CustomLabel(center=True)
+
+        self.gridLayout.addWidget(self.pos00, 0, 0, 1, 1)
+        self.gridLayout.addWidget(self.pos01, 0, 1, 1, 1)
+        self.gridLayout.addWidget(self.pos02, 0, 2, 1, 1)
+        self.gridLayout.addWidget(self.pos03, 0, 3, 1, 2)
+        self.gridLayout.addWidget(self.pos05, 0, 5, 1, 1)
+        self.gridLayout.addWidget(self.pos06, 0, 6, 1, 1)
+        self.gridLayout.addWidget(self.pos10, 1, 0, 1, 1)
+        self.gridLayout.addWidget(self.pos20, 2, 0, 1, 1)
+        self.gridLayout.addWidget(self.pos30, 3, 0, 1, 1)
+        self.gridLayout.addWidget(self.pos11, 1, 1, 1, 1)
+        self.gridLayout.addWidget(self.pos12, 1, 2, 1, 1)
+        self.gridLayout.addWidget(self.pos13, 1, 3, 1, 1)
+        self.gridLayout.addWidget(self.pos14, 1, 4, 1, 1)
+        self.gridLayout.addWidget(self.pos15, 1, 5, 1, 1)
+        self.gridLayout.addWidget(self.pos16, 1, 6, 1, 1)
+        self.gridLayout.addWidget(self.pos21, 2, 1, 1, 1)
+        self.gridLayout.addWidget(self.pos22, 2, 2, 1, 1)
+        self.gridLayout.addWidget(self.pos23, 2, 3, 1, 1)
+        self.gridLayout.addWidget(self.pos24, 2, 4, 1, 1)
+        self.gridLayout.addWidget(self.pos25, 2, 5, 1, 1)
+        self.gridLayout.addWidget(self.pos26, 2, 6, 1, 1)
+        self.gridLayout.addWidget(self.pos31, 3, 1, 1, 1)
+        self.gridLayout.addWidget(self.pos32, 3, 2, 1, 1)
+        self.gridLayout.addWidget(self.pos33, 3, 3, 1, 1)
+        self.gridLayout.addWidget(self.pos34, 3, 4, 1, 1)
+        self.gridLayout.addWidget(self.pos35, 3, 5, 1, 1)
+        self.gridLayout.addWidget(self.pos36, 3, 6, 1, 1)
+
+        self.set_minimum_height_for_row(0, 30)
+        self.set_minimum_height_for_row(1, 30)
+        self.set_minimum_height_for_row(2, 30)
+        self.set_minimum_height_for_row(3, 30)
+        self.set_minimum_width_for_column(0, 30)
+        self.set_minimum_width_for_column(1, 200)
+        self.set_minimum_width_for_column(2, 75)
+        self.set_minimum_width_for_column(3, 75)
+        self.set_minimum_width_for_column(4, 75)
+        self.set_minimum_width_for_column(5, 150)
+        self.set_minimum_width_for_column(6, 75)
+
+        # slaganje layouta u tablicu
+        self.setLayout(self.gridLayout)
+
+    def set_minimum_width_for_column(self, col, size):
+        self.gridLayout.setColumnMinimumWidth(col, size)
+
+    def set_minimum_height_for_row(self, row, size):
+        self.gridLayout.setRowMinimumHeight(row, size)
+
+    def find_needed_color(self, check):
+        """
+        helepr metoda koja vraca zelenu boju ako check ima vrijednost 'Da'. U
+        protivnom vraca crvenu boju.
+        """
+        test = check
+        test = test.lower()
+        if test == 'da':
+            color = QtGui.QColor(QtGui.QColor(0, 255, 0, 90))
+        else:
+            color = QtGui.QColor(QtGui.QColor(255, 0, 0, 90))
+        return color
+
+    def clear_results(self):
+        """
+        Clear rezultata tablice
+        """
+        #resert color
+        self.set_row_background_color(QtGui.QColor(QtCore.Qt.white), 1)
+        self.pos11.setText('')
+        self.pos12.setText('')
+        self.pos13.setText('')
+        self.pos14.setText('')
+        self.pos15.setText('')
+        self.pos16.setText('')
+        self.set_row_background_color(QtGui.QColor(QtCore.Qt.white), 2)
+        self.pos21.setText('')
+        self.pos22.setText('')
+        self.pos23.setText('')
+        self.pos24.setText('')
+        self.pos25.setText('')
+        self.pos26.setText('')
+        self.set_row_background_color(QtGui.QColor(QtCore.Qt.white), 3)
+        self.pos31.setText('')
+        self.pos32.setText('')
+        self.pos33.setText('')
+        self.pos34.setText('')
+        self.pos35.setText('')
+        self.pos36.setText('')
+
+    def set_values(self, data):
+        """
+        setter vrijednosti u tablicu
+        3 reda .... koji idu kao dict... plin:{'rise':[], 'fall':[], 'diff':[]}
+        Svaka lista ima komponente:
+        [naziv, tocka norme, string oznake, vrijednost, uvijet prihvatljivosti, 'DA' ili 'NE']
+        """
+        self.clear_results()
+        try:
+            #rise
+            self.pos11.setText(data['rise'][0])
+            self.pos12.setText(data['rise'][1])
+            self.pos13.setText(data['rise'][2])
+            self.pos14.setText(str(round(data['rise'][3], 1)))
+            self.pos15.setText(data['rise'][4])
+            ispunjeno = data['rise'][5]
+            self.pos16.setText(ispunjeno)
+            color = self.find_needed_color(ispunjeno)
+            self.set_row_background_color(color, 1)
+
+            #fall
+            self.pos21.setText(data['fall'][0])
+            self.pos22.setText(data['fall'][1])
+            self.pos23.setText(data['fall'][2])
+            self.pos24.setText(str(round(data['fall'][3], 1)))
+            self.pos25.setText(data['fall'][4])
+            ispunjeno = data['fall'][5]
+            self.pos26.setText(ispunjeno)
+            color = self.find_needed_color(ispunjeno)
+            self.set_row_background_color(color, 2)
+
+            #rise - fall
+            self.pos31.setText(data['diff'][0])
+            self.pos32.setText(data['diff'][1])
+            self.pos33.setText(data['diff'][2])
+            self.pos34.setText(str(round(data['diff'][3], 1)))
+            self.pos35.setText(data['diff'][4])
+            ispunjeno = data['diff'][5]
+            self.pos36.setText(ispunjeno)
+            color = self.find_needed_color(ispunjeno)
+            self.set_row_background_color(color, 3)
+        except Exception as err:
+            logging.error(str(err), exc_info=True)
+            pass
+
+    def set_row_background_color(self, color, red):
+        """
+        metoda za promjenu pozadinske boje reda u tablici
+        ulazni parametar je boja (QColor) i red
+        """
+        if red == 1:
+            self.pos10.set_color(color)
+            self.pos11.set_color(color)
+            self.pos12.set_color(color)
+            self.pos13.set_color(color)
+            self.pos14.set_color(color)
+            self.pos15.set_color(color)
+            self.pos16.set_color(color)
+        elif red == 2:
+            self.pos20.set_color(color)
+            self.pos21.set_color(color)
+            self.pos22.set_color(color)
+            self.pos23.set_color(color)
+            self.pos24.set_color(color)
+            self.pos25.set_color(color)
+            self.pos26.set_color(color)
+        elif red == 3:
+            self.pos30.set_color(color)
+            self.pos31.set_color(color)
+            self.pos32.set_color(color)
+            self.pos33.set_color(color)
+            self.pos34.set_color(color)
+            self.pos35.set_color(color)
+            self.pos36.set_color(color)
+        else:
+            pass

@@ -33,6 +33,9 @@ class KomunikacijskiObjekt(QtCore.QObject):
     def get_protokol(self):
         return self.protokol
 
+    def get_sample_rate(self):
+        return self.sampleRate
+
     def set_sample_rate(self, value):
         self.sampleRate = value
 

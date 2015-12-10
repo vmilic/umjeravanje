@@ -39,6 +39,7 @@ class Kolektor(BASE2, FORM2):
                                                   parent=None)
 
         self.komObjekt.moveToThread(self.komThread)
+        sr = str(self.komObjekt.get_sample_rate())
 
         ### setup grafa za prikaz podataka ###
         self.meta = {'xlabel':'vrijeme',
@@ -56,6 +57,7 @@ class Kolektor(BASE2, FORM2):
         self.bareFrejmModel = fmodel.BareFrameModel(frejm=self.frejm)
         self.dataTableView.setModel(self.bareFrejmModel)
         self.stopButton.setEnabled(False)
+        self.sampleCombo.setCurrentIndex(self.sampleCombo.findText(sr))
 
         self.setup_connections()
 
@@ -83,6 +85,7 @@ class Kolektor(BASE2, FORM2):
     def closeEvent(self, event):
         """overloaded signal za close - cilj je zaustaviti prikupljanje podataka"""
         self.stop_handle()
+        self.emit(QtCore.SIGNAL('prozor_ugasen(PyQt_PyObject)'), self.uid)
         event.accept()
 
     def prikazi_warning_popup(self, poruka):
@@ -151,19 +154,28 @@ class Kolektor(BASE2, FORM2):
         self.dataTableView.update()
         self.graf.reset_graf()
 
-
     def spremi_frejm(self):
-        """spremanje frejma... po potrebi resample na minutni raspon, koristeci
-        average
+        """
+        Spremanje prezuetih podataka.
+
+        Emitira se signal sa 4 podatka:
+        1. minutno usrednjeni podaci (za umjeravanje i provjeru konvertera)
+        2. sirovi podaci (za provjeru odaziva)
+        3. serijski broj uredjaja sa kojeg stizu podaci
+        4. mapa sa podacima u koje se tabove trebaju prebaciti podaci
         """
         tempFrejm = self.frejm.copy()
         moguceKomponente = self.doc.uredjaji[self.spojeni_uredjaj]['komponente']
         izborStupaca = izbor_stupaca.IzborNazivaStupacaWizard(frejm=tempFrejm, moguci=moguceKomponente)
         prihvacen = izborStupaca.exec_()
-        if prihvacen and izborStupaca.izbor: #ako je wizard prihvacen i ako je prebacivanje podataka True
+        if prihvacen:
             minutniFrejm = izborStupaca.get_minutni_frejm()
+            sekundniFrejm = izborStupaca.get_sekundni_frejm()
+            tabMap = izborStupaca.get_ckecked_tabove()
             #pakiranje i emit podataka aplikaciji
-            output = {'podaci':minutniFrejm,
+            output = {'podaci':sekundniFrejm,
+                      'minutniPodaci':minutniFrejm,
+                      'tabMap':tabMap,
                       'uredjaj':self.spojeni_uredjaj}
             self.emit(QtCore.SIGNAL('spremi_preuzete_podatke(PyQt_PyObject)'),
                       output)
@@ -191,6 +203,7 @@ class Kolektor(BASE2, FORM2):
                                      xonxoff=postavke['xon/xoff'],
                                      rtscts=postavke['rts/cts'])
             self.komObjekt.set_veza(self.veza)
+
             #set protokola komunikacije
             temp = postavke['protokol']
             if temp == 'Hessen, BCC':

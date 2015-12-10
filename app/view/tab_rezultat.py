@@ -7,21 +7,37 @@ Created on Mon Oct  5 10:50:23 2015
 import sip
 import gc
 import logging
+import pandas as pd
 from PyQt4 import QtGui, QtCore, uic
 import app.view.canvas as canvas
 import app.view.pomocni as view_helpers
-
 
 BASE4, FORM4 = uic.loadUiType('./app/view/uiFiles/tab_rezultat.ui')
 class RezultatPanel(BASE4, FORM4):
     """
     Panel za prikaz rezultata umjeravanja.
+
+
+    novi memberi za set/get i ponasanje taba (tablica sa testovima za mjerenje)
+
+    self.checkBoxReport
+    self.checkBoxUmjeravanje
+    self.checkBoxPonovljivost
+    self.checkBoxLinearnost
+
     """
     def __init__(self, dokument=None, plin=None, parent=None):
         super(BASE4, self).__init__(parent)
         self.setupUi(self)
         self.dokument = dokument
         self.plin = plin
+
+        #inicijalni setup check boxeva
+        self.checkBoxReport.setChecked(self.dokument.get_generateReportCheck(mjerenje=self.plin))
+        self.checkBoxUmjeravanje.setChecked(self.dokument.get_testUmjeravanje(mjerenje=self.plin))
+        self.checkBoxPonovljivost.setChecked(self.dokument.get_testPonovljivost(mjerenje=self.plin))
+        self.checkBoxLinearnost.setChecked(self.dokument.get_testLinearnost(mjerenje=self.plin))
+
         #nazivi boxeva
         self.graf1GroupBox.setTitle(", ".join(['graf koncentracije', self.plin]))
         self.graf2GroupBox.setTitle(", ".join(['graf individualnih mjerenja', self.plin]))
@@ -33,7 +49,7 @@ class RezultatPanel(BASE4, FORM4):
         #postavi rezultate mjerenja
         self.tablicaRezultataUmjeravanja = QtGui.QWidget()
         self.rezultatLayout.addWidget(self.tablicaRezultataUmjeravanja)
-        rezultat = self.dokument.generiraj_nan_frejm_rezultata_umjeravanja()
+        rezultat = self.generiraj_nan_frejm_rezultata_umjeravanja()
         self.postavi_tablicu_rezultata_umjeravanja(rezultat)
         #slope i offset data
         self.tablicaPrilagodba = view_helpers.TablicaFunkcijePrilagodbe()
@@ -41,6 +57,59 @@ class RezultatPanel(BASE4, FORM4):
         #kriterij
         self.tablicaParametri = view_helpers.TablicaUmjeravanjeKriterij()
         self.kriterijLayout.addWidget(self.tablicaParametri)
+
+        self.setup_connections()
+
+    def setup_connections(self):
+        """povezivanje kontrolnih elemenata taba"""
+        self.checkBoxReport.stateChanged.connect(self.set_report_check)
+        self.checkBoxUmjeravanje.stateChanged.connect(self.set_umjeravanje_check)
+        self.checkBoxPonovljivost.stateChanged.connect(self.set_ponovljivost_check)
+        self.checkBoxLinearnost.stateChanged.connect(self.set_linearnost_check)
+
+    def set_report_check(self, x):
+        """promjeni check za generiranje reporta za zadano mjerenje"""
+        x = bool(x)
+        self.dokument.set_generateReportCheck(x, mjerenje=self.plin)
+
+    def get_report_check(self):
+        """getter checka za generiranje reporta"""
+        return self.checkBoxReport.isChecked()
+
+    def set_umjeravanje_check(self, x):
+        """promjeni check za umjeravanje za zadano mjerenje"""
+        x = bool(x)
+        self.dokument.set_testUmjeravanje(x, mjerenje=self.plin)
+
+    def get_umjeravanje_check(self):
+        """getter checka za provjeru umjeravanja"""
+        return self.checkBoxUmjeravanje.isChecked()
+
+    def set_ponovljivost_check(self, x):
+        """promejni check za ponovljivost za zadano mjerenje"""
+        x = bool(x)
+        self.dokument.set_testPonovljivost(x, mjerenje=self.plin)
+
+    def get_ponovljivost_check(self):
+        """getter checka za provjeru ponovljivosti"""
+        return self.checkBoxPonovljivost.isChecked()
+
+    def set_linearnost_check(self, x):
+        """promjeni check za linearnost za zadano mjerneje"""
+        x = bool(x)
+        self.dokument.set_testLinearnost(x, mjerenje=self.plin)
+
+    def get_linearnost_check(self):
+        """getter checka za provjeru linearnosti"""
+        return self.checkBoxLinearnost.isChecked()
+
+    def generiraj_nan_frejm_rezultata_umjeravanja(self):
+        """generiranje izlaznog frejma za prikaz"""
+        tocke = self.dokument.get_tocke(mjerenje=self.plin)
+        frejm = pd.DataFrame(
+            columns=['cref', 'U', 'c', u'\u0394', 'sr', 'r'],
+            index=list(range(len(tocke))))
+        return frejm
 
     def inicijalizacija_grafova(self, plin):
         """inicijalizacija i postavljanje kanvasa za grafove u layout.
@@ -74,14 +143,14 @@ class RezultatPanel(BASE4, FORM4):
         frejm = rezultat.copy()
         try:
             self.tablicaRezultataUmjeravanja = view_helpers.TablicaUmjeravanje(
-                tocke=self.dokument.get_tockeUmjeravanja(),
+                tocke=self.dokument.get_tocke(mjerenje=self.plin),
                 data=frejm,
                 jedinica=self.dokument.get_mjernaJedinica(),
                 parent=None)
         except Exception as err:
             logging.error(str(err), exc_info=True)
             self.tablicaRezultataUmjeravanja = view_helpers.TablicaUmjeravanje(
-                tocke=self.dokument.get_tockeUmjeravanja(),
+                tocke=self.dokument.get_tocke(mjerenje=self.plin),
                 data=self.dokument.generiraj_nan_frejm_rezultata_umjeravanja(),
                 jedinica=self.dokument.get_mjernaJedinica(),
                 parent=None)
@@ -120,30 +189,22 @@ class RezultatPanel(BASE4, FORM4):
         self.emit(QtCore.SIGNAL('panel_edit_umjernu_tocku(PyQt_PyObject)'),
                   red)
 
-    def rezultat_request_recalculate(self):
-        """emit zahtjeva za ponovnim racunanjem rezultata"""
-        self.emit(QtCore.SIGNAL('rezultat_request_recalculate'))
-
-    def promjena_provjere_linearnosti(self, x):
-        """emit zahtjeva za promjenom provjere linearnosti"""
-        self.dokument.set_provjeraLinearnosti(x)
-
     def update_rezultat(self, mapa):
         """
         update gui elemenata panela ovisno o prosljedjenim parametrima u mapi
         """
-        rezultat = mapa['rezultat']
-        slopeData = mapa['slopeData'] #lista(slope, offset, prilagodbaA, prilagodbaB)
+        rezultat = mapa['umjeravanje']
+        slopeData = mapa['prilagodba'] #lista(slope, offset, prilagodbaA, prilagodbaB)
         testovi = mapa['testovi'] #dictionary... koji ima kljuceve : srz, srs, rz, rmax...
         #grafovi
         self.prikazi_grafove(rezultat, slopeData)
         #rezultati
         self.postavi_tablicu_rezultata_umjeravanja(rezultat)
         #prilagodba
-        prilagodba = [str(round(slopeData[2], 3)), str(round(slopeData[3], 1))]
+        prilagodba = [str(round(slopeData['prilagodbaA'], 3)), str(round(slopeData['prilagodbaB'], 1))]
         self.tablicaPrilagodba.set_values(prilagodba)
         #XXX! hide ako je umjeravanje off
-        if self.dokument.get_provjeraUmjeravanje():
+        if self.dokument.get_testUmjeravanje(mjerenje=self.plin):
             self.rezultatiGroupBox.show()
             self.slopeGroupBox.show()
         else:
@@ -151,10 +212,10 @@ class RezultatPanel(BASE4, FORM4):
             self.slopeGroupBox.hide()
         #XXX! testovi
         kriterij = []
-        if self.dokument. get_provjeraPonovljivost():
+        if self.dokument.get_testPonovljivost(mjerenje=self.plin):
             kriterij.append(testovi['srz'])
             kriterij.append(testovi['srs'])
-        if self.dokument.get_provjeraLinearnosti():
+        if self.dokument.get_testLinearnost(mjerenje=self.plin):
             kriterij.append(testovi['rz'])
             kriterij.append(testovi['rmax'])
         self.tablicaParametri.set_values(kriterij)
@@ -166,22 +227,26 @@ class RezultatPanel(BASE4, FORM4):
     def prikazi_grafove(self, rezultat, slopeData):
         """
         Metoda za crtanje grafova, ulazni parametri su frejm rezultata umjeravanja
-        i podaci (lista) slope, offset i prilagodba
+        i mapa sa podacima za 'slope', 'offset', 'prilagodbaA', 'prilagodbaB'
         """
         self.crefCanvas.clear_graf()
         self.mjerenjaCanvas.clear_graf()
 
         #dohvati rezultat umjeravanja:
-        testLinearnosti = self.dokument.get_provjeraLinearnosti()
-        tocke = self.dokument.get_tockeUmjeravanja()
-        frejm = self.dokument.get_siroviPodaci()
+        testLinearnosti = self.dokument.get_testLinearnost(mjerenje=self.plin)
+        tocke = self.dokument.get_tocke(mjerenje=self.plin)
+        mjerenja = self.dokument.get_mjerenja()
+        mjerenje = mjerenja[self.plin]
+        model = mjerenje['model']
+        frejm = model.get_frejm()
+        calc = mjerenje['kalkulator']
 
         if self.plin in frejm.columns:
             x = list(rezultat.loc[:, 'cref'])
             y = list(rezultat.loc[:, 'c'])
             if testLinearnosti:
-                slope = slopeData[0]
-                offset = slopeData[1]
+                slope = slopeData['slope']
+                offset = slopeData['offset']
                 self.crefCanvas.set_slope_offset(slope, offset)
             else:
                 self.crefCanvas.set_slope_offset(None, None)
@@ -192,6 +257,6 @@ class RezultatPanel(BASE4, FORM4):
             if testLinearnosti:
                 self.mjerenjaCanvas.crtaj(frejm, tocke)
             else:
-                zs = self.dokument.get_zero_span_tocke()
+                z, s = calc.pronadji_zero_span_tocke()
+                zs = [z, s]
                 self.mjerenjaCanvas.crtaj(frejm, zs)
-
