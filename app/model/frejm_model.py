@@ -4,6 +4,7 @@ Created on Mon May 18 13:53:03 2015
 
 @author: DHMZ-Milic
 """
+import logging
 import pandas as pd
 from PyQt4 import QtCore, QtGui
 
@@ -77,11 +78,19 @@ class SiroviFrameModel(QtCore.QAbstractTableModel):
 
     def get_startUmjeravanja(self):
         """getter pocetnog timestampa umjeravanja"""
-        return self.dataFrejm.index[self.startIndeks]
+        try:
+            return self.dataFrejm.index[self.startIndeks]
+        except Exception as err:
+            logging.error(str(err), exc_info=True)
+            return pd.NaT
 
     def get_krajUmjeravanja(self):
         """getter zavrsnog timestampa umjeravanja"""
-        return self.dataFrejm.index[self.endIndeks]
+        try:
+            return self.dataFrejm.index[self.endIndeks]
+        except Exception as err:
+            logging.error(str(err), exc_info=True)
+            return pd.NaT
 
     def rowCount(self, parent=QtCore.QModelIndex()):
         """
@@ -141,7 +150,11 @@ class SiroviFrameModel(QtCore.QAbstractTableModel):
                 return str(self.dataFrejm.index[section])
         if orientation == QtCore.Qt.Horizontal:
             if role == QtCore.Qt.DisplayRole:
-                return str(self.dataFrejm.columns[section])
+                try:
+                    return str(self.dataFrejm.columns[section])
+                except Exception as err:
+                    logging.error(str(err), exc_info=True)
+                    return 'n/a'
 ################################################################################
 ################################################################################
 class RiseFallModel(QtCore.QAbstractTableModel):
@@ -502,3 +515,92 @@ class BareFrameModel(QtCore.QAbstractTableModel):
                 return str(self.dataFrejm.columns[section])
 ################################################################################
 ################################################################################
+class IzborFrejmovaModel(QtCore.QAbstractTableModel):
+    """
+    Model za prikaz frejmova ucitanih podataka za neki uredjaj.
+    """
+    def __init__(self, uredjaj=None, parent=None):
+        QtCore.QAbstractTableModel.__init__(self, parent)
+        self.set_uredjaj(uredjaj)
+        self.podaci = [] #u ovu listu se spremaju mape sa podacima o frejmu
+
+    def set_uredjaj(self, uredjaj):
+        self.uredjaj = uredjaj
+
+    def get_uredjaj(self):
+        return self.uredjaj
+
+    def set_frejmovi(self, podaci):
+        """Setter svih poadtaka, metoda se koristi prilikom 'loada' spremljenih podataka"""
+        self.podaci = podaci
+        self.layoutChanged.emit()
+
+    def get_podatke(self):
+        """Getter svih podataka, metoda se koristi prilikom 'spremanja' podataka"""
+        return self.podaci
+
+    def add_frejm(self, frejm, tip):
+        """
+        Dodavanje novog reda na popis podataka
+        """
+        start = str(min(frejm.index))
+        kraj = str(max(frejm.index))
+        redak = {'tip':tip,
+                 'start':start,
+                 'kraj':kraj,
+                 'frejm':frejm}
+        self.podaci.append(redak)
+        self.layoutChanged.emit()
+
+    def vrati_selektirani_frejm(self, indeks):
+        return self.podaci[indeks]['frejm']
+
+    def rowCount(self, parent=QtCore.QModelIndex()):
+        return len(self.podaci)
+
+    def columnCount(self, parent=QtCore.QModelIndex()):
+        """
+        Potrebna su 3 stupca:
+        tip : 'minutni' ili 'sekundni'
+        start : timestamp prvog podatka
+        kraj : timestamp zadnjeg podatka
+        """
+        return 3
+
+    def flags(self, index):
+        if index.isValid():
+            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+
+    def data(self, index, role):
+        if not index.isValid():
+            return None
+        row = index.row()
+        col = index.column()
+        if role == QtCore.Qt.DisplayRole:
+            if col == 0:
+                return self.podaci[row]['tip']
+            elif col == 1:
+                return self.podaci[row]['start']
+            else:
+                return self.podaci[row]['kraj']
+        if role == QtCore.Qt.ToolTipRole:
+            if col == 0:
+                return str(self.podaci[row]['tip'])
+            elif col == 1:
+                return str(self.podaci[row]['start'])
+            else:
+                return str(self.podaci[row]['kraj'])
+
+
+    def headerData(self, section, orientation, role):
+        if orientation == QtCore.Qt.Vertical:
+            if role == QtCore.Qt.DisplayRole:
+                return str(section)
+        if orientation == QtCore.Qt.Horizontal:
+            if role == QtCore.Qt.DisplayRole:
+                if section == 0:
+                    return 'Tip podataka'
+                elif section == 1:
+                    return 'Vrijeme pocetka'
+                else:
+                    return 'Vrijeme kraja'

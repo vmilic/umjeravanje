@@ -165,12 +165,12 @@ class Kalkulator(object):
             self.rezultat.loc[row, 'U'] = self._izracunaj_UR(tocka)
 
         # sklapanje rezultata testova
-        if self.doc.get_testPonovljivost(mjerenje=self.izabranoMjerenje):
+        if self.doc.get_provjeraPonovljivost():
             self.srz = self._provjeri_ponovljivost_stdev_u_nuli()
             self.srs = self._provjeri_ponovljivost_stdev_za_vrijednost()
             self.rezultatiTestova['srz'] = self.srz
             self.rezultatiTestova['srs'] = self.srs
-        if self.doc.get_testLinearnost(mjerenje=self.izabranoMjerenje):
+        if self.doc.get_provjeraLinearnost():
             self.rz = self._provjeri_odstupanje_od_linearnosti_u_nuli()
             self.rmax = self._provjeri_maksimalno_relativno_odstupanje_od_linearnosti()
             self.rezultatiTestova['rz'] = self.rz
@@ -255,7 +255,7 @@ class Kalkulator(object):
         datafrejmu.
         """
         try:
-            lin = self.doc.get_testLinearnost(mjerenje=self.izabranoMjerenje)
+            lin = self.doc.get_provjeraLinearnost()
             if not lin:
                 zero, span = self.pronadji_zero_span_tocke()
                 if tocka == zero or tocka == span:
@@ -275,7 +275,7 @@ class Kalkulator(object):
         Racunanje razlike izmjerene koncentracije i referentne vrijednosti
         """
         try:
-            lin = self.doc.get_testLinearnost(mjerenje=self.izabranoMjerenje)
+            lin = self.doc.get_provjeraLinearnost()
             if not lin:
                 zero, span = self.pronadji_zero_span_tocke()
                 if tocka == zero or tocka == span:
@@ -293,7 +293,7 @@ class Kalkulator(object):
         Racunanje stdev za tocku
         """
         try:
-            lin = self.doc.get_testLinearnost(mjerenje=self.izabranoMjerenje)
+            lin = self.doc.get_provjeraLinearnost()
             if not lin:
                 zero, span = self.pronadji_zero_span_tocke()
                 if tocka == zero or tocka == span:
@@ -313,7 +313,7 @@ class Kalkulator(object):
         racunanje r za zadanu tocku.
         """
         try:
-            lin = self.doc.get_testLinearnost(mjerenje=self.izabranoMjerenje)
+            lin = self.doc.get_provjeraLinearnost()
             if lin:
                 zero, span = self.pronadji_zero_span_tocke()
                 if tocka == span:
@@ -398,7 +398,7 @@ class Kalkulator(object):
         """pomocna funkcija za racunanje U"""
         try:
             cCRM = self.doc.get_koncentracijaCRM()
-            sljedivost = self.doc.get_sljedivostCistiZrak()
+            sljedivost = self.doc.get_sljedivostZrak()
             e1 = cCRM - self._izracunaj_cref(tocka)
             e3 = cCRM
             value = e1 * sljedivost / e3 / np.sqrt(3)
@@ -415,7 +415,7 @@ class Kalkulator(object):
         #izbacena span vrijednost iz racunice
         """
         try:
-            lin = self.doc.get_testLinearnost(mjerenje=self.izabranoMjerenje)
+            lin = self.doc.get_provjeraLinearnost()
             if lin:
                 zero, span = self.pronadji_zero_span_tocke()
                 dots = [tocka for tocka in self.tocke if tocka != span]

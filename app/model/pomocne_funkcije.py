@@ -139,7 +139,6 @@ def get_uredjaj_info(url, serial):
                     msg = 'Za uredjaj {0} nije definirana max granica za {1}. Koristim default 400'.format(serial, naziv)
                     maxGranica = 400.0
                     logging.error(msg, exc_info=True)
-                #TODO!
                 if mjernaJedinica == 'ug/m3':
                     mjernaJedinica = '\u03BCg/m3'
 
@@ -158,7 +157,6 @@ def get_uredjaj_info(url, serial):
                 output['komponente'].append(formula)
                 naziv = komponenta.find('naziv').text
                 mjernaJedinica = komponenta.find('./mjerneJediniceId/oznaka').text
-                #TODO!
                 if mjernaJedinica == 'ug/m3':
                     mjernaJedinica = '\u03BCg/m3'
 
@@ -251,7 +249,6 @@ def pripremi_mape_postaja_i_uredjaja(url1, url2):
     svePostaje = get_postaje(url2)
     listaUredjaja = get_uredjaje(url1)
     for serial in listaUredjaja:
-        #TODO!
         uredjaj = get_uredjaj_info(url1, serial)
         sviUredjaji[serial] = uredjaj
         try:
@@ -294,27 +291,3 @@ def priprema_podataka_za_model_stanica_i_uredjaja(devices):
                 postaje.add(lokacija)
                 output.append([lokacija, key, komponenta])
     return postaje, uredjaji, komponente, output
-
-
-if __name__ == '__main__':
-    url1 = 'http://172.20.0.178:8080/SKZ-war/webresources/uredjaj'
-    url2 = 'http://172.20.0.178:8080/SKZ-war/webresources/drzavna_mreza/postaje'
-    pos, uredjaj = pripremi_mape_postaja_i_uredjaja(url1, url2)
-    postaje, uredjaji, komponente, output = priprema_podataka_za_model_stanica_i_uredjaja(uredjaj)
-    for combo in output:
-        print(combo)
-
-    x = uredjaj['2819-E']
-    for key in x:
-        print(key, '-->', x[key], '\n')
-
-
-
-
-
-
-
-
-
-
-

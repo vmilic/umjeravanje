@@ -17,26 +17,18 @@ class RezultatPanel(BASE4, FORM4):
     """
     Panel za prikaz rezultata umjeravanja.
 
-
     novi memberi za set/get i ponasanje taba (tablica sa testovima za mjerenje)
 
     self.checkBoxReport
     self.checkBoxUmjeravanje
     self.checkBoxPonovljivost
     self.checkBoxLinearnost
-
     """
     def __init__(self, dokument=None, plin=None, parent=None):
         super(BASE4, self).__init__(parent)
         self.setupUi(self)
         self.dokument = dokument
         self.plin = plin
-
-        #inicijalni setup check boxeva
-        self.checkBoxReport.setChecked(self.dokument.get_generateReportCheck(mjerenje=self.plin))
-        self.checkBoxUmjeravanje.setChecked(self.dokument.get_testUmjeravanje(mjerenje=self.plin))
-        self.checkBoxPonovljivost.setChecked(self.dokument.get_testPonovljivost(mjerenje=self.plin))
-        self.checkBoxLinearnost.setChecked(self.dokument.get_testLinearnost(mjerenje=self.plin))
 
         #nazivi boxeva
         self.graf1GroupBox.setTitle(", ".join(['graf koncentracije', self.plin]))
@@ -57,51 +49,6 @@ class RezultatPanel(BASE4, FORM4):
         #kriterij
         self.tablicaParametri = view_helpers.TablicaUmjeravanjeKriterij()
         self.kriterijLayout.addWidget(self.tablicaParametri)
-
-        self.setup_connections()
-
-    def setup_connections(self):
-        """povezivanje kontrolnih elemenata taba"""
-        self.checkBoxReport.stateChanged.connect(self.set_report_check)
-        self.checkBoxUmjeravanje.stateChanged.connect(self.set_umjeravanje_check)
-        self.checkBoxPonovljivost.stateChanged.connect(self.set_ponovljivost_check)
-        self.checkBoxLinearnost.stateChanged.connect(self.set_linearnost_check)
-
-    def set_report_check(self, x):
-        """promjeni check za generiranje reporta za zadano mjerenje"""
-        x = bool(x)
-        self.dokument.set_generateReportCheck(x, mjerenje=self.plin)
-
-    def get_report_check(self):
-        """getter checka za generiranje reporta"""
-        return self.checkBoxReport.isChecked()
-
-    def set_umjeravanje_check(self, x):
-        """promjeni check za umjeravanje za zadano mjerenje"""
-        x = bool(x)
-        self.dokument.set_testUmjeravanje(x, mjerenje=self.plin)
-
-    def get_umjeravanje_check(self):
-        """getter checka za provjeru umjeravanja"""
-        return self.checkBoxUmjeravanje.isChecked()
-
-    def set_ponovljivost_check(self, x):
-        """promejni check za ponovljivost za zadano mjerenje"""
-        x = bool(x)
-        self.dokument.set_testPonovljivost(x, mjerenje=self.plin)
-
-    def get_ponovljivost_check(self):
-        """getter checka za provjeru ponovljivosti"""
-        return self.checkBoxPonovljivost.isChecked()
-
-    def set_linearnost_check(self, x):
-        """promjeni check za linearnost za zadano mjerneje"""
-        x = bool(x)
-        self.dokument.set_testLinearnost(x, mjerenje=self.plin)
-
-    def get_linearnost_check(self):
-        """getter checka za provjeru linearnosti"""
-        return self.checkBoxLinearnost.isChecked()
 
     def generiraj_nan_frejm_rezultata_umjeravanja(self):
         """generiranje izlaznog frejma za prikaz"""
@@ -203,19 +150,19 @@ class RezultatPanel(BASE4, FORM4):
         #prilagodba
         prilagodba = [str(round(slopeData['prilagodbaA'], 3)), str(round(slopeData['prilagodbaB'], 1))]
         self.tablicaPrilagodba.set_values(prilagodba)
-        #XXX! hide ako je umjeravanje off
-        if self.dokument.get_testUmjeravanje(mjerenje=self.plin):
+        #hide ako je umjeravanje off
+        if self.dokument.get_provjeraUmjeravanje():
             self.rezultatiGroupBox.show()
             self.slopeGroupBox.show()
         else:
             self.rezultatiGroupBox.hide()
             self.slopeGroupBox.hide()
-        #XXX! testovi
+        #testovi
         kriterij = []
-        if self.dokument.get_testPonovljivost(mjerenje=self.plin):
+        if self.dokument.get_provjeraPonovljivost():
             kriterij.append(testovi['srz'])
             kriterij.append(testovi['srs'])
-        if self.dokument.get_testLinearnost(mjerenje=self.plin):
+        if self.dokument.get_provjeraLinearnost():
             kriterij.append(testovi['rz'])
             kriterij.append(testovi['rmax'])
         self.tablicaParametri.set_values(kriterij)
@@ -233,7 +180,7 @@ class RezultatPanel(BASE4, FORM4):
         self.mjerenjaCanvas.clear_graf()
 
         #dohvati rezultat umjeravanja:
-        testLinearnosti = self.dokument.get_testLinearnost(mjerenje=self.plin)
+        testLinearnosti = self.dokument.get_provjeraLinearnost()
         tocke = self.dokument.get_tocke(mjerenje=self.plin)
         mjerenja = self.dokument.get_mjerenja()
         mjerenje = mjerenja[self.plin]

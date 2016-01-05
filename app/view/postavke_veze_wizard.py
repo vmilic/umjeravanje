@@ -11,7 +11,6 @@ import logging
 import ipaddress
 from PyQt4 import QtGui
 
-
 def list_serial_ports():
     """ Lists serial port names
         :raises EnvironmentError:
@@ -78,7 +77,7 @@ class PostavkeVezeWizard(QtGui.QWizard):
             raise ValueError('Wizard nije inicijaliziran sa instancom dokumenta.')
         self.doc = dokument
         self.mapaUredjaja = self.doc.get_uredjaji()
-        self.uredjaji = sorted(list(self.mapaUredjaja.keys()))
+        self.uredjaji = sorted(list(self.mapaUredjaja.keys())) #sorted lista svih uredjaja
         # opcije
         self.setWizardStyle(QtGui.QWizard.ModernStyle)
         self.setMinimumSize(600, 600)
@@ -105,7 +104,7 @@ class PageIzborUredjaja(QtGui.QWizardPage):
     def __init__(self, parent = None):
         QtGui.QWizard.__init__(self, parent)
         self.setTitle('Izabor uredjaja')
-        self.setSubTitle('Izaberi uredjaj s kojim se pokusavas spojiti')
+        self.setSubTitle('Izaberite serijski broj uredjaja sa kojim se pokušavate spojiti.')
         self.izabraniUredjaj = None
         # widgets
         self.labelComboGrupa = QtGui.QLabel('Izbor grupe :')
@@ -157,17 +156,15 @@ class PageIzborVeze(QtGui.QWizardPage):
     def __init__(self, parent=None):
         QtGui.QWizardPage.__init__(self, parent)
         self.setTitle('Izbor veze')
-        self.setSubTitle('Izaberi nacin spajanja sa uredjajem')
+        self.setSubTitle('Izaberte način spajanja sa uređjajem')
         self.labelVeza = QtGui.QLabel('Tip veze :')
         self.comboBoxVeza = QtGui.QComboBox()
         self.izabranaVeza = None
-
         layout = QtGui.QHBoxLayout()
         layout.addWidget(self.labelVeza)
         layout.addWidget(self.comboBoxVeza)
         layout.addStretch(-1)
         self.setLayout(layout)
-
         self.comboBoxVeza.currentIndexChanged.connect(self.promjena_veze)
 
     def promjena_veze(self, x):
@@ -179,7 +176,6 @@ class PageIzborVeze(QtGui.QWizardPage):
         veze = ['RS-232']
         self.comboBoxVeza.addItems(veze)
         self.izabranaVeza = self.comboBoxVeza.currentText()
-
 
 
 class PageIzborProtokola(QtGui.QWizardPage):
@@ -197,47 +193,38 @@ class PageIzborProtokola(QtGui.QWizardPage):
         self.setTitle('Izbor protokola')
         self.setSubTitle('Izaberi postavke komunikacijskog protokola')
         self.postavkeProtokola = {}
-
         self.ipAddressLabel = QtGui.QLabel('IP adresa :')
         self.ipAddress = QtGui.QLineEdit()
-
         self.tipRS232vezeLabel = QtGui.QLabel('Izbor protokola :')
         self.tipRS232veze = QtGui.QComboBox()
         tipoviRS232veze = ['Hessen, BCC', 'Hessen, text']
         self.tipRS232veze.addItems(tipoviRS232veze)
-
         self.portLabel = QtGui.QLabel('Port :')
         listaPortova = list_serial_ports()
         self.port = QtGui.QComboBox()
         self.port.addItems(listaPortova)
-
         self.brzinaLabel = QtGui.QLabel('Brzina (Baud Rate):')
         self.brzina = QtGui.QComboBox()
         listaBaudRate = ['50', '75', '110', '134', '150', '200', '300', '600',
                          '1200', '1800', '2400', '4800', '9600', '19200',
                          '38400', '57600', '115200']
         self.brzina.addItems(listaBaudRate)
-
         self.paritetLabel = QtGui.QLabel('Paritet :')
         self.paritet = QtGui.QComboBox()
         listaPariteta = sorted(['none', 'odd', 'even', 'mark', 'space'])
         self.paritet.addItems(listaPariteta)
-
         self.brojBitovaLabel = QtGui.QLabel('Broj bitova :')
         self.brojBitova = QtGui.QComboBox()
         listaBrojaBitova = ['5','6','7','8']
         self.brojBitova.addItems(listaBrojaBitova)
-
         self.stopBitoviLabel = QtGui.QLabel('Stop bitovi :')
         self.stopBitovi = QtGui.QComboBox()
         listaStopBitova = ['1', '2']
         self.stopBitovi.addItems(listaStopBitova)
-
         self.flowControlLabel = QtGui.QLabel('Kontrola :')
         self.flowControl = QtGui.QComboBox()
         listaKontrole = ['None', 'XON/XOFF (software)', 'RTS/CTS (hardware)']
         self.flowControl.addItems(listaKontrole)
-
         layout = QtGui.QGridLayout()
         layout.addWidget(self.ipAddressLabel, 0, 0, 1, 1)
         layout.addWidget(self.ipAddress, 0, 1, 1, 1)
@@ -299,14 +286,12 @@ class PageIzborProtokola(QtGui.QWizardPage):
             self.stopBitovi.setVisible(True)
             self.flowControlLabel.setVisible(True)
             self.flowControl.setVisible(True)
-
         else:
             pass
 
     def get_postavke(self):
         veza = self.wizard().izborVeze.izabranaVeza
         uredjaj = self.wizard().izborUredjaja.izabraniUredjaj
-
         self.postavkeProtokola['uredjaj'] = uredjaj
         self.postavkeProtokola['veza'] = veza
         if veza == 'TCP':

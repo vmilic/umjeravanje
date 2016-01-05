@@ -30,24 +30,19 @@ class Kolektor(BASE2, FORM2):
 
         ### setup komunikacijskog objekta u odvojenom threadu ###
         self.komThread = QtCore.QThread()
-
         self.veza = veza.RS232Veza()
         self.protokol = prot.HessenBCC()
-
         self.komObjekt = kom.KomunikacijskiObjekt(veza=self.veza,
                                                   protokol=self.protokol,
                                                   parent=None)
 
         self.komObjekt.moveToThread(self.komThread)
-        sr = str(self.komObjekt.get_sample_rate())
-
         ### setup grafa za prikaz podataka ###
         self.meta = {'xlabel':'vrijeme',
                      'ylabel':'koncentracija',
                      'title':'Prikupljeni podaci'}
         self.graf = canvas.GrafPreuzetihPodataka(meta=self.meta)
         self.layoutZaGraf.addWidget(self.graf)
-
         ### setup tablice i ostalih membera ###
         self.uid = uid #unique ID
         self.doc = dokument
@@ -57,8 +52,8 @@ class Kolektor(BASE2, FORM2):
         self.bareFrejmModel = fmodel.BareFrameModel(frejm=self.frejm)
         self.dataTableView.setModel(self.bareFrejmModel)
         self.stopButton.setEnabled(False)
+        sr = str(self.komObjekt.get_sample_rate())
         self.sampleCombo.setCurrentIndex(self.sampleCombo.findText(sr))
-
         self.setup_connections()
 
     def setup_connections(self):
@@ -73,7 +68,6 @@ class Kolektor(BASE2, FORM2):
         self.connect(self,
                      QtCore.SIGNAL('start_prikupljanje_podataka'),
                      self.komObjekt.start_prikupljati_podatke)
-
         self.connect(self.komObjekt,
                      QtCore.SIGNAL('nova_vrijednost_od_veze(PyQt_PyObject)'),
                      self.dodaj_vrijednost_frejmu)
@@ -166,16 +160,16 @@ class Kolektor(BASE2, FORM2):
         """
         tempFrejm = self.frejm.copy()
         moguceKomponente = self.doc.uredjaji[self.spojeni_uredjaj]['komponente']
-        izborStupaca = izbor_stupaca.IzborNazivaStupacaWizard(frejm=tempFrejm, moguci=moguceKomponente)
+        izborStupaca = izbor_stupaca.IzborNazivaStupacaWizard(frejm=tempFrejm,
+                                                              moguci=moguceKomponente,
+                                                              uredjaj=self.spojeni_uredjaj)
         prihvacen = izborStupaca.exec_()
         if prihvacen:
             minutniFrejm = izborStupaca.get_minutni_frejm()
             sekundniFrejm = izborStupaca.get_sekundni_frejm()
-            tabMap = izborStupaca.get_ckecked_tabove()
             #pakiranje i emit podataka aplikaciji
             output = {'podaci':sekundniFrejm,
                       'minutniPodaci':minutniFrejm,
-                      'tabMap':tabMap,
                       'uredjaj':self.spojeni_uredjaj}
             self.emit(QtCore.SIGNAL('spremi_preuzete_podatke(PyQt_PyObject)'),
                       output)
@@ -203,7 +197,6 @@ class Kolektor(BASE2, FORM2):
                                      xonxoff=postavke['xon/xoff'],
                                      rtscts=postavke['rts/cts'])
             self.komObjekt.set_veza(self.veza)
-
             #set protokola komunikacije
             temp = postavke['protokol']
             if temp == 'Hessen, BCC':
@@ -213,5 +206,4 @@ class Kolektor(BASE2, FORM2):
             self.komObjekt.set_protokol(self.protokol)
             return True
         else:
-            #cancel slucaj
             return False

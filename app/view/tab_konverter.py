@@ -18,7 +18,6 @@ class KonverterPanel(BASE3, FORM3):
         self.dokument = dokument
         self.plin = 'konverter'
         self.model = self.dokument.get_model(mjerenje='konverter')
-        self.checkBoxReport.setChecked(self.dokument.get_generateReportCheck(mjerenje=self.plin))
 
         ### postavljanje inicijalnih vrijednosti kontrolnih elemenata ###
         self.konverterOpseg.setValue(self.dokument.get_opseg())
@@ -62,7 +61,6 @@ class KonverterPanel(BASE3, FORM3):
 
     def setup_connections(self):
         #promjena opsega
-        self.checkBoxReport.stateChanged.connect(self.set_report_check)
         self.konverterOpseg.valueChanged.connect(self.promjena_konverterOpseg)
         self.connect(self.dokument,
                      QtCore.SIGNAL('promjena_opseg(PyQt_PyObject)'),
@@ -77,15 +75,6 @@ class KonverterPanel(BASE3, FORM3):
         self.connect(self.dokument,
                      QtCore.SIGNAL('promjena_cNOx95(PyQt_PyObject)'),
                      self.set_cnox95SpinBox)
-
-    def set_report_check(self, x):
-        """promjeni check za generiranje reporta za zadano mjerenje"""
-        x = bool(x)
-        self.dokument.set_generateReportCheck(x, mjerenje=self.plin)
-
-    def get_report_check(self):
-        """getter checka za generiranje reporta"""
-        return self.checkBoxReport.isChecked()
 
     def konverter_request_recalculate(self):
         """emit zahtjeva za ponovnim racunanjem rezultata"""

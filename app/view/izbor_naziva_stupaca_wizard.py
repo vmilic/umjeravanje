@@ -15,29 +15,25 @@ class IzborNazivaStupacaWizard(QtGui.QWizard):
     Wizard za 'izbor' stupaca frejma podataka preuzetih preko veze
     frejm --> frejm podataka
     moguci --> lista komponenti za taj uredjaj
+    uredjaj --> serial uredjaja
     """
-    def __init__(self, parent=None, frejm=None, moguci=None):
+    def __init__(self, parent=None, frejm=None, moguci=None, uredjaj=None):
         QtGui.QWizard.__init__(self, parent)
         self.frejm = frejm
+        self.uredjaj = uredjaj
         self.sekundniFrejm = self.frejm.copy()
         self.minutniFrejm = self.sekundniFrejm.resample('1min', how=np.average, closed='right', label='right')
         self.moguci = moguci
-        self.izbor = True #TODO!
-
         # opcije
         self.setWizardStyle(QtGui.QWizard.ModernStyle)
         self.setMinimumSize(600, 600)
-        self.setWindowTitle("Postavke veze uredjaja")
+        self.setWindowTitle("Izbor naziva stupaca")
         self.setOption(QtGui.QWizard.IndependentPages, on=False)
         # stranice wizarda
         self.izborStupaca = PageIzborStupaca(parent=self)
-        self.sekundniToCsv = PageSekundniToCsv(parent=self)
-        self.minutniToCsv = PageMinutniToCsv(parent=self)
-        self.prebaciData = PagePrebaciData(parent=self)
+        self.spremanjeFileova = PageSpremanjeFileova(parent=self)
         self.setPage(1, self.izborStupaca)
-        self.setPage(2, self.sekundniToCsv)
-        self.setPage(3, self.minutniToCsv)
-        self.setPage(4, self.prebaciData)
+        self.setPage(2, self.spremanjeFileova)
         self.setStartId(1)
 
     def rename_stupce_frejmova(self, stupci=None):
@@ -49,8 +45,8 @@ class IzborNazivaStupacaWizard(QtGui.QWizard):
         self.sekundniFrejm.rename(columns=tempmapa, inplace=True)
         self.minutniFrejm.rename(columns=tempmapa, inplace=True)
 
-    def get_listu_stupaca(self):
-        return self.moguci
+    def get_uredjaj(self):
+        return self.uredjaj
 
     def get_sekundni_frejm(self):
         return self.sekundniFrejm
@@ -58,108 +54,17 @@ class IzborNazivaStupacaWizard(QtGui.QWizard):
     def get_minutni_frejm(self):
         return self.minutniFrejm
 
-    def get_ckecked_tabove(self):
-        """metoda odredjuje u koje tabove se spremaju preuzeti podaci"""
-        output = {}
-        for item in self.prebaciData.listaCheckboxeva: #lista checkboxeva
-            naziv = item.text()
-            value = item.isChecked()
-            output[naziv] = value
-        return output
-
-
-class PageSekundniToCsv(QtGui.QWizardPage):
-    """wizard page za spremanje sirovih podataka u csv file"""
-    def __init__(self, parent=None):
-        QtGui.QWizard.__init__(self, parent)
-        self.setTitle('Spremi sekundne podatke u csv file')
-        self.setSubTitle('Ako želite, pritisnte gumb za spremanje i zatim spremite podatke uz pomoc file dijaloga')
-
-        self.gumbSpremi = QtGui.QPushButton('Spremi sekundne podatke')
-
-        self.tableView = QtGui.QTableView()
-
-        layout = QtGui.QVBoxLayout()
-        layout.addWidget(self.tableView)
-        layout.addWidget(self.gumbSpremi)
-        self.setLayout(layout)
-
-        self.gumbSpremi.clicked.connect(self.spremi_sekundne_u_csv)
-
-    def initializePage(self):
-        self.sekfrejm = self.wizard().sekundniFrejm
-        self.model = modeli.BareFrameModel()
-        self.model.set_frejm(self.sekfrejm)
-        self.tableView.setModel(self.model)
-
-    def spremi_sekundne_u_csv(self):
-        filepath = QtGui.QFileDialog.getSaveFileName(parent=self,
-                                                     caption='Spremi podatke u csv file',
-                                                     filter='CSV file (*.csv);;all (*.*)')
-        if filepath:
-            try:
-                self.sekfrejm.to_csv(filepath,
-                                     sep=',',
-                                     encoding='utf-8')
-            except Exception as err:
-                logging.error(str(err), exc_info=True)
-                QtGui.QMessageBox.warning(self, 'Problem', 'File nije uspjesno spremljen')
-                pass
-            else:
-                QtGui.QMessageBox.information(self, 'Informacija', 'File je uspjesno spremljen')
-
-
-class PageMinutniToCsv(QtGui.QWizardPage):
-    """wizard page za spremanje minutno usrednjenih podataka u csv file"""
-    def __init__(self, parent=None):
-        QtGui.QWizard.__init__(self, parent)
-        self.setTitle('Spremi minutno usrednjene podatke u csv file')
-        self.setSubTitle('Ako želite, pritisnte gumb za spremanje i zatim spremite podatke uz pomoc file dijaloga')
-
-        self.gumbSpremi = QtGui.QPushButton('Spremi usrednjene podatke')
-
-        self.tableView = QtGui.QTableView()
-
-        layout = QtGui.QVBoxLayout()
-        layout.addWidget(self.tableView)
-        layout.addWidget(self.gumbSpremi)
-        self.setLayout(layout)
-
-        self.gumbSpremi.clicked.connect(self.spremi_minutne_u_csv)
-
-    def initializePage(self):
-        self.minfrejm = self.wizard().minutniFrejm
-        self.model = modeli.BareFrameModel()
-        self.model.set_frejm(self.minfrejm)
-        self.tableView.setModel(self.model)
-
-    def spremi_minutne_u_csv(self):
-        filepath = QtGui.QFileDialog.getSaveFileName(parent=self,
-                                                     caption='Spremi podatke u csv file',
-                                                     filter='CSV file (*.csv);;all (*.*)')
-        if filepath:
-            try:
-                self.minfrejm.to_csv(filepath,
-                                     sep=',',
-                                     encoding='utf-8')
-            except Exception as err:
-                logging.error(str(err), exc_info=True)
-                QtGui.QMessageBox.warning(self, 'Problem', 'File nije uspjesno spremljen')
-                pass
-            else:
-                QtGui.QMessageBox.information(self, 'Informacija', 'File je uspjesno spremljen')
-
-
 
 class PageIzborStupaca(QtGui.QWizardPage):
     """Wizard page za 'rename' stupaca """
     def __init__(self, parent=None):
-        QtGui.QWizard.__init__(self, parent)
+        QtGui.QWizard.__init__(self, parent=parent)
         self.setTitle('Definiranje komponenti')
         self.setSubTitle('Odaberi koji stupac u sirovim podacima odgovara kojoj komponenti')
-
         self.tableView = QtGui.QTableView()
+        self.deviceLabel = QtGui.QLabel()
         layout = QtGui.QVBoxLayout()
+        layout.addWidget(self.deviceLabel)
         layout.addWidget(self.tableView)
         self.setLayout(layout)
 
@@ -169,9 +74,9 @@ class PageIzborStupaca(QtGui.QWizardPage):
         """
         self.frejm = self.wizard().frejm
         self.moguci = self.wizard().moguci
+        self.deviceLabel.setText('Izabrani uredjaj: {0}'.format(self.wizard().get_uredjaj()))
         if 'None' not in self.moguci:
             self.moguci.append('None')
-
         try:
             self.model = modeli.BaseFrejmModel(frejm=self.frejm)
             self.delegat = modeli.ComboBoxDelegate(stupci = self.moguci, parent=self.tableView)
@@ -251,36 +156,77 @@ class PageIzborStupaca(QtGui.QWizardPage):
         combo.setCurrentIndex(ind)
         combo.blockSignals(False)
 
-class PagePrebaciData(QtGui.QWizardPage):
-    """Wizard page za prebacivanje podataka u 'aktivno stanje' za rad sa podacima"""
+
+class PageSpremanjeFileova(QtGui.QWizardPage):
+    """Wizard page za 'rename' stupaca """
     def __init__(self, parent=None):
         QtGui.QWizard.__init__(self, parent)
-        self.setTitle('Prebacivanje preuzetih podataka u radni dio aplikacije')
-        tekst = ['Izaberite u koje tabove treba prebaciti podatke.',
-                 'U tabove za mjerenje i provjeru konvertera spremaju se minutno usrednjeni podaci.',
-                 'U tabove za provjeru odaziva spremaju se sekundni podaci.']
-        t = ' '.join(tekst)
-        self.setSubTitle(t)
+        self.setTitle('Spremanje podataka u csv file')
+        self.setSubTitle('Ako želite, možete spremiti podatke u file. Moguće je prije spremanja minutno usrednjiti podatke (average).')
 
-        self.lay = QtGui.QVBoxLayout()
-        self.setLayout(self.lay)
+        self.sekundniTable = QtGui.QTableView()
+        self.gumbSpremiSekundne = QtGui.QPushButton('Spremi...')
+        self.minutniTable = QtGui.QTableView()
+        self.gumbSpremiMinutne = QtGui.QPushButton('Spremi minutne...')
+        sekundniLayout = QtGui.QVBoxLayout()
+        sekundniLayout.addWidget(self.gumbSpremiSekundne)
+        sekundniLayout.addWidget(self.sekundniTable)
+        minutniLayout = QtGui.QVBoxLayout()
+        minutniLayout.addWidget(self.gumbSpremiMinutne)
+        minutniLayout.addWidget(self.minutniTable)
+        mainLayout = QtGui.QHBoxLayout()
+        mainLayout.addLayout(sekundniLayout)
+        mainLayout.addLayout(minutniLayout)
+        self.setLayout(mainLayout)
+
+        self.setup_connections()
 
     def initializePage(self):
         """
         Funkcija se pokrece prilikom inicijalizacije stranice
         """
-        stupci = self.wizard().get_listu_stupaca()
-        if 'None' in stupci:
-            stupci.remove('None')
+        sekundniModel = modeli.BareFrameModel()
+        sekundniModel.set_frejm(self.wizard().sekundniFrejm)
+        self.sekundniTable.setModel(sekundniModel)
+        minutniModel = modeli.BareFrameModel()
+        minutniModel.set_frejm(self.wizard().minutniFrejm)
+        self.minutniTable.setModel(minutniModel)
 
-        self.listaCheckboxeva = []
+    def setup_connections(self):
+        """widget communication"""
+        self.gumbSpremiSekundne.clicked.connect(self.spremi_sekundne_u_csv)
+        self.gumbSpremiMinutne.clicked.connect(self.spremi_minutne_u_csv)
 
-        for stupac in stupci:
-            self.listaCheckboxeva.append(QtGui.QCheckBox(stupac))
-            name = stupac+'-odaziv'
-            self.listaCheckboxeva.append(QtGui.QCheckBox(name))
-        self.listaCheckboxeva.append(QtGui.QCheckBox('konverter'))
+    def spremi_sekundne_u_csv(self):
+        filepath = QtGui.QFileDialog.getSaveFileName(parent=self,
+                                                     caption='Spremi podatke u csv file',
+                                                     filter='CSV file (*.csv);;all (*.*)')
+        if filepath:
+            try:
+                frejm = self.wizard().sekundniFrejm
+                frejm.to_csv(filepath,
+                             sep=',',
+                             encoding='utf-8')
+            except Exception as err:
+                logging.error(str(err), exc_info=True)
+                QtGui.QMessageBox.warning(self, 'Problem', 'File nije uspješno spremljen')
+                pass
+            else:
+                QtGui.QMessageBox.information(self, 'Informacija', 'File je uspješno spremljen')
 
-        for item in self.listaCheckboxeva:
-            self.lay.addWidget(item)
-            item.setChecked(True)
+    def spremi_minutne_u_csv(self):
+        filepath = QtGui.QFileDialog.getSaveFileName(parent=self,
+                                                     caption='Spremi podatke u csv file',
+                                                     filter='CSV file (*.csv);;all (*.*)')
+        if filepath:
+            try:
+                frejm = self.wizard().minutniFrejm
+                frejm.to_csv(filepath,
+                             sep=',',
+                             encoding='utf-8')
+            except Exception as err:
+                logging.error(str(err), exc_info=True)
+                QtGui.QMessageBox.warning(self, 'Problem', 'File nije uspješno spremljen')
+                pass
+            else:
+                QtGui.QMessageBox.information(self, 'Informacija', 'File je uspješno spremljen')

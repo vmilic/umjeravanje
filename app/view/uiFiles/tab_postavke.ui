@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1081</width>
-    <height>691</height>
+    <width>1035</width>
+    <height>729</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,8 +24,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>1061</width>
-        <height>671</height>
+        <width>1015</width>
+        <height>709</height>
        </rect>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -35,28 +35,106 @@
           <number>20</number>
          </property>
          <item>
+          <widget class="QGroupBox" name="groupBox">
+           <property name="title">
+            <string>Mjerenje</string>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_3">
+            <item row="3" column="1">
+             <widget class="QComboBox" name="comboPostaja">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_13">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Uredjaj :</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QComboBox" name="comboUredjaj">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="label_14">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Postaja :</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QComboBox" name="comboKomponenta">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_6">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Komponenta :</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="0">
+             <widget class="QLabel" name="label_9">
+              <property name="text">
+               <string>Opseg :</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="1">
+             <widget class="QDoubleSpinBox" name="doubleSpinBoxOpseg">
+              <property name="maximum">
+               <double>1000000.000000000000000</double>
+              </property>
+              <property name="value">
+               <double>1.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
           <widget class="QGroupBox" name="groupBox_8">
            <property name="title">
             <string>Testovi</string>
            </property>
            <layout class="QGridLayout" name="gridLayout">
-            <item row="0" column="1">
-             <widget class="QCheckBox" name="checkUmjeravanje">
-              <property name="text">
-               <string/>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QCheckBox" name="checkPonovljivost">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
             <item row="1" column="0">
              <widget class="QLabel" name="label_5">
               <property name="text">
@@ -64,14 +142,14 @@
               </property>
              </widget>
             </item>
-            <item row="3" column="1">
-             <widget class="QCheckBox" name="checkBoxKonverterTab">
+            <item row="4" column="1">
+             <widget class="QCheckBox" name="checkKonverter">
               <property name="text">
                <string/>
               </property>
              </widget>
             </item>
-            <item row="3" column="0">
+            <item row="4" column="0">
              <widget class="QLabel" name="label">
               <property name="text">
                <string>Provjera konvertera :</string>
@@ -98,13 +176,6 @@
               </property>
              </widget>
             </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="label_2">
-              <property name="text">
-               <string>Provjera linearnosti :</string>
-              </property>
-             </widget>
-            </item>
             <item row="0" column="0">
              <widget class="QLabel" name="label_3">
               <property name="text">
@@ -112,62 +183,43 @@
               </property>
              </widget>
             </item>
-            <item row="4" column="0">
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_2">
+              <property name="text">
+               <string>Provjera linearnosti :</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QCheckBox" name="checkPonovljivost">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QCheckBox" name="checkUmjeravanje">
+              <property name="text">
+               <string/>
+              </property>
+              <property name="checked">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
              <widget class="QLabel" name="label_12">
               <property name="text">
                <string>Provjera odaziva :</string>
               </property>
              </widget>
             </item>
-            <item row="4" column="1">
-             <widget class="QCheckBox" name="checkBoxRiseFall">
+            <item row="3" column="1">
+             <widget class="QCheckBox" name="checkOdaziv">
               <property name="text">
                <string/>
               </property>
              </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item>
-          <widget class="QGroupBox" name="groupBox">
-           <property name="title">
-            <string>Mjerenje</string>
-           </property>
-           <layout class="QGridLayout" name="gridLayout_3">
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_6">
-              <property name="text">
-               <string>Mjerenje :</string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="1">
-             <widget class="QDoubleSpinBox" name="doubleSpinBoxOpseg">
-              <property name="maximum">
-               <double>1000000.000000000000000</double>
-              </property>
-              <property name="value">
-               <double>1.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="2">
-             <widget class="QLabel" name="labelJedinicaOpseg">
-              <property name="text">
-               <string>n/a</string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="0">
-             <widget class="QLabel" name="label_9">
-              <property name="text">
-               <string>Opseg :</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QComboBox" name="comboMjerenje"/>
             </item>
            </layout>
           </widget>
@@ -334,7 +386,7 @@
                <double>1000000.000000000000000</double>
               </property>
               <property name="value">
-               <double>0.000000000000000</double>
+               <double>1.000000000000000</double>
               </property>
              </widget>
             </item>
@@ -413,10 +465,16 @@
             </item>
             <item row="0" column="1">
              <widget class="QPlainTextEdit" name="normaPlainTextEdit">
-              <property name="maximumSize">
+              <property name="minimumSize">
                <size>
                 <width>240</width>
                 <height>60</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>80</height>
                </size>
               </property>
               <property name="plainText">
@@ -540,19 +598,6 @@
             </item>
            </layout>
           </widget>
-         </item>
-         <item>
-          <spacer name="verticalSpacer_3">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
          </item>
         </layout>
        </item>

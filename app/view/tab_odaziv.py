@@ -23,15 +23,15 @@ class RiseFallWidget(BASE14, FORM14):
         """
         super(BASE14, self).__init__(parent)
         self.setupUi(self)
-
+        #zadani memberi
         self.doc = dokument
         self.plin = naziv
         self.naziv = naziv[:-7]
-        self.rezultatStupci = self.doc.mjerenja[self.plin]['rezultatStupci']
-        self.rezultat = self.doc.mjerenja[self.plin]['rezultatFrejm']
+        #metapodaci za graf
         self.meta = {'xlabel':'vrijeme',
                      'ylabel':'koncentracija',
                      'title':'Vrijeme uspona i pada'}
+        #kriteriji prihvatljivosti
         kriterijRise = ['Vrijeme odaziva (uspon)',
                         '???',
                         't<sub>r</sub',
@@ -53,12 +53,12 @@ class RiseFallWidget(BASE14, FORM14):
         self.reportKriterijValue = {'rise':kriterijRise,
                                     'fall':kriterijFall,
                                     'diff':kriterijDiff}
-
+        #rezultati
+        self.rezultatStupci = ['Naziv', 'Pocetak', 'Kraj', 'Delta']
+        self.rezultat = pd.DataFrame(columns=self.rezultatStupci)
         self.model = self.doc.get_model(mjerenje=self.plin)
         self.modelRezultata = modeli.RiseFallResultModel()
         self.modelRezultata.set_frejm(self.rezultat)
-
-        self.checkBoxReport.setChecked(self.doc.get_generateReportCheck(mjerenje=self.plin))
         self.highLimit = self.model.get_high_limit()
         self.lowLimit = self.model.get_low_limit()
         self.doubleSpinBoxHigh.setValue(self.highLimit)
@@ -77,14 +77,6 @@ class RiseFallWidget(BASE14, FORM14):
     def setup_connections(self):
         self.doubleSpinBoxHigh.valueChanged.connect(self.modify_high_limit)
         self.doubleSpinBoxLow.valueChanged.connect(self.modify_low_limit)
-        self.checkBoxReport.toggled.connect(self.toggle_report)
-
-    def toggle_report(self, x):
-        x = bool(x)
-        self.doc.set_generateReportCheck(x, mjerenje=self.plin)
-
-    def get_report_check(self):
-        return self.checkBoxReport.isChecked()
 
     def modify_high_limit(self, x):
         value = float(x)
@@ -98,10 +90,29 @@ class RiseFallWidget(BASE14, FORM14):
         self.model.set_low_limit(value)
         self.update_rezultate()
 
+    def nadji_kraj_uspona(self, frejm, ts):
+        frejm = frejm.iloc[:,2]
+        frejm = frejm[frejm.index >= ts]
+        frejm = frejm[frejm >= self.highLimit]
+        if len(frejm):
+            return frejm.index[0]
+        else:
+            return pd.NaT
+
+    def nadji_kraj_pada(self, frejm, ts):
+        frejm = frejm.iloc[:,2]
+        frejm = frejm[frejm.index >= ts]
+        frejm = frejm[frejm <= self.lowLimit]
+        if len(frejm):
+            return frejm.index[0]
+        else:
+            return pd.NaT
+
+    def get_reportKriterijValue(self):
+        return self.reportKriterijValue
+
     def update_rezultate(self):
-        #TODO!
-        #update novi rezultat
-        self.doc.set_rezulatFrejm_odaziva(self.rezultat, mjerenje=self.plin)
+        self.make_rezultat_from_model_data()
         self.modelRezultata.set_frejm(self.rezultat)
         slajs = self.model.get_slajs()
         self.graf.crtaj(podaci=slajs,
@@ -109,6 +120,44 @@ class RiseFallWidget(BASE14, FORM14):
                         high=self.highLimit,
                         low=self.lowLimit)
         self.set_reportValue()
+
+    def make_rezultat_from_model_data(self):
+        """Metoda generira frejm rezultata iz modela"""
+        self.rezultat = pd.DataFrame(columns=self.rezultatStupci)
+        frejm = self.model.get_frejm()
+        #usponi
+        r = frejm[frejm.iloc[:,0] == QtCore.Qt.Checked]
+        for i in r.index:
+            start = i
+            kraj = self.nadji_kraj_uspona(frejm, i)
+            if not isinstance(kraj, pd.tslib.NaTType):
+                delta = (kraj - start).total_seconds()
+            else:
+                delta = np.NaN
+            self.dodaj_red_u_rezultat_frejm('RISE', start, kraj, delta)
+        #padovi
+        f = frejm[frejm.iloc[:,1] == QtCore.Qt.Checked]
+        for i in f.index:
+            start = i
+            kraj = self.nadji_kraj_pada(frejm, i)
+            if not isinstance(kraj, pd.tslib.NaTType):
+                delta = (kraj - start).total_seconds()
+            else:
+                delta = np.NaN
+            self.dodaj_red_u_rezultat_frejm('FALL', start, kraj, delta)
+
+    def dodaj_red_u_rezultat_frejm(self, nazivStupca, start, kraj, delta):
+        indeks = len(self.rezultat)
+        #provjeri da li postoji vec isto vrijeme prije dodavanja
+        startovi = list(self.rezultat['Pocetak'])
+        if start not in startovi:
+            df = pd.DataFrame({'Naziv':nazivStupca,
+                               'Pocetak':start,
+                               'Kraj':kraj,
+                               'Delta':delta},
+                               index=[indeks],
+                               columns=self.rezultatStupci)
+            self.rezultat = self.rezultat.append(df)
 
     def set_reportValue(self):
         frejm = self.rezultat.copy()
@@ -157,80 +206,3 @@ class RiseFallWidget(BASE14, FORM14):
         self.reportKriterijValue['diff'][3] = t
 
         self.tablicaKriterija.set_values(self.reportKriterijValue)
-
-    def check_pocetak(self, x):
-        """slot za interakciju sa sirovim podacima"""
-        red = x.row()
-        stupac = x.column()
-        check = self.model.dataFrejm.iloc[red, stupac]
-        nazivStupca = self.model.dataFrejm.columns[stupac]
-        start = self.model.dataFrejm.index[red]
-        if check == QtCore.Qt.Checked:
-            if 'RISE' in nazivStupca:
-                col = stupac + 2
-                kraj = self.nadji_kraj_uspona(red, col)
-                if not isinstance(kraj, pd.tslib.NaTType):
-                    delta = (kraj - start).total_seconds()
-                else:
-                    delta = np.NaN
-                self.dodaj_red_u_rezultat_frejm(nazivStupca, start, kraj, delta)
-            elif 'FALL' in nazivStupca:
-                col = stupac + 1
-                kraj = self.nadji_kraj_pada(red, col)
-                if not isinstance(kraj, pd.tslib.NaTType):
-                    delta = (kraj - start).total_seconds()
-                else:
-                    delta = np.NaN
-                self.dodaj_red_u_rezultat_frejm(nazivStupca, start, kraj, delta)
-            else:
-                pass
-        elif check == QtCore.Qt.Unchecked:
-            self.makni_red_iz_rezultat_frejma(nazivStupca, start)
-        else:
-            pass
-
-    def nadji_kraj_uspona(self, red, stupac):
-        frejm = self.model.dataFrejm.copy()
-        nazivStupca = frejm.columns[stupac]
-        frejm = frejm[nazivStupca]
-        frejm = frejm[frejm.index >= frejm.index[red]]
-        frejm = frejm[frejm >= self.highLimit]
-        if len(frejm):
-            return frejm.index[0]
-        else:
-            return pd.NaT
-
-    def nadji_kraj_pada(self, red, stupac):
-        frejm = self.model.dataFrejm.copy()
-        nazivStupca = frejm.columns[stupac]
-        frejm = frejm[nazivStupca]
-        frejm = frejm[frejm.index >= frejm.index[red]]
-        frejm = frejm[frejm <= self.lowLimit]
-        if len(frejm):
-            return frejm.index[0]
-        else:
-            return pd.NaT
-
-    def dodaj_red_u_rezultat_frejm(self, nazivStupca, start, kraj, delta):
-        indeks = len(self.rezultat)
-        #provjeri da li postoji vec isto vrijeme prije dodavanja
-        startovi = list(self.rezultat['Pocetak'])
-        if start not in startovi:
-            df = pd.DataFrame({'Naziv':nazivStupca,
-                               'Pocetak':start,
-                               'Kraj':kraj,
-                               'Delta':delta},
-                               index=[indeks],
-                               columns=self.rezultatStupci)
-            self.rezultat = self.rezultat.append(df)
-            self.update_rezultate()
-
-    def makni_red_iz_rezultat_frejma(self, nazivStupca, start):
-        if len(self.rezultat):
-            frejm = self.rezultat.copy()
-            frejm = frejm[frejm.iloc[:,0]==nazivStupca]
-            frejm = frejm[frejm.iloc[:,1]==start]
-            self.rezultat = self.rezultat.drop(self.rezultat.index[frejm.index])
-            #reindex
-            self.rezultat.index = list(range(len(self.rezultat)))
-            self.update_rezultate()

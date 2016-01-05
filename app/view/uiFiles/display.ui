@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1099</width>
-    <height>639</height>
+    <width>1159</width>
+    <height>805</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -95,32 +95,67 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1097</width>
-         <height>533</height>
+         <width>1157</width>
+         <height>699</height>
         </rect>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <widget class="QTableView" name="siroviPodaciView">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <property name="margin">
+           <number>0</number>
           </property>
-          <property name="minimumSize">
-           <size>
-            <width>300</width>
-            <height>250</height>
-           </size>
-          </property>
-          <property name="selectionMode">
-           <enum>QAbstractItemView::SingleSelection</enum>
-          </property>
-          <property name="selectionBehavior">
-           <enum>QAbstractItemView::SelectRows</enum>
-          </property>
-         </widget>
+          <item>
+           <widget class="QTableView" name="siroviPodaciView">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>300</width>
+              <height>250</height>
+             </size>
+            </property>
+            <property name="selectionMode">
+             <enum>QAbstractItemView::SingleSelection</enum>
+            </property>
+            <property name="selectionBehavior">
+             <enum>QAbstractItemView::SelectRows</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QTableView" name="frejmoviView">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>300</width>
+              <height>60</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>120</height>
+             </size>
+            </property>
+            <property name="selectionMode">
+             <enum>QAbstractItemView::SingleSelection</enum>
+            </property>
+            <property name="selectionBehavior">
+             <enum>QAbstractItemView::SelectRows</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
         <item>
          <widget class="QTabWidget" name="glavniTabWidget">
@@ -143,7 +178,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1099</width>
+     <width>1159</width>
      <height>21</height>
     </rect>
    </property>

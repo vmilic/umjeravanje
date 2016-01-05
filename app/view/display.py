@@ -3,14 +3,13 @@
 Created on Fri Aug 28 09:41:20 2015
 
 @author: DHMZ-Milic
-
 """
 import gc
 import sip
 import logging
-import copy
+#import copy
 import pickle
-import pandas as pd
+#import pandas as pd
 from PyQt4 import QtGui, QtCore, uic
 import app.reportgen.reportgen as pdfreport
 import app.model.konfig_klase as konfig
@@ -49,13 +48,188 @@ class GlavniProzor(BASE, FORM):
         self.tabPostavke = postavke.PostavkeTab(dokument=self.dokument)
         self.glavniTabWidget.addTab(self.tabPostavke, 'Postavke')
         self.siroviPodaciView.horizontalHeader().setStretchLastSection(True)
-
         ### Setup signala i slotova ###
         self.setup_signal_connections()
+        ### popunjavanje izbornika u dokumentu ###
+        self.dokument.init_comboboxeve()
 
-        ### inicijalni setup dokumenta ###
-        self.dokument.init_listaDilucija()
-        self.dokument.init_listaZrak()
+    def setup_signal_connections(self):
+        """definiranje komunikacije izmedju objekata"""
+        self.action_ucitaj_podatke.triggered.connect(self.read_data_from_csv)
+        self.frejmoviView.clicked.connect(self.interakcija_sa_tablicom_frejmova)
+        self.siroviPodaciView.clicked.connect(self.interakcija_sa_tablicom_pojedinih_mjerenja)
+        self.glavniTabWidget.currentChanged.connect(self.promjena_aktivnog_taba)
+        self.action_Exit.triggered.connect(self.close)
+        self.action_otvori_kolektor.triggered.connect(self.otvori_prozor)
+        self.action_spremi.triggered.connect(self.save_umjeravanje_to_file)
+        self.action_ucitaj.triggered.connect(self.load_umjeravanje_from_file)
+        self.action_Napravi_pdf_report.triggered.connect(self.napravi_pdf_report)
+
+        #feedback o izbranom uredjaju, promjena labela
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_izabraniUredjaj(PyQt_PyObject)'),
+                     self.promjena_aktivni_uredjaj)
+        #feedback o izabranoj postaji, promjena labela
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_izabranaPostaja(PyQt_PyObject)'),
+                     self.promjena_label_postaja)
+        # promjena modela za prikaz podataka u ljevoj tablici (izbor tocaka...)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('update_tablicu_podataka(PyQt_PyObject)'),
+                     self.update_tablicu_pojedinih_mjerenja)
+        # update taba sa rezultatima umjeravanja
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('update_tab_results(PyQt_PyObject)'),
+                     self.update_tab_results)
+        # update taba sa odazivom
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('update_tab_odaziv(PyQt_PyObject)'),
+                     self.update_tab_odaziv)
+        # update konverter taba
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('update_tab_konverter(PyQt_PyObject)'),
+                     self.update_tab_konverter)
+        # display konvertera
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('promjena_provjeraKonvertera(PyQt_PyObject)'),
+                     self.display_tab_konverter)
+        # display odaziva
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('display_odaziv(PyQt_PyObject)'),
+                     self.display_tab_odaziv)
+        # display umjeravanje
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('display_umjeravanje(PyQt_PyObject)'),
+                     self.display_tab_umjeravanje)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('display_ponovljivost(PyQt_PyObject)'),
+                     self.display_tab_umjeravanje)
+        self.connect(self.dokument,
+                     QtCore.SIGNAL('display_linearnost(PyQt_PyObject)'),
+                     self.display_tab_umjeravanje)
+
+    def interakcija_sa_tablicom_frejmova(self, x):
+        """izbor aktivnog dokumenta"""
+        print('!!!!!!!!!!!izbor aktivnog frejma!!!!!!!!!!!!!!')
+        red = x.row()
+        aktivniTab = self.glavniTabWidget.currentWidget()
+        self.dokument.set_aktivni_frejm(red, self.dictTabova, aktivniTab)
+
+    def update_tablicu_pojedinih_mjerenja(self, x):
+        """promjena modela za prikaz pojedinih mjerenja. ulazni parametar x je
+        qt model"""
+        self.siroviPodaciView.setModel(x)
+        nazivTaba = self.glavniTabWidget.currentWidget().plin
+        if '-odaziv' in nazivTaba:
+            self.glavniTabWidget.currentWidget().update_rezultate()
+            self.siroviPodaciView.resizeColumnToContents(0)
+            self.siroviPodaciView.resizeColumnToContents(1)
+            self.siroviPodaciView.horizontalHeader().setStretchLastSection(True)
+        elif nazivTaba == 'konverter':
+            self.siroviPodaciView.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+        else:
+            self.siroviPodaciView.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+        self.siroviPodaciView.update()
+
+    def promjena_aktivnog_taba(self, x):
+        """metoda zaduzena za promjenu konteksta prilikom promjene taba. Definira
+        koji je model aktivan u ljevoj tablici sa podacima."""
+        print('!!!!!!!!!!!promjena_aktivnog_taba!!!!!!!!!!!!!!')
+        try:
+            nazivTaba = self.glavniTabWidget.currentWidget().plin
+            model = self.dokument.get_model(mjerenje=nazivTaba)
+            self.siroviPodaciView.setModel(model)
+            if '-odaziv' in nazivTaba:
+                self.glavniTabWidget.currentWidget().update_rezultate()
+                self.siroviPodaciView.resizeColumnToContents(0)
+                self.siroviPodaciView.resizeColumnToContents(1)
+                self.siroviPodaciView.horizontalHeader().setStretchLastSection(True)
+            elif nazivTaba == 'konverter':
+                self.siroviPodaciView.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+            else:
+                self.siroviPodaciView.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+            self.siroviPodaciView.update()
+        except Exception as err:
+            logging.error(str(err), exc_info=True)
+
+    def interakcija_sa_tablicom_pojedinih_mjerenja(self, x):
+        """izbor pocetka umjeravanja"""
+        print('!!!!!!!!interakcija sa modelom pojedinih mjerenja!!!!!!!!!')
+        widg = self.glavniTabWidget.currentWidget()
+        try:
+            mjerenje = widg.plin
+            if mjerenje == 'postavke':
+                pass
+            elif mjerenje.endswith('-odaziv'):
+                #delegiraj klik widgetu
+                widg.update_rezultate()
+            else:
+                #dohvati aktivni model
+                model = self.dokument.get_model(mjerenje=mjerenje)
+                #postavi novi start podataka u model
+                model.set_start(x)
+                #zahtjev za ponovnim racunanjem s novim podacima
+                self.dokument.recalculate_tab_umjeravanja(mjerenje=mjerenje)
+        except Exception as err:
+            logging.error(str(err), exc_info=True)
+
+    def promjena_aktivni_uredjaj(self, mapa):
+        """
+        Promjena aktivnog uredjaja. Gui mora prebaciti label uredjaja i
+        pravilno updateati i prikazati tablicu sa ucitanim mjerenjima.
+
+        Serijski broj uredjaja je zapisan u mapi pod kljucem 'value'.
+        """
+        #promjena naziva
+        ure = mapa['value']
+        self.labelUredjaj.clear()
+        if ure != '':
+            self.labelUredjaj.setText(ure)
+            self.clear_tabove()
+            self.create_tabove(ure)
+            pass
+            model = self.dokument.get_frejmovi_model(ure)
+            self.frejmoviView.setModel(model)
+            self.frejmoviView.update()
+            #pokusaj izabrati prethodno izabrani frejm... in case of None izaberi prvi moguci
+            uredjaj = self.dokument.get_izabraniUredjaj()
+            izabrani = self.dokument.get_aktivni_frejm(uredjaj)
+            if izabrani != None:
+                self.frejmoviView.selectRow(izabrani)
+            else:
+                self.frejmoviView.selectRow(0)
+        else:
+            self.labelUredjaj.setText('n/a')
+
+
+    def promjena_label_postaja(self, mapa):
+        """
+        promjena teksta labela sa izabranom postajom.
+        """
+        postaja = mapa['value']
+        self.labelPostaja.clear()
+        self.labelPostaja.setText(postaja)
+
+    def read_data_from_csv(self):
+        """
+        Ucitavanje sirovih podataka iz csv filea putem wizarda.
+
+        redosljed ucitavanja je bitan:
+        1. clear tabove (ako su razliciti od postojecih tabova)
+        2. update dokument sa novim podacima
+        3. create tabove (ako su prethodno izbrisani)
+        """
+        pass
+
+        self.fileWizard = datareader.CarobnjakZaCitanjeFilea(dokument=self.dokument)
+        prihvacen = self.fileWizard.exec_()
+        if prihvacen:
+            frejmovi = self.fileWizard.get_frejmovi()
+            minutni = frejmovi['minutni']
+            sekundni = frejmovi['sekundni']
+            uredjaj = self.fileWizard.get_uredjaj()
+            self.dokument.add_frejm_ucitanih_za_uredjaj(minutni, 'minutni', uredjaj)
+            self.dokument.add_frejm_ucitanih_za_uredjaj(sekundni, 'sekundni', uredjaj)
 
     @helperi.activate_wait_spinner
     def clear_tabove(self):
@@ -71,22 +245,43 @@ class GlavniProzor(BASE, FORM):
         gc.collect()
 
     @helperi.activate_wait_spinner
-    def create_tabove(self, popis):
+    def create_tabove(self, uredjaj):
         """
-        Metoda je zaduzena za stvaranje svih potrebnih tabova. Ulazni parametar je
-        mapa tabova (kljucevi su nazivi tabova)
+        Metoda je zaduzena za stvaranje svih potrebnih tabova za zadani uredjaj
         """
-        for name in popis:
-            if name == 'konverter':
-                self.dictTabova[name] = konverter.KonverterPanel(dokument=self.dokument)
-            elif name.endswith('-odaziv'):
-                tab = odaziv.RiseFallWidget(dokument=self.dokument,
-                                            naziv=name)
-                self.dictTabova[name] = tab
-            else:
-                tab = rezultat.RezultatPanel(dokument=self.dokument,
-                                             plin=name)
-                self.dictTabova[name] = tab
+        komponente = self.dokument.uredjaji[uredjaj]['komponente']
+        if 'None' in komponente:
+            komponente.remove('None')
+        #specijalni slucajevi:
+        #1. NOX - NO, NOx, odaziv-NO, konverter
+        if 'NO' in komponente:
+            self.dictTabova['NO'] = rezultat.RezultatPanel(dokument=self.dokument, plin='NO')
+            self.dictTabova['NOx'] = rezultat.RezultatPanel(dokument=self.dokument, plin='NOx')
+            self.dictTabova['NO-odaziv'] = odaziv.RiseFallWidget(dokument=self.dokument, naziv='NO-odaziv')
+            self.dictTabova['konverter'] = konverter.KonverterPanel(dokument=self.dokument)
+            self.connect(self.dictTabova['NO'],
+                         QtCore.SIGNAL('panel_dodaj_umjernu_tocku'),
+                         self.add_red_umjeravanje)
+            self.connect(self.dictTabova['NO'],
+                         QtCore.SIGNAL('panel_makni_umjernu_tocku(PyQt_PyObject)'),
+                         self.remove_red_umjeravanje)
+            self.connect(self.dictTabova['NO'],
+                         QtCore.SIGNAL('panel_edit_umjernu_tocku(PyQt_PyObject)'),
+                         self.edit_red_umjeravanje)
+            self.connect(self.dictTabova['NOx'],
+                         QtCore.SIGNAL('panel_dodaj_umjernu_tocku'),
+                         self.add_red_umjeravanje)
+            self.connect(self.dictTabova['NOx'],
+                         QtCore.SIGNAL('panel_makni_umjernu_tocku(PyQt_PyObject)'),
+                         self.remove_red_umjeravanje)
+            self.connect(self.dictTabova['NOx'],
+                         QtCore.SIGNAL('panel_edit_umjernu_tocku(PyQt_PyObject)'),
+                         self.edit_red_umjeravanje)
+        else:
+            for komponenta in komponente:
+                #tab sa rezultatima
+                tab = rezultat.RezultatPanel(dokument=self.dokument, plin=komponenta)
+                self.dictTabova[komponenta] = tab
                 self.connect(tab,
                              QtCore.SIGNAL('panel_dodaj_umjernu_tocku'),
                              self.add_red_umjeravanje)
@@ -96,195 +291,62 @@ class GlavniProzor(BASE, FORM):
                 self.connect(tab,
                              QtCore.SIGNAL('panel_edit_umjernu_tocku(PyQt_PyObject)'),
                              self.edit_red_umjeravanje)
+                #tab odaziv
+                naziv = "".join([komponenta, '-odaziv'])
+                self.dictTabova[naziv] = odaziv.RiseFallWidget(dokument=self.dokument, naziv=naziv)
+        #prikaz elemenata u  guiu
+        self.display_tab_konverter(self.dokument.get_provjeraKonvertera())
+        self.display_tab_odaziv(self.dokument.get_provjeraOdaziv())
+        self.display_tab_umjeravanje(True) #True je placeholder zbog signala...vrijednost nije bitna
 
-        #dinamicki display tabova ovisno o chekovima
-        self.toggle_umjeravanja(self.dokument.get_provjeraUmjeravanje())
-        self.toggle_tabove_odaziva(self.dokument.get_provjeraOdaziv())
-        self.toggle_tab_konverter(self.dokument.get_provjeraKonvertera())
-
-    def interakcija_sa_tablicom(self, x):
-        """slot za clicked signal tablice sa podacima...razlicito ponasanje ovisno o
-        aktivnom tabu"""
-        widg = self.glavniTabWidget.currentWidget()
-        try:
-            mjerenje = widg.plin
-            if mjerenje.endswith('-odaziv'):
-                #delegiraj klik widgetu
-                widg.check_pocetak(x)
+    def display_tab_konverter(self, x):
+        """Metoda skriva ili prikazuje tab sa provjerom konvertera ovisno o
+        ulaznom parametru x (boolean)"""
+        popis = list(self.dictTabova)
+        if 'konverter' in popis:
+            widget = self.dictTabova['konverter']
+            if x:
+                self.glavniTabWidget.addTab(widget, 'konverter')
             else:
-                #dohvati aktivni model
-                model = self.dokument.get_model(mjerenje=mjerenje)
-                #postavi novi start podataka u model
-                model.set_start(x)
-                #zahtjev za ponovnim racunanjem s novim podacima
-                self.dokument.recalculate_tab_umjeravanja(mjerenje=mjerenje)
-        except Exception as err:
-            logging.error(str(err), exc_info=True)
+                self.glavniTabWidget.removeTab(self.glavniTabWidget.indexOf(widget))
 
-
-    def promjena_aktivnog_taba(self, x):
-        """metoda zaduzena za promjenu konteksta prilikom promjene taba. Definira
-        koji je model aktivan u ljevoj tablici sa podacima."""
-        widg = self.glavniTabWidget.currentWidget()
-        try:
-            mjerenje = widg.plin
-            model = self.dokument.get_model(mjerenje=mjerenje)
-            self.siroviPodaciView.setModel(model)
-            if '-odaziv' in mjerenje:
-                self.siroviPodaciView.resizeColumnToContents(0)
-                self.siroviPodaciView.resizeColumnToContents(1)
-                self.siroviPodaciView.horizontalHeader().setStretchLastSection(True)
-            elif mjerenje == 'konverter':
-                self.siroviPodaciView.resizeColumnsToContents()
+    def display_tab_odaziv(self, x):
+        """Metoda skriva ili prikazuje tabove sa provjerom odaziva ovisno o
+        ulaznom parametru x (boolean)"""
+        popis = list(self.dictTabova)
+        odazivList = [i for i in popis if i.endswith('-odaziv')]
+        for i in odazivList:
+            widget = self.dictTabova[i]
+            if x:
+                self.glavniTabWidget.addTab(widget, i)
             else:
-                self.siroviPodaciView.horizontalHeader().setStretchLastSection(True)
-            self.siroviPodaciView.update()
-        except Exception as err:
-            logging.error(str(err), exc_info=True)
+                self.glavniTabWidget.removeTab(self.glavniTabWidget.indexOf(widget))
 
-    def postavi_podatke_u_dokument(self, mapa):
+    def display_tab_umjeravanje(self, x):
         """
-        Spremanje ucitanih podataka u model
+        Metoda skriva ili prikazuje tabove sa umjeravanjem. Ulazni parametar x
+        postoji samo zbog nacina pozivanja preko signala koji emitira boolean, ali
+        se zanemaruje. Prikaz ovisi o 3 booleana u dokumentu:
+        -provjera linearnosti
+        -provjera ponovljivosti
+        -provjera umjeravanja
 
-        ulazna mapa ima sljedece kljuceve:
-        'podaci' - frejm sekundnih podataka
-        'minutniPodaci' - frejm minutnih podataka
-        'tabMap' - popis tabova u koje treba spremiti podatke
-        'uredjaj' - serijski broj uredjaja (string)
-        'lokacija' - string naziva lokacije
+        Ako su sva 3 cheka False, umjeravanje se ne prikazuje
         """
-        uredjaj = mapa['uredjaj']
-        lokacija = mapa['lokacija']
-        frejm = mapa['minutniPodaci']
-        frejmSek = mapa['podaci']
-        tabMap = mapa['tabMap']
-
-        cleared = False
-        if not self.dokument.usporedi_mjerenja(tabMap):
-            self.clear_tabove()
-            cleared = True
-
-        # postavi info o ucitanom fileu
-        self.dokument.set_izabraniUredjaj(uredjaj)
-        self.dokument.set_izabranaPostaja(lokacija)
-
-        #treba napraviti tabMap mangle...
-        m1 = copy.deepcopy(tabMap)
-        m2 = copy.deepcopy(tabMap)
-        #prebaci sve odazive na False
-        for key in m1:
-            if '-odaziv' in key:
-                m1[key] = False
-        #prebaci sve osim odaziva na False
-        for key in m2:
-            if '-odaziv' not in key:
-               m2[key] = False
-        #set minutne podatke
-        self.dokument.set_ucitane_podatke(frejm, m1)
-        #set sekundne podatke
-        self.dokument.set_ucitane_podatke(frejmSek, m2)
-        if cleared:
-            self.create_tabove(tabMap)
-
-        #izbor mjerenja?
-        komponente = set(self.dokument.uredjaji[uredjaj]['komponente'])
-        if 'None' in komponente:
-            komponente.remove('None')
-        komponente = list(komponente)
-        self.dokument.set_listaMjerenja(komponente)
-
-        # naredi racunanje svih tabova (to ce updateati gui)
-        mjerenja = self.dokument.get_mjerenja()
-        for mjerenje in mjerenja:
-            self.dokument.recalculate_tab_umjeravanja(mjerenje=mjerenje)
-
-    def read_data_from_csv(self):
-        """
-        Ucitavanje sirovih podataka iz csv filea putem wizarda.
-
-        redosljed ucitavanja je bitan:
-        1. clear tabove (ako su razliciti od postojecih tabova)
-        2. update dokument sa novim podacima
-        3. create tabove (ako su prethodno izbrisani)
-        """
-        self.fileWizard = datareader.CarobnjakZaCitanjeFilea(uredjaji=self.dokument.get_uredjaji(),
-                                                             postaje=self.dokument.get_postaje())
-        prihvacen = self.fileWizard.exec_()
-
-        stariUredjaj = self.dokument.get_izabraniUredjaj()
-
-        if prihvacen:
-            stariUredjaj = self.dokument.get_izabraniUredjaj()
-            lokacija = self.fileWizard.get_postaja()
-            noviUredjaj = self.fileWizard.get_uredjaj()
-            #mapa tabova u koje se trebaju spremiti podaci
-            tabMap = self.fileWizard.get_ckecked_tabove()
-            frejmovi = self.fileWizard.get_frejmovi()
-
-            mapa = {'podaci':frejmovi['sekundni'].copy(),
-                    'minutniPodaci':frejmovi['minutni'].copy(),
-                    'tabMap':tabMap,
-                    'uredjaj':noviUredjaj,
-                    'lokacija':lokacija}
-
-            if noviUredjaj != stariUredjaj and stariUredjaj != '':
-                naslov = 'Potvrdi prebacivanje podataka'
-                opis = 'Trenutno se umjerava uredjaj {0}, a pokušavate prebaciti podatke iz uredjaja {1}. Ako nastavite trenutno aktivno umjeravanje će biti izbrisano. Da li želite nastaviti?.'.format(stariUredjaj, noviUredjaj)
-                reply = QtGui.QMessageBox.question(self,
-                                                   naslov,
-                                                   opis,
-                                                   QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-                if reply == QtGui.QMessageBox.Yes:
-                    self.postavi_podatke_u_dokument(mapa)
-                else:
-                    pass
+        test1 = self.dokument.get_provjeraUmjeravanje()
+        test2 = self.dokument.get_provjeraPonovljivost()
+        test3 = self.dokument.get_provjeraLinearnost()
+        x = test1 or test2 or test3
+        popis = list(self.dictTabova)
+        umjList = [i for i in popis if not i.endswith('-odaziv')]
+        if 'konverter' in umjList:
+            umjList.remove('konverter')
+        for i in umjList:
+            widget = self.dictTabova[i]
+            if x:
+                self.glavniTabWidget.addTab(widget, i)
             else:
-                self.postavi_podatke_u_dokument(mapa)
-
-
-
-    def add_red_umjeravanje(self):
-        """metoda (slot) za dodavanje tocaka u dokument"""
-        widg = self.glavniTabWidget.currentWidget()
-        try:
-            mjerenje = widg.plin
-            self.dokument.dodaj_umjernu_tocku(mjerenje=mjerenje)
-        except Exception as err:
-            logging.error(str(err), exc_info=True)
-
-    def remove_red_umjeravanje(self, x):
-        """metoda za brisanje tocke za umjeravanje iz dokumenta, x je broj redka"""
-        red = int(x)
-        widg = self.glavniTabWidget.currentWidget()
-        try:
-            mjerenje = widg.plin
-            self.dokument.makni_umjernu_tocku(red, mjerenje=mjerenje)
-        except Exception as err:
-            logging.error(str(err), exc_info=True)
-
-    def edit_red_umjeravanje(self, x):
-        """metoda za editiranje umjerne tocke uz pomoc dijaloga"""
-        red = int(x)
-        self.edit_tocku_dijalog(red)
-
-    def edit_tocku_dijalog(self, indeks):
-        """
-        Poziv dijaloga za edit vrijednosti parametara izabrane tocke.
-        ulazni parametar indeks je indeks pod kojim se ta tocka nalazi
-        u listi tocaka
-        """
-        widg = self.glavniTabWidget.currentWidget()
-        try:
-            mjerenje = widg.plin
-            self.dijalog = dotedit.EditTockuDijalog(indeks=indeks,
-                                                    dokument=self.dokument,
-                                                    mjerenje=mjerenje,
-                                                    parent=None)
-            if self.dijalog.exec_():
-                tocka = self.dijalog.get_promjenjena_tocka()
-                self.dokument.zamjeni_umjernu_tocku(indeks, tocka, mjerenje=mjerenje)
-        except Exception as err:
-            logging.error(str(err), exc_info=True)
+                self.glavniTabWidget.removeTab(self.glavniTabWidget.indexOf(widget))
 
     def update_tab_results(self, mapa):
         """update taba sa rezultatima"""
@@ -319,161 +381,69 @@ class GlavniProzor(BASE, FORM):
         except Exception as err:
             logging.error(str(err), exc_info=True)
 
-
-    def toggle_tabove_odaziva(self, x):
-        """Metoda sakriva ili prikazuje sve tabove sa odazivom ovisno o ulaznom
-        parametru x (boolean)"""
-        odazivi = []
-        for tab in self.dictTabova:
-            if '-odaziv' in tab:
-                widget = self.dictTabova[tab]
-                odazivi.append(widget)
-        #prebaci check u dokumentu
-        self.dokument.set_provjeraOdaziv(x)
-        if x:
-            for widget in odazivi:
-                self.glavniTabWidget.addTab(widget, widget.plin)
-        else:
-            for widget in odazivi:
-                self.glavniTabWidget.removeTab(self.glavniTabWidget.indexOf(widget))
-
-    def toggle_tab_konverter(self, x):
-        """Metoda skriva ili prikazuje tab sa provjerom konvertera ovisno o
-        ulaznom parametru x (boolean)"""
-        widget = None
-        for tab in self.dictTabova:
-            if tab == 'konverter':
-                widget = self.dictTabova[tab]
-                break
-        #prebaci check u dokumentu
-        self.dokument.set_provjeraKonvertera(x)
-        if x:
-            if widget != None:
-                self.glavniTabWidget.addTab(widget, 'konverter')
-        else:
-            if widget != None:
-                self.glavniTabWidget.removeTab(self.glavniTabWidget.indexOf(widget))
-
-    def toggle_umjeravanja(self, x):
-        """
-        Metoda je zaduzena za skrivanje ili prikazivanje tabova sa rezultatima.
-
-        Metoda ce overrideati postavke pojedinog taba sa rezultatima za test
-        umjeravanja.
-        """
-        popis = []
-        for tab in self.dictTabova:
-            if not (tab == 'konverter' or tab.endswith('-odaziv')):
-                popis.append(tab)
-                self.dictTabova[tab].checkBoxUmjeravanje.setChecked(x)
-        # prebaci check u dokumentu
-        self.dokument.set_provjeraUmjeravanje(x)
-        #hide tabove samo ako su umjeravanje, ponovljivost i linearnost iskljuceni
-        ponovljivost = self.dokument.get_provjeraPonovljivost()
-        linearnost = self.dokument.get_provjeraLinearnost()
-        if x or ponovljivost or linearnost:
-            for tab in popis:
-                widget = self.dictTabova[tab]
-                self.glavniTabWidget.addTab(widget, tab)
-        else:
-            for tab in popis:
-                widget = self.dictTabova[tab]
-                self.glavniTabWidget.removeTab(self.glavniTabWidget.indexOf(widget))
-
-    def toggle_ponovljivost(self, x):
-        """
-        Metoda je zaduzena za skrivanje ili prikazivanje tabova sa rezultatima.
-
-        Metoda ce overrideati postavke pojedinog taba sa rezultatima za test
-        ponovljivosti.
-        """
-        popis = []
-        for tab in self.dictTabova:
-            if not (tab == 'konverter' or tab.endswith('-odaziv')):
-                popis.append(tab)
-                self.dictTabova[tab].checkBoxPonovljivost.setChecked(x)
-        # prebaci check u dokumentu
-        self.dokument.set_provjeraPonovljivost(x)
-        #hide tabove samo ako su umjeravanje, ponovljivost i linearnost iskljuceni
-        umjeravanje = self.dokument.get_provjeraUmjeravanje()
-        linearnost = self.dokument.get_provjeraLinearnost()
-        if x or umjeravanje or linearnost:
-            for tab in popis:
-                widget = self.dictTabova[tab]
-                self.glavniTabWidget.addTab(widget, tab)
-        else:
-            for tab in popis:
-                widget = self.dictTabova[tab]
-                self.glavniTabWidget.removeTab(self.glavniTabWidget.indexOf(widget))
-
-    def toggle_linearnost(self, x):
-        """
-        Metoda je zaduzena za skrivanje ili prikazivanje tabova sa rezultatima.
-
-        Metoda ce overrideati postavke pojedinog taba sa rezultatima za test
-        ponovljivosti.
-        """
-        popis = []
-        for tab in self.dictTabova:
-            if not (tab == 'konverter' or tab.endswith('-odaziv')):
-                popis.append(tab)
-                self.dictTabova[tab].checkBoxLinearnost.setChecked(x)
-        # prebaci check u dokumentu
-        self.dokument.set_provjeraLinearnost(x)
-        #hide tabove samo ako su umjeravanje, ponovljivost i linearnost iskljuceni
-        umjeravanje = self.dokument.get_provjeraUmjeravanje()
-        ponovljivost = self.dokument.get_provjeraPonovljivost()
-        if x or umjeravanje or ponovljivost:
-            for tab in popis:
-                widget = self.dictTabova[tab]
-                self.glavniTabWidget.addTab(widget, tab)
-        else:
-            for tab in popis:
-                widget = self.dictTabova[tab]
-                self.glavniTabWidget.removeTab(self.glavniTabWidget.indexOf(widget))
-
-    def closeEvent(self, event):
-        """Close glavne aplikacije. Potrebno je ugasiti sve prozore za prikupljanje podataka prije
-        izlaza"""
-        for prozor in self.otvoreniProzori:
-            x = self.otvoreniProzori[prozor]
-            if x != None:
-                x.closeEvent(event)
-        event.accept()
-
-    def aktiviraj_ucitane_podatke(self, mapa):
-        """
-        Metoda preuzima mapu sa ucitanim podacima i postavlja je u dokument.
-        dict mapa sadrzi :
-        {'podaci':frejm sa podacima (sekundni),
-         'minutniPodaci':frejm sa minutno usrednjenim podacima,
-         'tabMap':mapa sa definicijom u koje tabove se trebaju staviti podaci
-         'uredjaj':string, naziv uredjaja}
-        """
-        x = copy.deepcopy(mapa)
-        noviUredjaj = mapa['uredjaj']
-        stariUredjaj = self.dokument.get_izabraniUredjaj()
+    def add_red_umjeravanje(self):
+        """metoda (slot) za dodavanje tocaka u dokument"""
+        widg = self.glavniTabWidget.currentWidget()
         try:
-            x['lokacija'] = self.dokument.uredjaji[noviUredjaj]['lokacija']
+            mjerenje = widg.plin
+            self.dokument.dodaj_umjernu_tocku(mjerenje=mjerenje)
         except Exception as err:
             logging.error(str(err), exc_info=True)
-            x['lokacija'] = 'n/a'
-        if noviUredjaj != stariUredjaj and stariUredjaj != '':
-            naslov = 'Potvrdi prebacivanje podataka'
-            opis = 'Trenutno se umjerava uredjaj {0}, a pokušavate prebaciti podatke iz uredjaja {1}. Ako nastavite trenutno aktivno umjeravanje će biti izbrisano. Da li želite nastaviti?.'.format(stariUredjaj, noviUredjaj)
-            reply = QtGui.QMessageBox.question(self,
-                                               naslov,
-                                               opis,
-                                               QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-            if reply == QtGui.QMessageBox.Yes:
-                self.postavi_podatke_u_dokument(mapa)
-            else:
-                pass
+
+    def remove_red_umjeravanje(self, x):
+        """metoda za brisanje tocke za umjeravanje iz dokumenta, x je broj redka"""
+        red = int(x)
+        widg = self.glavniTabWidget.currentWidget()
+        try:
+            mjerenje = widg.plin
+            self.dokument.makni_umjernu_tocku(red, mjerenje=mjerenje)
+        except Exception as err:
+            logging.error(str(err), exc_info=True)
+
+    def edit_red_umjeravanje(self, x):
+        """metoda za editiranje umjerne tocke uz pomoc dijaloga"""
+        red = int(x)
+        self.edit_tocku_dijalog(red)
+
+    def edit_tocku_dijalog(self, indeks):
+        """
+        Poziv dijaloga za edit vrijednosti parametara izabrane tocke.
+        ulazni parametar indeks je indeks pod kojim se ta tocka nalazi
+        u listi tocaka
+        """
+        widg = self.glavniTabWidget.currentWidget()
+        mjerenje = widg.plin
+        tocke = self.dokument.get_tocke(mjerenje=mjerenje)
+        #tocka koju editiramo
+        staraTocka = tocke[indeks]
+        if staraTocka.crefFaktor == 0.0:
+            staraTockaIsZero = True
         else:
-            self.postavi_podatke_u_dokument(mapa)
+            staraTockaIsZero = False
+        #moramo se osigurati da postoji barem jedna zero tocka
+        brojZeroTocaka = len([i for i in tocke if i.crefFaktor == 0.0])
+        #poziv dijaloga
+        try:
+            self.dijalog = dotedit.EditTockuDijalog(indeks=indeks,
+                                                    dokument=self.dokument,
+                                                    mjerenje=mjerenje,
+                                                    parent=None)
+            if self.dijalog.exec_():
+                novaTocka = self.dijalog.get_promjenjena_tocka()
+                if staraTockaIsZero and brojZeroTocaka == 1:
+                    if novaTocka.crefFaktor == 0.0:
+                        self.dokument.zamjeni_umjernu_tocku(indeks, novaTocka, mjerenje=mjerenje)
+                    else:
+                        QtGui.QMessageBox.information(self, 'Oprez','Mora postojati barem jedna zero tocka. Cref faktor tocke nije promjenjen.')
+                        novaTocka.crefFaktor = 0.0
+                        self.dokument.zamjeni_umjernu_tocku(indeks, novaTocka, mjerenje=mjerenje)
+                else:
+                    self.dokument.zamjeni_umjernu_tocku(indeks, novaTocka, mjerenje=mjerenje)
+        except Exception as err:
+            logging.error(str(err), exc_info=True)
 
     def otvori_prozor(self):
-        """otvori prozor, spoji sa necim"""
+        """otvori prozor, spoji sa metodama za upisivanje podataka i za gasenje prozora"""
         #create prozor i spremi ga u mapu sa unikatnim id
         prozor = kolektor.Kolektor(dokument=self.dokument, uid=self.idCounter)
         accepted = prozor.prikazi_wizard_postavki()
@@ -491,9 +461,28 @@ class GlavniProzor(BASE, FORM):
                          self.makni_referencu_na_prozor)
             self.idCounter = self.idCounter + 1
 
+    def aktiviraj_ucitane_podatke(self, mapa):
+        """prebacivanje frejmova iz kolektora u dokument"""
+        minutni = mapa['minutniPodaci']
+        sekundni = mapa['podaci']
+        uredjaj = mapa['uredjaj']
+        #prebaci u dokument
+        self.dokument.add_frejm_ucitanih_za_uredjaj(minutni, 'minutni', uredjaj)
+        self.dokument.add_frejm_ucitanih_za_uredjaj(sekundni, 'sekundni', uredjaj)
+
+
     def makni_referencu_na_prozor(self, idProzora):
         """makni referencu na objekt prilikom gasenja prozora za prikupljanje"""
         self.otvoreniProzori[idProzora] = None
+
+    def closeEvent(self, event):
+        """Close glavne aplikacije. Potrebno je ugasiti sve prozore za prikupljanje podataka prije
+        izlaza"""
+        for prozor in self.otvoreniProzori:
+            x = self.otvoreniProzori[prozor]
+            if x != None:
+                x.closeEvent(event)
+        event.accept()
 
     def save_umjeravanje_to_file(self):
         """
@@ -522,222 +511,145 @@ class GlavniProzor(BASE, FORM):
             with open(filepath, mode='rb') as fajl:
                 try:
                     mapa = pickle.load(fajl)
-                    #konstruiraj mapu tabova iz mape mjerenja
-                    keys = list(mapa['mjerenja'].keys())
-                    values = [False for i in keys]
-                    tabMap = dict(zip(keys, values))
-                    #napravi prazan frejm sa dobrim stupcima
-                    cols = [i for i in keys if i != 'konverter']
-                    cols = [i for i in cols if not i.endswith('-odaziv')]
-                    mockFrejm = pd.DataFrame(columns=cols)
-                    #podatak o lokaciji i uredjaju
-                    ure = mapa['postavke']['izabraniUredjaj']
-                    lok = mapa['postavke']['izabranaPostaja']
-                    fakeData = {'podaci':mockFrejm,
-                                'minutniPodaci':mockFrejm,
-                                'tabMap':tabMap,
-                                'uredjaj':ure,
-                                'lokacija':lok}
-                    #koristim fake data da pravilno cleara i postavi potrebne tabove
-                    self.postavi_podatke_u_dokument(fakeData)
-                    #update dokument sa stvarim podacima
                     self.dokument.dict_to_dokument(mapa)
-                    # naredi racunanje svih tabova (to ce updateati gui)
-                    mjerenja = self.dokument.get_mjerenja()
-                    for mjerenje in mjerenja:
-                        self.dokument.recalculate_tab_umjeravanja(mjerenje=mjerenje)
                 except Exception as err:
+                    print(str(err))
                     logging.error(str(err), exc_info=True)
-                    raise err
                     QtGui.QMessageBox.information(self, 'Problem', 'Ucitavanje datoteke nije uspjelo.')
-
-    def toggle_report_check_za_tab(self, mapa):
-        """
-        toggle report checka za pojedini tab
-        """
-        value = mapa['value']
-        mjerenje = mapa['mjerenje']
-        try:
-            self.dictTabova[mjerenje].checkBoxReport.setChecked(value)
-        except Exception as err:
-            logging.error(str(err), exc_info=True)
-
-    def toggle_promjena_testUmjeravanje(self, mapa):
-        """toggle provjere umjeravanja za pojedini tab"""
-        value = mapa['value']
-        mjerenje = mapa['mjerenje']
-        try:
-            self.dictTabova[mjerenje].checkBoxUmjeravanje.setChecked(value)
-        except Exception as err:
-            logging.error(str(err), exc_info=True)
-
-    def toggle_promjena_testPonovljivost(self, mapa):
-        """toggle provjere ponovljivosti za pojedini tab"""
-        value = mapa['value']
-        mjerenje = mapa['mjerenje']
-        try:
-            self.dictTabova[mjerenje].checkBoxPonovljivost.setChecked(value)
-        except Exception as err:
-            logging.error(str(err), exc_info=True)
-
-    def toggle_promjena_testLinearnost(self, mapa):
-        """toggle provjere linearnosti za pojedini tab"""
-        value = mapa['value']
-        mjerenje = mapa['mjerenje']
-        try:
-            self.dictTabova[mjerenje].checkBoxLinearnost.setChecked(value)
-        except Exception as err:
-            logging.error(str(err), exc_info=True)
-
-    def reinit_tab_odaziv(self, mapa):
-        """reinit taba za odaziv sa novim podacima"""
-        mjerenje = mapa['mjerenje']
-        print('----> reinitializing tab : ', mjerenje)
-        #TODO! ovo je metoda iskljucivo kod loada i nespretno je
-#        treba definirati metodu koja ce postaviti novi frejm i podatke ili bolje
-#        definirati rezultat mjerenja / update istog...jer ovo bas ne radi dobro
-        try:
-            self.dictTabova[mjerenje].__init__(dokument=self.dokument, naziv=mjerenje)
-        except Exception as err:
-            logging.error(str(err), exc_info=True)
-
-    def prebaci_checkKonverter_u_tabu_postavke(self, x):
-        """Prebacivanje glavnog chekboxa za prikaz konvertera. x je boolean"""
-        self.tabPostavke.checkBoxKonverterTab.setChecked(x)
-
-    def prebaci_checkOdaziv_u_tabu_postavke(self, x):
-        """Prebacivanje glavnog chekboxa za prikaz odaziva. x je boolean"""
-        self.tabPostavke.checkBoxRiseFall.setChecked(x)
-
-    def prebaci_checkUmjeravanje_u_tabu_postavke(self, x):
-        """Prebacivanje glavnog chekboxa za umjeravanje. x je boolean"""
-        self.tabPostavke.checkUmjeravanje.setChecked(x)
-
-    def prebaci_checkPonovljivost_u_tabu_postavke(self, x):
-        """Prebacivanje glavnog chekboxa za ponovljivost. x je boolean"""
-        self.tabPostavke.checkPonovljivost.setChecked(x)
-
-    def prebaci_checkLinearnost_u_tabu_postavke(self, x):
-        """Prebacivanje glavnog chekboxa za linearnost. x je boolean"""
-        self.tabPostavke.checkLinearnost.setChecked(x)
-
-    def update_label_postaja(self, x):
-        """Setter naziva postaje na kojoj je smjesten uredjaj u label"""
-        value = x['value']
-        self.labelPostaja.setText(value)
-
-    def update_label_uredjaj(self, x):
-        """Setter serijskog broja uredjaja (tekst) u label"""
-        value = x['value']
-        self.labelUredjaj.setText(value)
 
     def napravi_pdf_report(self):
         """
         Generiranje pdf reporta trenutno aktivnog umjeravanja
         """
-        #TODO!
-        print('NOT FULLY IMPLEMENTED YET')
         ime = QtGui.QFileDialog.getSaveFileName(parent=self,
                                                 caption='Spremi pdf report',
                                                 filter = 'pdf file (*.pdf)')
         if ime:
             report = pdfreport.ReportGenerator()
             try:
-                report.generiraj_report(ime, self.dokument)
+                mapa = self.generiraj_mapu_za_report()
+                report.generiraj_report(ime, self.dokument, mapa)
             except Exception as err:
                 logging.error(str(err), exc_info=True)
                 msg = "\n".join(['Izvještaj nije uspješno generiran.', str(err)])
                 QtGui.QMessageBox.information(self, 'Problem', msg)
 
-    def setup_signal_connections(self):
-        """definiranje komunikacije izmedju objekata"""
-        ### actions ###
-        self.action_ucitaj_podatke.triggered.connect(self.read_data_from_csv)
-        self.action_Exit.triggered.connect(self.close)
-        self.action_otvori_kolektor.triggered.connect(self.otvori_prozor)
-        self.action_spremi.triggered.connect(self.save_umjeravanje_to_file)
-        self.action_ucitaj.triggered.connect(self.load_umjeravanje_from_file)
-        self.action_Napravi_pdf_report.triggered.connect(self.napravi_pdf_report)
-        self.glavniTabWidget.currentChanged.connect(self.promjena_aktivnog_taba)
-        self.siroviPodaciView.clicked.connect(self.interakcija_sa_tablicom)
+    def generiraj_mapu_za_report(self):
+        """
+        Generiranje mape sa potrebnim podacima za report.
 
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('update_tab_results(PyQt_PyObject)'),
-                     self.update_tab_results)
+        -kljuc mape je naziv komponente (npr. 'NOx' ili 'SO2')
+        -pod svakim kljucem je nested druga mapa sa podacima
+            - 'umjeravanje' --> pandas frejm rezultata umjeravanja za tocke (ili None)
+            - 'prilagodba' --> mapa sa podacima o slope, offset, prilagodbaA i prilagodbaB (ili None)
+            - 'testovi' --> mapa sa podacima o pojedinim testovima (ili None)
+                        --> moguca vrijednost je prazan dict
+        """
+        reportData = {}
+        #checkovi linearnosti, umjeravanja, konvertera....
+        konverter = self.dokument.get_provjeraKonvertera()
+        odaziv = self.dokument.get_provjeraOdaziv()
+        umjeravanje = self.dokument.get_provjeraUmjeravanje()
+        ponovljivost = self.dokument.get_provjeraPonovljivost()
+        linearnost = self.dokument.get_provjeraLinearnost()
+        #uredjaj za report
+        uredjaj = self.dokument.get_izabraniUredjaj()
+        #komponente uredjaja
+        komponente = self.dokument.uredjaji[uredjaj]['komponente']
+        if 'None' in komponente:
+            komponente.remove('None')
+        #special case 'NOx'
+        if 'NO' in komponente:
+            #NO podaci
+            reportData['NO'] = {}
+            reportData['NO']['umjeravanje'] = None
+            reportData['NO']['testovi'] = None
+            reportData['NO']['prilagodba'] = None
+            if umjeravanje:
+                rez = self.dokument.mjerenja['NO']['kalkulator'].get_tablicu_rezultata()
+                reportData['NO']['umjeravanje'] = rez
+                slope = self.dokument.mjerenja['NO']['kalkulator'].get_slope_and_offset_map()
+                reportData['NO']['prilagodba'] = slope
+            #slaganje mape testova
+            testovi = {}
+            test1 = self.dokument.mjerenja['NO']['kalkulator'].get_provjeru_parametara()
+            testovi.update(test1)
+            test2 = self.dokument.mjerenja['konverter']['kalkulator'].get_ec_parametar()
+            test2 = {'ec':test2} #need to convert to dict
+            testovi.update(test2)
+            test3 = self.dictTabova['NO-odaziv'].get_reportKriterijValue()
+            testovi.update(test3)
+            #removing not needed tests
+            if not konverter:
+                testovi.pop('ec', None)
+            if not odaziv:
+                testovi.pop('rise', None)
+                testovi.pop('fall', None)
+                testovi.pop('diff', None)
+            if not ponovljivost:
+                testovi.pop('srs', None)
+                testovi.pop('srz', None)
+            if not linearnost:
+                testovi.pop('rz', None)
+                testovi.pop('rmax', None)
+            reportData['NO']['testovi'] = testovi
 
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('update_tab_odaziv(PyQt_PyObject)'),
-                     self.update_tab_odaziv)
-
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('update_tab_konverter(PyQt_PyObject)'),
-                     self.update_tab_konverter)
-
-        self.connect(self.tabPostavke,
-                     QtCore.SIGNAL('toggle_tab_odaziv(PyQt_PyObject)'),
-                     self.toggle_tabove_odaziva)
-
-        self.connect(self.tabPostavke,
-                     QtCore.SIGNAL('toggle_tab_konverter(PyQt_PyObject)'),
-                     self.toggle_tab_konverter)
-
-        self.connect(self.tabPostavke,
-                     QtCore.SIGNAL('toggle_umjeravanja(PyQt_PyObject)'),
-                     self.toggle_umjeravanja)
-
-        self.connect(self.tabPostavke,
-                     QtCore.SIGNAL('toggle_ponovljivost(PyQt_PyObject)'),
-                     self.toggle_ponovljivost)
-
-        self.connect(self.tabPostavke,
-                     QtCore.SIGNAL('toggle_linearnost(PyQt_PyObject)'),
-                     self.toggle_linearnost)
-
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_generateReportCheck(PyQt_PyObject)'),
-                     self.toggle_report_check_za_tab)
-
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_testUmjeravanje(PyQt_PyObject)'),
-                     self.toggle_promjena_testUmjeravanje)
-
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_testPonovljivost(PyQt_PyObject)'),
-                     self.toggle_promjena_testPonovljivost)
-
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_testLinearnost(PyQt_PyObject)'),
-                     self.toggle_promjena_testLinearnost)
-
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('reinitialize_tab_odaziv(PyQt_PyObject)'),
-                     self.reinit_tab_odaziv)
-
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('display_konverter(PyQt_PyObject)'),
-                     self.prebaci_checkKonverter_u_tabu_postavke)
-
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('display_odaziv(PyQt_PyObject)'),
-                     self.prebaci_checkOdaziv_u_tabu_postavke)
-
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('display_umjeravanje(PyQt_PyObject)'),
-                     self.prebaci_checkUmjeravanje_u_tabu_postavke)
-
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('display_ponovljivost(PyQt_PyObject)'),
-                     self.prebaci_checkPonovljivost_u_tabu_postavke)
-
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('display_linearnost(PyQt_PyObject)'),
-                     self.prebaci_checkLinearnost_u_tabu_postavke)
-
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_izabranaPostaja(PyQt_PyObject)'),
-                     self.update_label_postaja)
-
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_izabraniUredjaj(PyQt_PyObject)'),
-                     self.update_label_uredjaj)
-
+            #NOx podaci
+            reportData['NOx'] = {}
+            reportData['NOx']['umjeravanje'] = None
+            reportData['NOx']['testovi'] = None
+            reportData['NOx']['prilagodba'] = None
+            if umjeravanje:
+                rez = self.dokument.mjerenja['NOx']['kalkulator'].get_tablicu_rezultata()
+                reportData['NOx']['umjeravanje'] = rez
+                slope = self.dokument.mjerenja['NOx']['kalkulator'].get_slope_and_offset_map()
+                reportData['NOx']['prilagodba'] = slope
+            #slaganje mape testova
+            testovi = {}
+            test1 = self.dokument.mjerenja['NOx']['kalkulator'].get_provjeru_parametara()
+            testovi.update(test1)
+            test3 = self.dictTabova['NO-odaziv'].get_reportKriterijValue()
+            testovi.update(test3)
+            #removing not needed tests
+            if not odaziv:
+                testovi.pop('rise', None)
+                testovi.pop('fall', None)
+                testovi.pop('diff', None)
+            if not ponovljivost:
+                testovi.pop('srs', None)
+                testovi.pop('srz', None)
+            if not linearnost:
+                testovi.pop('rz', None)
+                testovi.pop('rmax', None)
+            reportData['NOx']['testovi'] = testovi
+        else:
+            for komponenta in komponente:
+                reportData[komponenta] = {}
+                reportData[komponenta]['umjeravanje'] = None
+                reportData[komponenta]['testovi'] = None
+                reportData[komponenta]['prilagodba'] = None
+                if umjeravanje:
+                    rez = self.dokument.mjerenja[komponenta]['kalkulator'].get_tablicu_rezultata()
+                    reportData[komponenta]['umjeravanje'] = rez
+                    slope = self.dokument.mjerenja[komponenta]['kalkulator'].get_slope_and_offset_map()
+                    reportData[komponenta]['prilagodba'] = slope
+                #slaganje mape testova
+                testovi = {}
+                test1 = self.dokument.mjerenja[komponenta]['kalkulator'].get_provjeru_parametara()
+                testovi.update(test1)
+                imeTaba = ''.join([komponenta,'-odaziv'])
+                test2 = self.dictTabova[imeTaba].get_reportKriterijValue()
+                testovi.update(test2)
+                #removing not needed tests
+                if not odaziv:
+                    testovi.pop('rise', None)
+                    testovi.pop('fall', None)
+                    testovi.pop('diff', None)
+                if not ponovljivost:
+                    testovi.pop('srs', None)
+                    testovi.pop('srz', None)
+                if not linearnost:
+                    testovi.pop('rz', None)
+                    testovi.pop('rmax', None)
+                reportData[komponenta]['testovi'] = testovi
+        return reportData
