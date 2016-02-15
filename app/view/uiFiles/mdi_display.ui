@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1007</width>
+    <height>728</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QMdiArea" name="mdiArea"/>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1007</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu_File">
+    <property name="title">
+     <string>&amp;File</string>
+    </property>
+    <addaction name="action_new"/>
+    <addaction name="action_load"/>
+    <addaction name="action_save"/>
+    <addaction name="action_save_as"/>
+    <addaction name="separator"/>
+    <addaction name="action_exit"/>
+   </widget>
+   <widget class="QMenu" name="menu_Postavke">
+    <property name="title">
+     <string>&amp;Postavke</string>
+    </property>
+    <addaction name="action_dodaj_novu_komponentu"/>
+    <addaction name="action_dodaj_novu_analiticku_metodu"/>
+    <addaction name="separator"/>
+    <addaction name="action_edit_generator_cistog_zraka"/>
+    <addaction name="action_edit_kalibracijska_jedinica"/>
+    <addaction name="separator"/>
+    <addaction name="action_edit_uredjaj"/>
+   </widget>
+   <widget class="QMenu" name="menu_Umjeravanja">
+    <property name="title">
+     <string>&amp;Umjeravanja</string>
+    </property>
+    <addaction name="action_close_aktivno_umjeravanje"/>
+    <addaction name="action_close_all_umjeravanja"/>
+    <addaction name="separator"/>
+   </widget>
+   <addaction name="menu_File"/>
+   <addaction name="menu_Postavke"/>
+   <addaction name="menu_Umjeravanja"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="action_exit">
+   <property name="text">
+    <string>&amp;Exit</string>
+   </property>
+  </action>
+  <action name="action_edit_generator_cistog_zraka">
+   <property name="text">
+    <string>&amp;Generator cistog zraka</string>
+   </property>
+  </action>
+  <action name="action_edit_kalibracijska_jedinica">
+   <property name="text">
+    <string>&amp;Kalibracijska jedinica</string>
+   </property>
+  </action>
+  <action name="action_edit_uredjaj">
+   <property name="text">
+    <string>&amp;Uredjaj</string>
+   </property>
+  </action>
+  <action name="action_dodaj_novu_komponentu">
+   <property name="text">
+    <string>&amp;Komponente</string>
+   </property>
+   <property name="toolTip">
+    <string>Dodavanje nove komponente</string>
+   </property>
+  </action>
+  <action name="action_dodaj_novu_analiticku_metodu">
+   <property name="text">
+    <string>&amp;Analiticke metode</string>
+   </property>
+  </action>
+  <action name="action_new">
+   <property name="text">
+    <string>&amp;New</string>
+   </property>
+   <property name="toolTip">
+    <string>Napravi novo umjeravanje</string>
+   </property>
+  </action>
+  <action name="action_load">
+   <property name="text">
+    <string>&amp;Load</string>
+   </property>
+   <property name="toolTip">
+    <string>Ucitaj spremljeno umjeravanje</string>
+   </property>
+  </action>
+  <action name="action_save">
+   <property name="text">
+    <string>&amp;Save</string>
+   </property>
+   <property name="toolTip">
+    <string>Spremi trenutno aktivno umjeravanje</string>
+   </property>
+  </action>
+  <action name="action_save_as">
+   <property name="text">
+    <string>&amp;Save as ...</string>
+   </property>
+   <property name="toolTip">
+    <string>Spremi trenutno umjeravanje kao...</string>
+   </property>
+  </action>
+  <action name="action_close_aktivno_umjeravanje">
+   <property name="text">
+    <string>&amp;Close</string>
+   </property>
+   <property name="toolTip">
+    <string>Zatvori trenutno aktivno umjeravanje</string>
+   </property>
+  </action>
+  <action name="action_close_all_umjeravanja">
+   <property name="text">
+    <string>&amp;Close all...</string>
+   </property>
+   <property name="toolTip">
+    <string>Zatvori sve prozore umjeravanja</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

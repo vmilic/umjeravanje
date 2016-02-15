@@ -8,17 +8,17 @@ import os
 import numpy as np
 import pandas as pd
 from PyQt4 import QtGui
-import app.model.pomocne_funkcije as helperi
-import app.model.frejm_model as modeli
+from app.pomocni import pomocni
+from app.model.qt_models import BaseFrejmModel, ComboBoxDelegate
 
 
 class CarobnjakZaCitanjeFilea(QtGui.QWizard):
     """
     Wizard dijalog klasa za ucitavanje fileova za umjeravanje
     """
-    def __init__(self, parent=None, dokument=None):
+    def __init__(self, parent=None, datastore=None):
         QtGui.QWizard.__init__(self, parent)
-        self.doc = dokument
+        self.datastore = datastore
         """
         page 1 izbor filea i komponenti
         page 2 izbor stupaca i opcije da li su podaci vec minutno usrednjeni.
@@ -29,9 +29,9 @@ class CarobnjakZaCitanjeFilea(QtGui.QWizard):
         self.setWindowTitle("Read config file wizard")
         self.setOption(QtGui.QWizard.IndependentPages, on=False)
         # stranice wizarda
-        self.fileUredjajPage = PageIzborFileAndUredjaj(parent=self, dokument=self.doc)
-        self.komponentePage = PageIzborKomponentiFrejma(parent=self, dokument=self.doc)
-        self.setPage(1, self.fileUredjajPage)
+        self.filePage = PageIzborFile(parent=self, datastore=self.datastore)
+        self.komponentePage = PageIzborKomponentiFrejma(parent=self, datastore=self.datastore)
+        self.setPage(1, self.filePage)
         self.setPage(2, self.komponentePage)
         self.setStartId(1)
 
@@ -63,64 +63,44 @@ class CarobnjakZaCitanjeFilea(QtGui.QWizard):
             mapa['minutni'] = minutni
         return mapa
 
-    def get_uredjaj(self):
-        """
-        Vrati izabrani uredjaj iz wizarda
-        """
-        return self.field('uredjaj')
 
-
-class PageIzborFileAndUredjaj(QtGui.QWizardPage):
+class PageIzborFile(QtGui.QWizardPage):
     """
     Stranica wizarda za izbor filea i uredjaja
     """
-    def __init__(self, parent=None, dokument=None):
+    def __init__(self, parent=None, datastore=None):
         QtGui.QWizard.__init__(self, parent)
-        self.doc = dokument
+        self.datastore = datastore
         #naslov
-        self.setTitle('Izbor datoteke i uredjaja')
-        subTitle = 'Izaberite csv datoteku sa podacima i uredjaj sa popisa.'
+        self.setTitle('Izbor datoteke')
+        serial = str(self.datastore.get_uredjaj().get_serial())
+        subTitle = 'Izaberite csv datoteku sa podacima za uredjaj {0}.'.format(serial)
         self.setSubTitle(subTitle)
         #widgets
-        self.pathLabel = QtGui.QLabel('Datoreka :')
+        self.pathLabel = QtGui.QLabel('Datoteka :')
         self.lineEditPath = QtGui.QLineEdit()
         self.lineEditPath.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.Preferred)
         self.buttonBrowse = QtGui.QPushButton('Browse')
-        self.uredjajLabel = QtGui.QLabel('Uredjaj :')
-        self.comboUredjaj = QtGui.QComboBox()
-        self.comboUredjaj.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.Preferred)
-        self.uredjajPath = QtGui.QLineEdit()
-        self.uredjajPath.setVisible(False) #hidden field
         #layout
-        hlayout1 = QtGui.QHBoxLayout()
-        hlayout1.addWidget(self.pathLabel)
-        hlayout1.addWidget(self.lineEditPath)
-        hlayout1.addWidget(self.buttonBrowse)
-        hlayout2 = QtGui.QHBoxLayout()
-        hlayout2.addWidget(self.uredjajLabel)
-        hlayout2.addWidget(self.comboUredjaj)
-        mainLayout = QtGui.QVBoxLayout()
-        mainLayout.addLayout(hlayout1)
-        mainLayout.addLayout(hlayout2)
+        mainLayout = QtGui.QHBoxLayout()
+        mainLayout.addWidget(self.pathLabel)
+        mainLayout.addWidget(self.lineEditPath)
+        mainLayout.addWidget(self.buttonBrowse)
         self.setLayout(mainLayout)
         #connections
         self.buttonBrowse.clicked.connect(self.locate_file)
-        self.comboUredjaj.currentIndexChanged.connect(self.promjena_uredjaj)
-        self.lineEditPath.textChanged.connect(self.postavi_moguci_uredjaj_iz_naziva_filea)
 #        """
 #        --> registriram sadrzaj widgeta self.lineEditPath kao 'filepath'
 #        --> dostupan je svim drugim stanicama wizarda
 #        --> * na kraju stringa oznacava mandatory field
 #        """
         self.registerField('filepath*', self.lineEditPath)
-        self.registerField('uredjaj*', self.uredjajPath)
 
     def initializePage(self):
         """
         Inicijalizacija izbornika
         """
-        lista = sorted(list(self.doc.uredjaji.keys()))
-        self.comboUredjaj.addItems(lista)
+        pass
 
     def validatePage(self):
         """
@@ -134,14 +114,6 @@ class PageIzborFileAndUredjaj(QtGui.QWizardPage):
             return False
         return True
 
-    def promjena_uredjaj(self, x):
-        """
-        Funkcija reagira na promjenu izabranog uredjaja u comboUredjaj i sprema
-        trenutno aktivni tekst.
-        """
-        self.uredjajPath.clear()
-        self.uredjajPath.setText(str(self.comboUredjaj.currentText()))
-
     def locate_file(self):
         """
         Funkcija je povezana sa gumbom browse, otvara file dijalog i sprema
@@ -153,30 +125,17 @@ class PageIzborFileAndUredjaj(QtGui.QWizardPage):
                                          directory="",
                                          filter="CSV files (*.csv)")
         self.lineEditPath.setText(str(path))
-        #pokusaj postaviti uredjaj koji odgovara filepathu automatski
-
-    def postavi_moguci_uredjaj_iz_naziva_filea(self, x):
-        """
-        Metoda parsa path za ime filea i pokusava naci uredjaj na comboUredjaj koji
-        odgovara. Ako ga pronadje, automatski prebacuje izbor na taj uredjaj.
-        """
-        zadani = sorted(list(self.doc.uredjaji.keys()))
-        moguci = helperi.parse_name_for_serial(self.lineEditPath.text())
-        for serial in moguci:
-            if serial in zadani:
-                self.comboUredjaj.setCurrentIndex(self.comboUredjaj.findText(serial))
-                break
 
 
 class PageIzborKomponentiFrejma(QtGui.QWizardPage):
-    def __init__(self, parent=None, dokument=None):
+    def __init__(self, parent=None, datastore=None):
         """
         Stranica wizarda za izbor stupaca u ucitanom frejmu.
         """
         QtGui.QWizard.__init__(self, parent)
-        self.setTitle('Stranica 3')
-        self.setSubTitle('Izaberite komponente za pojedini stupac. Odaberite da li su podaci prethodno minutno usrednjeni.')
-        self.doc = dokument
+        self.setTitle('Izbor komponenti')
+        self.setSubTitle('Izaberite sve komponente za pojedini stupac. Odaberite da li su podaci prethodno minutno usrednjeni.')
+        self.datastore = datastore
 
         self.tableView = QtGui.QTableView()
         self.tableView.setWordWrap(True)
@@ -219,24 +178,24 @@ class PageIzborKomponentiFrejma(QtGui.QWizardPage):
         """
         return self.df
 
-    @helperi.activate_wait_spinner
+    @pomocni.activate_wait_spinner
     def initializePage(self):
         """
         Funkcija se pokrece prilikom inicijalizacije stranice
         """
         self.path = self.field('filepath')
-        self.uredjaj = self.field('uredjaj')
+        self.uredjaj = self.datastore.get_uredjaj()
         name = os.path.split(self.path)[1]
         self.fileLabel.setText(name)
-        txt = " ".join(['Izaberi komponente', self.uredjaj])
+        txt = " ".join(['Izaberi komponente za uredjaj', self.uredjaj.get_serial()])
         self.setSubTitle(txt)
-        self.komponente = self.doc.uredjaji[self.uredjaj]['komponente']
+        self.komponente = list(self.uredjaj.get_komponente().keys())
         if 'None' not in self.komponente:
             self.komponente.append('None')
         try:
             self.df = self.read_csv_file(self.path)
-            self.model = modeli.BaseFrejmModel(frejm=self.df)
-            self.delegat = modeli.ComboBoxDelegate(stupci = self.komponente, parent=self.tableView)
+            self.model = BaseFrejmModel(frejm=self.df)
+            self.delegat = ComboBoxDelegate(stupci=self.komponente, parent=self.tableView)
             self.tableView.setModel(self.model)
             self.tableView.setItemDelegateForRow(0, self.delegat)
             for col in range(len(self.df.columns)):

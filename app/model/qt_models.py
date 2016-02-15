@@ -1,14 +1,348 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon May 18 13:53:03 2015
+Created on Wed Jan 27 14:24:46 2016
 
 @author: DHMZ-Milic
 """
-import logging
 import pandas as pd
-from PyQt4 import QtCore, QtGui
+import logging
+from PyQt4 import QtGui, QtCore
 
+################################################################################
+################################################################################
+class ListModelDilucija(QtCore.QAbstractTableModel):
+    """
+    QtModel za prikaz dilucijskih jedinica zadanih u dokumentu.
+    """
+    def __init__(self, dokument=None, parent=None):
+        QtCore.QAbstractTableModel.__init__(self, parent)
+        self.doc = dokument
 
+    def rowCount(self, parent=QtCore.QModelIndex()):
+        return len(self.doc.get_listu_dilucijskih_jedinica())
+
+    def columnCount(self, parent=QtCore.QModelIndex()):
+        return 1
+
+    def flags(self, index):
+        if index.isValid():
+            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+
+    def data(self, index, role):
+        if not index.isValid():
+            return None
+        row = index.row()
+        if role == QtCore.Qt.DisplayRole:
+            try:
+                return str(self.doc.get_listu_dilucijskih_jedinica()[row])
+            except LookupError:
+                return ''
+
+    def headerData(self, section, orientation, role):
+        if orientation == QtCore.Qt.Horizontal:
+            if role == QtCore.Qt.DisplayRole:
+                if section == 0:
+                    return 'Kalibracijska jedinica:'
+
+    def refresh_model(self):
+        self.layoutChanged.emit()
+################################################################################
+################################################################################
+class ListModelCistiZrak(QtCore.QAbstractTableModel):
+    """
+    QtModel za prikaz generatora cistog zraka zadanih u dokumentu.
+    """
+    def __init__(self, dokument=None, parent=None):
+        QtCore.QAbstractTableModel.__init__(self, parent)
+        self.doc = dokument
+
+    def rowCount(self, parent=QtCore.QModelIndex()):
+        return len(self.doc.get_listu_generatora_cistog_zraka())
+
+    def columnCount(self, parent=QtCore.QModelIndex()):
+        return 1
+
+    def flags(self, index):
+        if index.isValid():
+            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+
+    def data(self, index, role):
+        if not index.isValid():
+            return None
+        row = index.row()
+        if role == QtCore.Qt.DisplayRole:
+            try:
+                return str(self.doc.get_listu_generatora_cistog_zraka()[row])
+            except LookupError:
+                return ''
+
+    def headerData(self, section, orientation, role):
+        if orientation == QtCore.Qt.Horizontal:
+            if role == QtCore.Qt.DisplayRole:
+                if section == 0:
+                    return 'Generator cistog zraka:'
+
+    def refresh_model(self):
+        self.layoutChanged.emit()
+################################################################################
+################################################################################
+class ListModelUredjaj(QtCore.QAbstractTableModel):
+    """
+    QtModel za prikaz uredjaja zadanih u dokumentu.
+    """
+    def __init__(self, dokument=None, parent=None):
+        QtCore.QAbstractTableModel.__init__(self, parent)
+        self.doc = dokument
+
+    def rowCount(self, parent=QtCore.QModelIndex()):
+        return len(self.doc.get_listu_uredjaja())
+
+    def columnCount(self, parent=QtCore.QModelIndex()):
+        return 1
+
+    def flags(self, index):
+        if index.isValid():
+            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+
+    def data(self, index, role):
+        if not index.isValid():
+            return None
+        row = index.row()
+        if role == QtCore.Qt.DisplayRole:
+            try:
+                return str(self.doc.get_listu_uredjaja()[row])
+            except LookupError:
+                return ''
+
+    def headerData(self, section, orientation, role):
+        if orientation == QtCore.Qt.Horizontal:
+            if role == QtCore.Qt.DisplayRole:
+                if section == 0:
+                    return 'Uredjaj:'
+
+    def refresh_model(self):
+        self.layoutChanged.emit()
+################################################################################
+################################################################################
+class ListModelKomponente(QtCore.QAbstractTableModel):
+    """
+    QtModel za prikaz komponenti zadanih u dokumentu.
+    """
+    def __init__(self, dokument=None, parent=None):
+        QtCore.QAbstractTableModel.__init__(self, parent)
+        self.doc = dokument
+
+    def rowCount(self, parent=QtCore.QModelIndex()):
+        return len(self.doc.get_listu_komponenti())
+
+    def columnCount(self, parent=QtCore.QModelIndex()):
+        return 1
+
+    def flags(self, index):
+        if index.isValid():
+            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+
+    def data(self, index, role):
+        if not index.isValid():
+            return None
+        row = index.row()
+        if role == QtCore.Qt.DisplayRole:
+            try:
+                return str(self.doc.get_listu_komponenti()[row])
+            except LookupError:
+                return ''
+
+    def headerData(self, section, orientation, role):
+        if orientation == QtCore.Qt.Horizontal:
+            if role == QtCore.Qt.DisplayRole:
+                if section == 0:
+                    return 'Komponenta:'
+
+    def refresh_model(self):
+        self.layoutChanged.emit()
+
+    def vrati_kljuc_indeksa(self, index):
+        if not index.isValid():
+            return None
+        row = index.row()
+        try:
+            idkomponente = self.doc.get_listu_komponenti()[row]
+            komponenta = self.doc.get_komponentu(idkomponente)
+            formula = str(komponenta.get_formula())
+            return formula
+        except LookupError:
+            return None
+################################################################################
+################################################################################
+class TableModelKomponente(QtCore.QAbstractTableModel):
+    """
+    QtModel za prikaz komponenti uredjaja
+    """
+    def __init__(self, dokument=None, uredjaj=None, parent=None):
+        QtCore.QAbstractTableModel.__init__(self, parent)
+        self.doc = dokument
+        self.uredjaj = uredjaj
+        try:
+            ure = self.doc.get_uredjaj(self.uredjaj)
+            mapa = ure.get_komponente()
+            self.komponente = sorted(list(mapa.keys()))
+        except Exception as err:
+            logging.error(str(err))
+            self.komponente = []
+
+    def set_uredjaj(self, uredjaj):
+        self.uredjaj = uredjaj
+        try:
+            ure = self.doc.get_uredjaj(self.uredjaj)
+            mapa = ure.get_komponente()
+            self.komponente = sorted(list(mapa.keys()))
+        except Exception as err:
+            logging.error(str(err))
+            self.komponente = []
+        self.layoutChanged.emit()
+
+    def get_formula(self, red):
+        try:
+            return self.komponente[red]
+        except Exception as err:
+            logging.error(str(err))
+
+    def rowCount(self, parent=QtCore.QModelIndex()):
+        return len(self.komponente)
+
+    def columnCount(self, parent=QtCore.QModelIndex()):
+        return 3
+
+    def flags(self, index):
+        if index.isValid():
+            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+
+    def data(self, index, role):
+        if not index.isValid():
+            return None
+        red = index.row()
+        col = index.column()
+        komp = self.komponente[red]
+        if role == QtCore.Qt.DisplayRole:
+            try:
+                if col == 0:
+                    return str(self.doc.get_uredjaj(self.uredjaj).get_komponenta_naziv(komp))
+                elif col == 1:
+                    return str(self.doc.get_uredjaj(self.uredjaj).get_komponenta_formula(komp))
+                elif col == 2:
+                    return str(self.doc.get_uredjaj(self.uredjaj).get_komponenta_jedinica(komp))
+            except Exception:
+                return 'Nije izabran uredjaj'
+
+    def headerData(self, section, orientation, role):
+        if orientation == QtCore.Qt.Horizontal:
+            if role == QtCore.Qt.DisplayRole:
+                if section == 0:
+                    return 'Naziv'
+                if section == 1:
+                    return 'Formula'
+                if section == 2:
+                    return 'Mjerna jedinica'
+################################################################################
+################################################################################
+class ProzorTableModelKomponente(QtCore.QAbstractTableModel):
+    """
+    QtModel za prikaz komponenti uredjaja
+    """
+    def __init__(self, komponente=None, parent=None):
+        QtCore.QAbstractTableModel.__init__(self, parent)
+        self.komponente = list(komponente.values())
+
+    def rowCount(self, parent=QtCore.QModelIndex()):
+        return len(self.komponente)
+
+    def columnCount(self, parent=QtCore.QModelIndex()):
+        return 3
+
+    def flags(self, index):
+        if index.isValid():
+            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+
+    def data(self, index, role):
+        if not index.isValid():
+            return None
+        red = index.row()
+        col = index.column()
+        komponenta = self.komponente[red]
+        if role == QtCore.Qt.DisplayRole:
+            if col == 0:
+                return str(komponenta.get_naziv())
+            elif col == 1:
+                return str(komponenta.get_formula())
+            elif col == 2:
+                return str(komponenta.get_jedinica())
+
+    def headerData(self, section, orientation, role):
+        if orientation == QtCore.Qt.Horizontal:
+            if role == QtCore.Qt.DisplayRole:
+                if section == 0:
+                    return 'Naziv'
+                if section == 1:
+                    return 'Formula'
+                if section == 2:
+                    return 'Mjerna jedinica'
+################################################################################
+################################################################################
+class ListModelMetode(QtCore.QAbstractTableModel):
+    """
+    QtModel za prikaz analitickih metoda zadanih u dokumentu.
+    """
+    def __init__(self, dokument=None, parent=None):
+        QtCore.QAbstractTableModel.__init__(self, parent)
+        self.doc = dokument
+
+    def rowCount(self, parent=QtCore.QModelIndex()):
+        return len(self.doc.get_listu_analitickih_metoda())
+
+    def columnCount(self, parent=QtCore.QModelIndex()):
+        return 1
+
+    def flags(self, index):
+        if index.isValid():
+            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+
+    def data(self, index, role):
+        if not index.isValid():
+            return None
+        row = index.row()
+        if role == QtCore.Qt.DisplayRole:
+            try:
+                idmetode = self.doc.get_listu_analitickih_metoda()[row]
+                metoda = self.doc.get_analiticku_metodu(idmetode)
+                ID = str(metoda.get_ID())
+                naziv = str(metoda.get_naziv())
+                out = " - ".join([ID, naziv])
+                return out
+            except LookupError:
+                return 'n/a'
+
+    def headerData(self, section, orientation, role):
+        if orientation == QtCore.Qt.Horizontal:
+            if role == QtCore.Qt.DisplayRole:
+                if section == 0:
+                    return 'Analiticka metoda:'
+
+    def refresh_model(self):
+        self.layoutChanged.emit()
+
+    def vrati_kljuc_indeksa(self, index):
+        if not index.isValid():
+            return None
+        row = index.row()
+        try:
+            idmetode = self.doc.get_listu_analitickih_metoda()[row]
+            metoda = self.doc.get_analiticku_metodu(idmetode)
+            ID = str(metoda.get_ID())
+            return ID
+        except LookupError:
+            return None
+################################################################################
+################################################################################
 class SiroviFrameModel(QtCore.QAbstractTableModel):
     """
     Model sa sirovim podacima za umjeravanje
@@ -126,7 +460,7 @@ class SiroviFrameModel(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.BackgroundColorRole:
             for tocka in self.tocke:
                 if tocka.test_indeks_unutar_tocke(row):
-                    return QtGui.QBrush(tocka.boja)
+                    return QtGui.QBrush(tocka.get_color())
             if row == self.startIndeks:
                 brush = QtGui.QBrush()
                 brush.setColor(QtGui.QColor(0, 0, 0, 80))
@@ -146,7 +480,7 @@ class SiroviFrameModel(QtCore.QAbstractTableModel):
         """
         if orientation == QtCore.Qt.Vertical:
             if role == QtCore.Qt.DisplayRole:
-                #return str(self.dataFrejm.index[section].time())
+                #return str(self.dataFrejm.index[section].time()) #bez datuma vrijeme
                 return str(self.dataFrejm.index[section])
         if orientation == QtCore.Qt.Horizontal:
             if role == QtCore.Qt.DisplayRole:
@@ -157,7 +491,8 @@ class SiroviFrameModel(QtCore.QAbstractTableModel):
                     return 'n/a'
 ################################################################################
 ################################################################################
-class RiseFallModel(QtCore.QAbstractTableModel):
+class OdazivModel(QtCore.QAbstractTableModel):
+    """model za tab odaziv"""
     def __init__(self, slajs=None, naziv=None, parent=None):
         QtCore.QAbstractTableModel.__init__(self, parent)
         if slajs is None:
@@ -297,46 +632,6 @@ class RiseFallModel(QtCore.QAbstractTableModel):
                     return QtGui.QIcon('./app/view/icons/fall.png')
 ################################################################################
 ################################################################################
-class RiseFallResultModel(QtCore.QAbstractTableModel):
-    def __init__(self, frejm=None, parent=None):
-        QtCore.QAbstractTableModel.__init__(self, parent)
-
-        stupci = ['Naziv', 'Pocetak', 'Kraj', 'Delta']
-        if frejm is None:
-            frejm = pd.DataFrame(columns=stupci)
-        self.set_frejm(frejm)
-
-    def set_frejm(self, frejm):
-        self.frejm = frejm
-        self.layoutChanged.emit()
-
-    def get_frejm(self):
-        return self.frejm.copy()
-
-    def rowCount(self, parent=QtCore.QModelIndex()):
-        return len(self.frejm)
-
-    def columnCount(self, parent=QtCore.QModelIndex()):
-        return len(self.frejm.columns)
-
-    def flags(self, index):
-        if index.isValid():
-            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
-
-    def data(self, index, role):
-        if not index.isValid():
-            return None
-        row = index.row()
-        col = index.column()
-        if role == QtCore.Qt.DisplayRole:
-            return str(self.frejm.iloc[row, col])
-
-    def headerData(self, section, orientation, role):
-        if orientation == QtCore.Qt.Horizontal:
-            if role == QtCore.Qt.DisplayRole:
-                return str(self.frejm.columns[section])
-################################################################################
-################################################################################
 class BaseFrejmModel(QtCore.QAbstractTableModel):
     """
     Definiranje qt modela za qt table view klase.
@@ -472,6 +767,55 @@ class ComboBoxDelegate(QtGui.QItemDelegate):
         model.setData(index, data)
 ################################################################################
 ################################################################################
+class RiseFallResultModel(QtCore.QAbstractTableModel):
+    def __init__(self, frejm=None, parent=None):
+        QtCore.QAbstractTableModel.__init__(self, parent)
+
+        stupci = ['Naziv', 'Pocetak', 'Kraj', 'Delta']
+        if frejm is None:
+            frejm = pd.DataFrame(columns=stupci)
+        self.set_frejm(frejm)
+
+    def set_frejm(self, frejm):
+        self.frejm = frejm
+        self.layoutChanged.emit()
+
+    def get_frejm(self):
+        return self.frejm.copy()
+
+    def rowCount(self, parent=QtCore.QModelIndex()):
+        return len(self.frejm)
+
+    def columnCount(self, parent=QtCore.QModelIndex()):
+        return len(self.frejm.columns)
+
+    def flags(self, index):
+        if index.isValid():
+            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+
+    def data(self, index, role):
+        if not index.isValid():
+            return None
+        row = index.row()
+        col = index.column()
+        if role == QtCore.Qt.DisplayRole:
+            if col == 0:
+                return ''
+            else:
+                return str(self.frejm.iloc[row, col])
+        if role == QtCore.Qt.DecorationRole:
+            if col == 0:
+                if self.frejm.iloc[row, col] == 'RISE':
+                    return QtGui.QIcon('./app/view/icons/rise.png')
+                else:
+                    return QtGui.QIcon('./app/view/icons/fall.png')
+
+    def headerData(self, section, orientation, role):
+        if orientation == QtCore.Qt.Horizontal:
+            if role == QtCore.Qt.DisplayRole:
+                return str(self.frejm.columns[section])
+################################################################################
+################################################################################
 class BareFrameModel(QtCore.QAbstractTableModel):
     """
     Model za prikaz preuzetih podataka.
@@ -515,92 +859,5 @@ class BareFrameModel(QtCore.QAbstractTableModel):
                 return str(self.dataFrejm.columns[section])
 ################################################################################
 ################################################################################
-class IzborFrejmovaModel(QtCore.QAbstractTableModel):
-    """
-    Model za prikaz frejmova ucitanih podataka za neki uredjaj.
-    """
-    def __init__(self, uredjaj=None, parent=None):
-        QtCore.QAbstractTableModel.__init__(self, parent)
-        self.set_uredjaj(uredjaj)
-        self.podaci = [] #u ovu listu se spremaju mape sa podacima o frejmu
-
-    def set_uredjaj(self, uredjaj):
-        self.uredjaj = uredjaj
-
-    def get_uredjaj(self):
-        return self.uredjaj
-
-    def set_frejmovi(self, podaci):
-        """Setter svih poadtaka, metoda se koristi prilikom 'loada' spremljenih podataka"""
-        self.podaci = podaci
-        self.layoutChanged.emit()
-
-    def get_podatke(self):
-        """Getter svih podataka, metoda se koristi prilikom 'spremanja' podataka"""
-        return self.podaci
-
-    def add_frejm(self, frejm, tip):
-        """
-        Dodavanje novog reda na popis podataka
-        """
-        start = str(min(frejm.index))
-        kraj = str(max(frejm.index))
-        redak = {'tip':tip,
-                 'start':start,
-                 'kraj':kraj,
-                 'frejm':frejm}
-        self.podaci.append(redak)
-        self.layoutChanged.emit()
-
-    def vrati_selektirani_frejm(self, indeks):
-        return self.podaci[indeks]['frejm']
-
-    def rowCount(self, parent=QtCore.QModelIndex()):
-        return len(self.podaci)
-
-    def columnCount(self, parent=QtCore.QModelIndex()):
-        """
-        Potrebna su 3 stupca:
-        tip : 'minutni' ili 'sekundni'
-        start : timestamp prvog podatka
-        kraj : timestamp zadnjeg podatka
-        """
-        return 3
-
-    def flags(self, index):
-        if index.isValid():
-            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
-
-    def data(self, index, role):
-        if not index.isValid():
-            return None
-        row = index.row()
-        col = index.column()
-        if role == QtCore.Qt.DisplayRole:
-            if col == 0:
-                return self.podaci[row]['tip']
-            elif col == 1:
-                return self.podaci[row]['start']
-            else:
-                return self.podaci[row]['kraj']
-        if role == QtCore.Qt.ToolTipRole:
-            if col == 0:
-                return str(self.podaci[row]['tip'])
-            elif col == 1:
-                return str(self.podaci[row]['start'])
-            else:
-                return str(self.podaci[row]['kraj'])
 
 
-    def headerData(self, section, orientation, role):
-        if orientation == QtCore.Qt.Vertical:
-            if role == QtCore.Qt.DisplayRole:
-                return str(section)
-        if orientation == QtCore.Qt.Horizontal:
-            if role == QtCore.Qt.DisplayRole:
-                if section == 0:
-                    return 'Tip podataka'
-                elif section == 1:
-                    return 'Vrijeme pocetka'
-                else:
-                    return 'Vrijeme kraja'

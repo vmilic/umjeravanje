@@ -6,50 +6,49 @@ Created on Thu Oct 15 09:00:51 2015
 
 Sve potrebno za tab 'Prikupljanje podataka'
 """
-
 import logging
 import pandas as pd
 from PyQt4 import QtCore, QtGui, uic
-import app.model.komunikacija as kom
-import app.model.protokol as prot
+from app.view.canvas import GrafPreuzetihPodataka
+from app.model.qt_models import BareFrameModel
 import app.model.veza as veza
-import app.model.frejm_model as fmodel
-import app.view.canvas as canvas
-import app.view.postavke_veze_wizard as postavke_veze
+import app.model.protokol as prot
+import app.model.komunikacija as kom
 import app.view.izbor_naziva_stupaca_wizard as izbor_stupaca
+import app.view.postavke_veze_wizard as postavke_veze
 
 
-BASE2, FORM2 = uic.loadUiType('./app/view/uiFiles/tab_kolektor.ui')
-class Kolektor(BASE2, FORM2):
+
+BASE_TAB_KOLEKTOR, FORM_TAB_KOLEKTOR = uic.loadUiType('./app/view/uiFiles/tab_kolektor.ui')
+class Kolektor(BASE_TAB_KOLEKTOR, FORM_TAB_KOLEKTOR):
     """
     Panel za prikupljanje podataka od instrumenta
     """
-    def __init__(self, dokument=None, parent=None, uid=0):
-        super(BASE2, self).__init__(parent)
+    def __init__(self, uredjaj=None, konfig=None, parent=None):
+        super(BASE_TAB_KOLEKTOR, self).__init__(parent)
         self.setupUi(self)
 
+        self.konfig = konfig
+        self.uredjaj = uredjaj
         ### setup komunikacijskog objekta u odvojenom threadu ###
         self.komThread = QtCore.QThread()
         self.veza = veza.RS232Veza()
+        self.koristeniSerialPort = None
         self.protokol = prot.HessenBCC()
         self.komObjekt = kom.KomunikacijskiObjekt(veza=self.veza,
                                                   protokol=self.protokol,
                                                   parent=None)
-
         self.komObjekt.moveToThread(self.komThread)
         ### setup grafa za prikaz podataka ###
         self.meta = {'xlabel':'vrijeme',
                      'ylabel':'koncentracija',
                      'title':'Prikupljeni podaci'}
-        self.graf = canvas.GrafPreuzetihPodataka(meta=self.meta)
+        self.graf = GrafPreuzetihPodataka(meta=self.meta)
         self.layoutZaGraf.addWidget(self.graf)
         ### setup tablice i ostalih membera ###
-        self.uid = uid #unique ID
-        self.doc = dokument
-        self.spojeni_uredjaj = None
         self.frejm = pd.DataFrame()
         self.raspon_grafa = int(self.rasponCombo.currentText())
-        self.bareFrejmModel = fmodel.BareFrameModel(frejm=self.frejm)
+        self.bareFrejmModel = BareFrameModel(frejm=self.frejm)
         self.dataTableView.setModel(self.bareFrejmModel)
         self.stopButton.setEnabled(False)
         sr = str(self.komObjekt.get_sample_rate())
@@ -76,10 +75,15 @@ class Kolektor(BASE2, FORM2):
                      QtCore.SIGNAL('problem_sa_prikupljanjem_podataka(PyQt_PyObject)'),
                      self.prikazi_warning_popup)
 
+    def get_used_serial(self):
+        """
+        Metoda vraca koristeni serial port ili None...
+        """
+        return self.koristeniSerialPort
+
     def closeEvent(self, event):
         """overloaded signal za close - cilj je zaustaviti prikupljanje podataka"""
         self.stop_handle()
-        self.emit(QtCore.SIGNAL('prozor_ugasen(PyQt_PyObject)'), self.uid)
         event.accept()
 
     def prikazi_warning_popup(self, poruka):
@@ -154,15 +158,15 @@ class Kolektor(BASE2, FORM2):
 
         Emitira se signal sa 4 podatka:
         1. minutno usrednjeni podaci (za umjeravanje i provjeru konvertera)
-        2. sirovi podaci (za provjeru odaziva)
+        2. sirovi podaci (sekundna rezolucija, za provjeru odaziva)
         3. serijski broj uredjaja sa kojeg stizu podaci
         4. mapa sa podacima u koje se tabove trebaju prebaciti podaci
         """
         tempFrejm = self.frejm.copy()
-        moguceKomponente = self.doc.uredjaji[self.spojeni_uredjaj]['komponente']
+        moguceKomponente = self.uredjaj.get_listu_komponenti()
         izborStupaca = izbor_stupaca.IzborNazivaStupacaWizard(frejm=tempFrejm,
                                                               moguci=moguceKomponente,
-                                                              uredjaj=self.spojeni_uredjaj)
+                                                              uredjaj=self.uredjaj)
         prihvacen = izborStupaca.exec_()
         if prihvacen:
             minutniFrejm = izborStupaca.get_minutni_frejm()
@@ -170,7 +174,7 @@ class Kolektor(BASE2, FORM2):
             #pakiranje i emit podataka aplikaciji
             output = {'podaci':sekundniFrejm,
                       'minutniPodaci':minutniFrejm,
-                      'uredjaj':self.spojeni_uredjaj}
+                      'uredjaj':self.uredjaj.get_serial()}
             self.emit(QtCore.SIGNAL('spremi_preuzete_podatke(PyQt_PyObject)'),
                       output)
 
@@ -179,16 +183,17 @@ class Kolektor(BASE2, FORM2):
         Promjena postavki veze. Ovisno o rezultatima wizarda treba inicijalizirati
         nove objekte Protokol() i Veza() te ih postaviti u komunikacijski objekt
         """
-        wiz = postavke_veze.PostavkeVezeWizard(dokument=self.doc)
+        usedPorts = self.parent().parent().parent().get_koristene_serial_portove()
+        wiz = postavke_veze.PostavkeVezeWizard(uredjaj=self.uredjaj, konfig=self.konfig, used=usedPorts)
         prihvacen = wiz.exec_()
         if prihvacen:
             postavke = wiz.get_postavke_veze()
             #set veze
             if postavke['veza'] == 'RS-232':
-                self.spojeni_uredjaj = postavke['uredjaj']
                 tekst = 'Uredjaj {0}, veza: {1}, protokol: {2}, port: {3}'.format(postavke['uredjaj'], postavke['veza'], postavke['protokol'], postavke['port'])
                 self.opisLabel.setText(tekst)
                 self.veza = veza.RS232Veza()
+                self.koristeniSerialPort = postavke['port']
                 self.veza.setup_veze(port=postavke['port'],
                                      baudrate=postavke['brzina'],
                                      bytesize=postavke['brojBitova'],
@@ -204,6 +209,13 @@ class Kolektor(BASE2, FORM2):
             elif temp == 'Hessen, text':
                 self.protokol = prot.HessenText()
             self.komObjekt.set_protokol(self.protokol)
+            #enable gumbe za prikupljanje
+            self.startButton.setEnabled(True)
+            self.stopButton.setEnabled(False)
+            self.sampleCombo.setEnabled(True)
+            self.clearButton.setEnabled(True)
+            self.spremiButton.setEnabled(True)
+            self.rasponCombo.setEnabled(True)
             return True
         else:
             return False

@@ -49,6 +49,9 @@
           <layout class="QHBoxLayout" name="horizontalLayout_2">
            <item>
             <widget class="QPushButton" name="startButton">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="text">
               <string>Start</string>
              </property>
@@ -56,6 +59,9 @@
            </item>
            <item>
             <widget class="QPushButton" name="stopButton">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="text">
               <string>Stop</string>
              </property>
@@ -63,6 +69,9 @@
            </item>
            <item>
             <widget class="QPushButton" name="spremiButton">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="text">
               <string>Spremi</string>
              </property>
@@ -70,6 +79,9 @@
            </item>
            <item>
             <widget class="QPushButton" name="clearButton">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="text">
               <string>Reset</string>
              </property>
@@ -91,6 +103,9 @@
            </item>
            <item>
             <widget class="QComboBox" name="sampleCombo">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <item>
               <property name="text">
                <string>1</string>
@@ -137,6 +152,9 @@
            </item>
            <item>
             <widget class="QComboBox" name="rasponCombo">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <item>
               <property name="text">
                <string>5</string>

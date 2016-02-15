@@ -1,560 +1,259 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Oct 28 08:45:50 2015
+Created on Wed Feb  3 13:04:52 2016
 
 @author: DHMZ-Milic
 """
 import logging
-from PyQt4 import QtGui, QtCore, uic
+from PyQt4 import QtCore, uic
+from app.model.qt_models import ProzorTableModelKomponente
 
-
-BASE1, FORM1 = uic.loadUiType('./app/view/uiFiles/tab_postavke.ui')
-class PostavkeTab(BASE1, FORM1):
+BASE_TAB_POSTAVKE, FORM_TAB_POSTAVKE = uic.loadUiType('./app/view/uiFiles/tab_postavke.ui')
+class TabPostavke(BASE_TAB_POSTAVKE, FORM_TAB_POSTAVKE):
     """
-    Panel za prikaz postavki umjeravanja
+    Gui widget, tab posavki umjeravanja (uredjaj, postavke...)
     """
-    def __init__(self, dokument=None, parent=None):
-        super(BASE1, self).__init__(parent)
+    def __init__(self, datastore=None, parent=None):
+        super(BASE_TAB_POSTAVKE, self).__init__(parent)
         self.setupUi(self)
-        self.dokument = dokument
-        self.plin = 'postavke' #naziv taba
-        self.set_connections()
+        #izvor podataka
+        self.datastore = datastore
+        self.plin = 'Postavke' # naziv taba
 
-    def is_nox_active(self):
-        """Metoda provjerava da li trenutno aktivna komponenta ima 'NOx'"""
-        komp = self.comboKomponenta.currentText()
-        if 'NOx' in komp:
-            return True
+        self.setup_connections()
+        self.popuni_postavke()
+
+    def popuni_postavke(self):
+        """popunjavanje widgeta sa podacima iz dokumenta"""
+        ###UREDJAJ###
+        #komponente
+        komponente = self.datastore.get_uredjaj().get_komponente()
+        self.modelKomponenti = ProzorTableModelKomponente(komponente=komponente)
+        self.tableViewUredjajKomponente.setModel(self.modelKomponenti)
+        #osnovni podaci o uredjaju
+        self.labelUredjajSerijskiBroj.setText(self.datastore.get_uredjaj().get_serial())
+        self.labelUredjajOznakaModela.setText(self.datastore.get_uredjaj().get_oznakaModela())
+        self.labelUredjajProizvodjac.setText(self.datastore.get_uredjaj().get_proizvodjac())
+        postaje = self.datastore.get_postaje()
+        izabranaPostaja = self.datastore.get_izabranaPostaja()
+        if izabranaPostaja not in postaje:
+            postaje.append(izabranaPostaja)
+        self.comboBoxLokacija.addItems(postaje)
+        self.comboBoxLokacija.setCurrentIndex(self.comboBoxLokacija.findText(izabranaPostaja))
+        #analiticka metoda
+        metoda = self.datastore.get_uredjaj().get_analitickaMetoda()
+        self.labelMetodaID.setText(metoda.get_ID())
+        self.labelMetodaJedinica.setText(metoda.get_jedinica())
+        self.label_jedinica_1.setText(metoda.get_jedinica())
+        self.label_jedinica_2.setText(metoda.get_jedinica())
+        self.label_jedinica_3.setText(metoda.get_jedinica())
+        self.label_jedinica_4.setText(metoda.get_jedinica())
+        self.label_jedinica_5.setText(metoda.get_jedinica())
+        self.label_jedinica_6.setText(metoda.get_jedinica()) #jedinica za trenutno koristeni opseg
+        self.labelCRMJedinica.setText(metoda.get_jedinica()) #jedinica za CRM koncentraciju
+        self.labelMetodaNaziv.setText(metoda.get_naziv())
+        self.labelMetodaNorma.setText(metoda.get_norma())
+        self.labelMetodaSrs.setText(str(metoda.get_Srs()))
+        self.labelMetodaSrs.setText(str(metoda.get_Srs()))
+        self.labelMetodaSrz.setText(str(metoda.get_Srz()))
+        self.labelMetodaOpseg.setText(str(metoda.get_o()))
+        try:
+            tmp = float(metoda.get_o())
+            self.datastore.set_izabraniOpseg(tmp)
+            self.doubleSpinBoxOpseg.setValue(tmp)
+        except Exception as err:
+            logging.warning(str(err))
+            self.datastore.set_izabraniOpseg(1.0)
+            self.doubleSpinBoxOpseg.setValue(1.0)
+        self.labelMetodaRmax.setText(str(metoda.get_rmax()))
+        self.labelMetodaRz.setText(str(metoda.get_rz()))
+        self.labelMetodaTr.setText(str(metoda.get_tr()))
+        self.labelMetodaTf.setText(str(metoda.get_tf()))
+        self.labelMetodaEcmin.setText(str(metoda.get_Ec_min()))
+        self.labelMetodaEcmax.setText(str(metoda.get_Ec_max()))
+        ###KALIBRACIJSKA JEDINICA###
+        dilucije = self.datastore.get_listu_dilucija()
+        self.comboBoxDilucija.addItems(dilucije)
+        kljuc = self.datastore.get_izabranaDilucija()
+        if kljuc == 'n/a':
+            kljuc = self.comboBoxDilucija.currentText()
+        self.datastore.set_izabranaDilucija(kljuc)
+        self.update_info_dilucija()
+        ###GENERATOR CISTOG ZRAKA###
+        generatori = self.datastore.get_listu_generatora()
+        self.comboBoxGenerator.addItems(generatori)
+        kljuc = self.datastore.get_izabraniGenerator()
+        if kljuc == 'n/a':
+            kljuc = self.comboBoxGenerator.currentText()
+        self.datastore.set_izabraniGenerator(kljuc)
+        self.update_info_generator()
+        ###CRM###
+        self.lineEditVrstaCRM.setText(self.datastore.get_izabranaVrstaCRM())
+        self.lineEditCRMSljedivost.setText(self.datastore.get_sljedivostCRM())
+        self.doubleSpinBoxCRMKoncentracija.setValue(self.datastore.get_koncentracijaCRM())
+        self.doubleSpinBoxCRMU.setValue(self.datastore.get_UCRM())
+        ###POSTAVKE IZVJESCA###
+        self.lineEditOznakaIzvjesca.setText(self.datastore.get_izabranaOznakaIzvjesca())
+        self.lineEditRevizija.setText(self.datastore.get_izabranaRevizijaIzvjesca())
+        self.lineEditBrojObrasca.setText(self.datastore.get_izabraniBrojObrasca())
+        self.lineEditNorma.setText(self.datastore.get_izabranaNormaObrasca())
+        self.plainTextEditPuniNazivMetode.setPlainText(self.datastore.get_izabraniOpisMetode())
+        self.plainTextEditNapomena.setPlainText(self.datastore.get_izabranaNapomena())
+        self.lineEditDatumUmjeravanja.setText(self.datastore.get_izabraniDatum())
+        self.doubleSpinBoxTemperatura.setValue(self.datastore.get_izabranaTemperatura())
+        self.doubleSpinBoxVlaga.setValue(self.datastore.get_izabranaVlaga())
+        self.doubleSpinBoxTlak.setValue(self.datastore.get_izabraniTlak())
+        ###TESTOVI###
+        self.checkBoxUmjeravanje.setChecked(self.datastore.get_checkUmjeravanje())
+        self.checkBoxPonovljivost.setChecked(self.datastore.get_checkPonovljivost())
+        self.checkBoxLinearnost.setChecked(self.datastore.get_checkLinearnost())
+        self.checkBoxOdaziv.setChecked(self.datastore.get_checkOdaziv())
+        if self.datastore.isNOx:
+            self.checkBoxKonverter.setChecked(self.datastore.get_checkKonverter())
         else:
-            return False
+            self.checkBoxKonverter.setVisible(False)
+            #hide cnox50
+            self.label_60.setVisible(False)
+            self.doubleSpinBoxCNOx50.setVisible(False)
+            self.label_jedinica_5.setVisible(False)
+            #hide cnox95
+            self.label_61.setVisible(False)
+            self.doubleSpinBoxCNOx95.setVisible(False)
+            self.label_jedinica_6.setVisible(False)
 
-    def enable_konverter_check(self):
-        """disable ili enable konverter ovisno da li je NOx komponenta"""
-        if self.is_nox_active():
-            self.checkKonverter.setEnabled(True)
-        else:
-            self.checkKonverter.setChecked(False)
-            self.checkKonverter.setEnabled(False)
+        self.doubleSpinBoxCNOx50.setValue(self.datastore.get_cNOx50())
+        self.doubleSpinBoxCNOx95.setValue(self.datastore.get_cNOx95())
 
+    def setup_connections(self):
+        """spajanje signala i slotova"""
+        self.lineEditCRMSljedivost.textChanged.connect(self.datastore.set_sljedivostCRM)
+        self.comboBoxLokacija.currentIndexChanged.connect(self.change_lokaciju)
+        self.comboBoxLokacija.editTextChanged.connect(self.change_lokaciju)
+        self.lineEditVrstaCRM.textChanged.connect(self.datastore.set_izabranaVrstaCRM)
+        self.comboBoxDilucija.currentIndexChanged.connect(self.change_diluciju)
+        self.comboBoxGenerator.currentIndexChanged.connect(self.change_generator)
+        self.doubleSpinBoxCRMKoncentracija.valueChanged.connect(self.change_koncentracijaCRM)
+        self.doubleSpinBoxCRMU.valueChanged.connect(self.change_UCRM)
+        self.lineEditOznakaIzvjesca.textChanged.connect(self.datastore.set_izabranaOznakaIzvjesca)
+        self.lineEditRevizija.textChanged.connect(self.datastore.set_izabranaRevizijaIzvjesca)
+        self.lineEditBrojObrasca.textChanged.connect(self.datastore.set_izabraniBrojObrasca)
+        self.lineEditNorma.textChanged.connect(self.datastore.set_izabranaNormaObrasca)
+        self.plainTextEditPuniNazivMetode.textChanged.connect(self.change_OpisMetode)
+        self.doubleSpinBoxOpseg.valueChanged.connect(self.change_izabraniOpseg)
+        self.plainTextEditNapomena.textChanged.connect(self.change_napomenu)
+        self.lineEditDatumUmjeravanja.textChanged.connect(self.datastore.set_izabraniDatum)
+        self.checkBoxUmjeravanje.clicked.connect(self.change_checkUmjeravanje)
+        self.checkBoxPonovljivost.clicked.connect(self.change_checkPonovljivost)
+        self.checkBoxLinearnost.clicked.connect(self.change_checkLinearnost)
+        self.checkBoxOdaziv.clicked.connect(self.change_checkOdaziv)
+        self.doubleSpinBoxCNOx50.valueChanged.connect(self.change_cNOx50)
+        self.doubleSpinBoxCNOx95.valueChanged.connect(self.change_cNOx95)
+        self.doubleSpinBoxTemperatura.valueChanged.connect(self.datastore.set_izabranaTemperatura)
+        self.doubleSpinBoxVlaga.valueChanged.connect(self.datastore.set_izabranaVlaga)
+        self.doubleSpinBoxTlak.valueChanged.connect(self.datastore.set_izabraniTlak)
+        if self.datastore.isNOx:
+            self.checkBoxKonverter.clicked.connect(self.change_checkKonverter)
 
-    def set_mjernaJedinica(self, mapa):
-        """Setter mjerne jedinice u labele gui-a"""
-        jedinica = mapa['value']
-        self.labelJedinicaCCRM.setText(jedinica)
-        self.labelJedinicaZrak.setText(jedinica)
-################################################################################
-    #mjerenje groupbox
-    def set_listu_comboKomponenta(self, x):
-        """
-        Setter liste stringova u comboKomponenta
-        """
-        self.comboKomponenta.clear()
-        lista = sorted(x['value'])
-        self.comboKomponenta.addItems(lista)
-        #pokusaj postaviti izabranu komponentu iz dokumenta
-        try:
-            izbor = self.dokument.get_izabranaKomponenta()
-            ind = self.comboKomponenta.findText(izbor)
-            self.comboKomponenta.setCurrentIndex(ind)
-        except Exception as err:
-            logging.error(str(err), exc_info=True)
-            #update dokument koja je opcija trenutno izabrana
-            self.dokument.set_izabranaKomponenta(self.comboKomponenta.currentText())
-        #test za enable i disable konvertera ovisno o NOX
-        self.enable_konverter_check()
+    def change_checkKonverter(self, x):
+        """callback za promjenu checkboxa konvertera"""
+        self.datastore.set_checkKonverter(x)
+        self.emit(QtCore.SIGNAL('promjena_checkKonverter'))
 
-    def set_izabranu_komponentu(self, x):
-        """setter izabrane komponente u comboboxu comboKomponenta"""
-        value = x['value']
-        ind = self.comboKomponenta.findText(value)
-        self.comboKomponenta.setCurrentIndex(ind)
-        #test za enable i disable konvertera ovisno o NOX
-        self.enable_konverter_check()
+    def change_checkOdaziv(self, x):
+        """callback za promjenu checkobxa odaziv"""
+        self.datastore.set_checkOdaziv(x)
+        self.emit(QtCore.SIGNAL('promjena_checkOdaziv'))
 
-    def promjena_izbora_komponente(self, x):
-        """metoda reagira na promjenu trenunog izbora u comboboxu comboKomponenta"""
-        value = self.comboKomponenta.currentText()
-        if value != '':
-            self.dokument.set_izabranaKomponenta(value)
-            #test za enable i disable konvertera ovisno o NOX
-            self.enable_konverter_check()
+    def change_checkLinearnost(self, x):
+        """callback za promjenu checkboxa za linearnost"""
+        self.datastore.set_checkLinearnost(x)
+        self.emit(QtCore.SIGNAL('recalculate_umjeravanja'))
 
-    def set_listu_comboUredjaji(self, x):
-        """Setter liste stringova u comboUredjaji"""
-        self.comboUredjaj.clear()
-        lista = sorted(x['value'])
-        self.comboUredjaj.addItems(lista)
-        #pokusaj postaviti izabrani uredjaj iz dokumenta
-        try:
-            izbor = self.dokument.get_izabraniUredjaj()
-            ind = self.comboUredjaj.findText(izbor)
-            self.comboUredjaj.setCurrentIndex(ind)
-        except Exception as err:
-            logging.error(str(err), exc_info=True)
-            #update dokument koji uredjaj je izabran
-            self.dokument.set_izabraniUredjaj(self.comboUredjaj.currentText())
+    def change_checkPonovljivost(self, x):
+        """callback za promjenu chekboxa za ponovljivost"""
+        self.datastore.set_checkPonovljivost(x)
+        self.emit(QtCore.SIGNAL('recalculate_umjeravanja'))
 
-    def set_izabrani_uredjaj(self, x):
-        """setter izabranog uredjaja u comboboxu"""
-        value = x['value']
-        ind = self.comboUredjaj.findText(value)
-        self.comboUredjaj.setCurrentIndex(ind)
+    def change_checkUmjeravanje(self, x):
+        """callback za promjenu checkboxa za umjeravanje"""
+        self.datastore.set_checkUmjeravanje(x)
+        self.emit(QtCore.SIGNAL('recalculate_umjeravanja'))
 
-    def promjena_izbora_uredjaja(self, x):
-        """metoda reagira na promjenu trenunog izbora u comboboxu comboUredjaji"""
-        value = self.comboUredjaj.currentText()
-        self.dokument.set_izabraniUredjaj(value)
+    def change_izabraniOpseg(self, x):
+        """callback za promjenu opsega za racunanje"""
+        self.datastore.set_izabraniOpseg(x)
+        self.emit(QtCore.SIGNAL('recalculate_all_tabs'))
 
-    def set_listu_comboPostaja(self, x):
-        """
-        Setter liste postaja u comboPostaje
-        """
-        self.comboPostaja.clear()
-        lista = sorted(x['value'])
-        self.comboPostaja.addItems(lista)
-        #pokusaj postaviti izabranu postaju iz dokumenta
-        try:
-            izbor = self.dokument.get_izabranaPostaja()
-            ind = self.comboPostaja.findText(izbor)
-            self.comboUredjaj.setCurrentIndex(ind)
-        except Exception as err:
-            logging.error(str(err), exc_info=True)
-            #update dokument koja je postaja izabrana
-            self.dokument.set_izabranaPostaja(self.comboPostaja.currentText())
+    def change_UCRM(self, x):
+        """callback za promjenu U crm-a"""
+        self.datastore.set_UCRM(x)
+        self.emit(QtCore.SIGNAL('recalculate_umjeravanja'))
 
-    def set_izabranu_postaju(self, x):
-        """setter izabrane postaje u comboboxu"""
-        value = x['value']
-        ind = self.comboPostaja.findText(value)
-        self.comboPostaja.setCurrentIndex(ind)
+    def change_koncentracijaCRM(self, x):
+        """callback za promjenu koncentracije crm-a"""
+        self.datastore.set_koncentracijaCRM(x)
+        self.emit(QtCore.SIGNAL('recalculate_umjeravanja'))
 
-    def promjena_izbora_postaje(self, x):
-        """metoda reagira na promjenu trenunog izbora u comboboxu comboPostaja"""
-        value = self.comboPostaja.currentText()
-        self.dokument.set_izabranaPostaja(value)
+    def change_cNOx50(self, x):
+        """callback za promjenu parametra cNOx50"""
+        self.datastore.set_cNOx50(x)
+        self.emit(QtCore.SIGNAL('recalculate_konverter'))
 
-    def set_opseg(self, x):
-        """setter opsega mjerenja"""
-        value = x['value']
-        self.doubleSpinBoxOpseg.setValue(value)
+    def change_cNOx95(self, x):
+        """callback za promjenu parametra cNOx95"""
+        self.datastore.set_cNOx95(x)
+        self.emit(QtCore.SIGNAL('recalculate_konverter'))
 
-    def get_opseg(self):
-        """getter opsega mjerenja"""
-        return self.doubleSpingBoxOpseg.value()
+    def change_napomenu(self):
+        """callback za promjenu napomene za report"""
+        x = self.plainTextEditNapomena.toPlainText()
+        self.datastore.set_izabranaNapomena(x)
 
-    def promjena_opseg(self, x):
-        """ signal koji updatea dokument sa promjenom opsega"""
-        value = self.doubleSpinBoxOpseg.value()
-        self.dokument.set_opseg(value)
-################################################################################
-    #dilucijska jedinica groupbox
-    def set_listu_comboDilucija(self, x):
-        """setter liste dilucijskih jedinica u combobox"""
-        self.comboDilucija.clear()
-        lista = sorted(x['value'])
-        self.comboDilucija.addItems(lista)
-        #pokusaj postaviti izabranu diluciju iz dokumenta
-        try:
-            izbor = self.dokument.get_izabranaDilucija()
-            ind = self.comboDilucija.findText(izbor)
-            self.comboDilucija.setCurrentIndex(ind)
-        except Exception as err:
-            logging.error(str(err), exc_info=True)
-            #update dokument sa trenutnim izborom dilucijske jedinice
-            self.dokument.set_izabranaDilucija(self.comboDilucija.currentText())
+    def change_OpisMetode(self):
+        """callback za promjenu punog opisa metode za report"""
+        x = self.plainTextEditPuniNazivMetode.toPlainText()
+        self.datastore.set_izabraniOpisMetode(x)
 
-    def set_izabranu_diluciju(self, x):
-        """setter izabrane dilucijske jedinice u combou"""
-        value = x['value']
-        ind = self.comboDilucija.findText(value)
-        self.comboDilucija.setCurrentIndex(ind)
+    def change_lokaciju(self, ind):
+        """callback za promjenu indeksa comboboxa lokacije"""
+        kljuc = self.comboBoxLokacija.currentText()
+        self.datastore.set_izabranaPostaja(kljuc)
+        self.emit(QtCore.SIGNAL('promjena_postaje(PyQt_PyObject)'), kljuc)
 
-    def promjena_izbora_dilucije(self, x):
-        """metoda reagira na promjenu trenunog izbora u comboboxu comboDilucija"""
-        value = self.comboDilucija.currentText()
-        self.dokument.set_izabranaDilucija(value)
+    def update_info_generator(self):
+        """metoda zaduzena za update widgeta ovisno o izabranom generatoru cistog zraka"""
+        kljuc = self.datastore.get_izabraniGenerator()
+        generator = self.datastore.get_objekt_izabranog_generatora(kljuc)
+        self.labelGeneratorModel.setText(generator.get_model())
+        self.labelGeneratorProizvodjac.setText(generator.get_proizvodjac())
+        self.labelGeneratorMaxSO2.setText(str(generator.get_maxSO2()))
+        self.labelGeneratorMaxCO.setText(str(generator.get_maxCO()))
+        self.labelGeneratorMaxBTX.setText(str(generator.get_maxBTX()))
+        self.labelGeneratorMaxNOx.setText(str(generator.get_maxNOx()))
+        self.labelGeneratorMaxO3.setText(str(generator.get_maxO3()))
 
-    def promjena_dilucijaProizvodjacLineEdit(self, x):
-        """slot koji javlja dokumentu promjenu proizvodjaca dilucijske jedinice"""
-        value = self.dilucijaProizvodjacLineEdit.text()
-        self.dokument.set_proizvodjacDilucija(value)
+    def change_generator(self, ind):
+        """callback za promjenu indeksa u comboboxu generatora"""
+        izbor = self.comboBoxGenerator.currentText()
+        self.datastore.set_izabraniGenerator(izbor)
+        self.update_info_generator()
+        self.emit(QtCore.SIGNAL('recalculate_umjeravanja'))
 
-    def set_dilucijaProizvodjacLineEdit(self, x):
-        """Metoda postavlja proizvodjaca dilucijske jedinice preuzetu iz dokumenta
-        u gui widget"""
-        value = x['value']
-        self.dilucijaProizvodjacLineEdit.setText(value)
+    def update_info_dilucija(self):
+        """metoda zaduzena za update widgeta ovisno o izabranoj diluciji"""
+        kljuc = self.datastore.get_izabranaDilucija()
+        dilucija = self.datastore.get_objekt_izabrane_dilucije(kljuc)
+        self.labelDilucijaModel.setText(dilucija.get_model())
+        self.labelDilucijaProizvodjac.setText(dilucija.get_proizvodjac())
+        self.labelDilucijaSljedivost.setText(str(dilucija.get_sljedivost()))
+        self.labelDilucijaNulPlin.setText(str(dilucija.get_uNul()))
+        self.labelDilucijaKalPlin.setText(str(dilucija.get_uKal()))
+        self.labelDilucijaOzon.setText(str(dilucija.get_uO3()))
 
-    def promjena_dilucijaSljedivostLineEdit(self, x):
-        """slot koji javlja dokumentu promjenu sljedivosti dilucijske jedinice"""
-        value = self.dilucijaSljedivostLineEdit.text()
-        self.dokument.set_sljedivostDilucija(value)
+    def change_diluciju(self, ind):
+        """callback za promjenu indeksa u comboboxu kalibracijskih jedinica"""
+        izbor = self.comboBoxDilucija.currentText()
+        self.datastore.set_izabranaDilucija(izbor)
+        self.update_info_dilucija()
+        self.emit(QtCore.SIGNAL('recalculate_umjeravanja'))
 
-    def set_dilucijaSljedivostLineEdit(self, x):
-        """Metoda postavlja sljedivost dilucijske jedinice preuzetu iz dokumenta
-        u gui widget"""
-        value = x['value']
-        self.dilucijaSljedivostLineEdit.setText(value)
-################################################################################
-    #generator cistog zraka groupbox
-    def set_listu_comboZrak(self, x):
-        """setter liste generatora cistog zraka u combobox"""
-        self.comboZrak.clear()
-        lista = sorted(x['value'])
-        self.comboZrak.addItems(lista)
-        #pokusaj postaviti izabrani zrak iz dokumenta
-        try:
-            izbor = self.dokument.get_izabraniZrak()
-            ind = self.comboZrak.findText(izbor)
-            self.comboZrak.setCurrentIndex(ind)
-        except Exception as err:
-            logging(str(err), exc_info=True)
-            #update dokument sa trenutnim izborom generatora cistog zraka
-            self.dokument.set_izabraniZrak(self.comboZrak.currentText())
-
-    def set_izabrani_zrak(self, x):
-        """setter izabranog generatora cistog zraka u combou"""
-        value = x['value']
-        ind = self.comboZrak.findText(value)
-        self.comboZrak.setCurrentIndex(ind)
-
-    def promjena_izbora_zraka(self, x):
-        """metoda reagira na promjenu trenunog izbora u comboboxu comboZrak"""
-        value = self.comboZrak.currentText()
-        self.dokument.set_izabraniZrak(value)
-
-    def promjena_zrakProizvodjacLineEdit(self, x):
-        """slot koji postavlja proizvodjaca generatora cistog zraka u dokument"""
-        value = self.zrakProizvodjacLineEdit.text()
-        self.dokument.set_proizvodjacZrak(value)
-
-    def set_zrakProizvodjacLineEdit(self, x):
-        """Metoda postavlja proizvodjaca generatora cistog zraka iz dokumenta
-        u gui widget"""
-        value = x['value']
-        self.zrakProizvodjacLineEdit.setText(value)
-
-    def promjena_doubleSpinBoxSljedivostCistiZrak(self, x):
-        """slot koji postavlja sljedivost generatora cistog zraka u dokument"""
-        value = self.doubleSpinBoxSljedivostCistiZrak.value()
-        self.dokument.set_sljedivostZrak(value)
-
-    def set_doubleSpinBoxSljedivostCistiZrak(self, x):
-        """Metoda postavlja sljedivost generatora cistog zraka iz dokumenta u gui
-        widget"""
-        value = x['value']
-        self.doubleSpinBoxSljedivostCistiZrak.setValue(value)
-################################################################################
-    #testovi groupbox
-    def toggle_konverter(self, x):
-        """
-        toggle checka za provjeru konvertera
-        """
-        self.dokument.set_provjeraKonvertera(x)
-
-    def set_checkKonverter(self, x):
-        """setter za checkbox konvertera"""
-        x = bool(x)
-        self.checkKonverter.setChecked(x)
-
-    def toggle_odaziv(self, x):
-        """
-        toggle checka za provjeru odaziva
-        """
-        self.dokument.set_provjeraOdaziv(x)
-
-    def set_checkOdaziv(self, x):
-        """setter za checkbox odaziva"""
-        x = bool(x)
-        self.checkOdaziv.setChecked(x)
-
-    def toggle_umjeravanje(self, x):
-        """
-        toggle checka za kontrolu umjeravanja
-        """
-        self.dokument.set_provjeraUmjeravanje(x)
-
-    def set_checkUmjeravanje(self, x):
-        """setter za checkbox umjeravanja"""
-        x = bool(x)
-        self.checkUmjeravanje.setChecked(x)
-
-    def toggle_ponovljivost(self, x):
-        """
-        toggle checka za provjeru ponovljivosti
-        """
-        self.dokument.set_provjeraPonovljivost(x)
-
-    def set_checkPonovljivost(self, x):
-        """setter za checkbox ponovljivosti"""
-        x = bool(x)
-        self.checkPonovljivost.setChecked(x)
-
-    def toggle_linearnost(self, x):
-        """
-        toggle checka za provjeru linearnosti
-        """
-        self.dokument.set_provjeraLinearnost(x)
-
-    def set_checkLinearnost(self, x):
-        """setter za checkbox linearnosti"""
-        x = bool(x)
-        self.checkLinearnost.setChecked(x)
-################################################################################
-    #crm groupbox
-    def set_izvorPlainTextEdit(self, x):
-        """Metoda postavlja izvorCRM u gui widget"""
-        self.izvorPlainTextEdit.setPlainText(x)
-        self.izvorPlainTextEdit.moveCursor(QtGui.QTextCursor.End)
-
-    def promjena_izvorPlainTextEdit(self):
-        """slot koji dokumentu javlja promjenu izvora CRM-a"""
-        value = self.izvorPlainTextEdit.toPlainText()
-        self.dokument.set_izvorCRM(value)
-
-    def promjena_doubleSpinBoxKoncentracijaCRM(self, x):
-        """slot koji dokumentu javlja promjenu koncentracije CRM-a"""
-        value = self.doubleSpinBoxKoncentracijaCRM.value()
-        self.dokument.set_koncentracijaCRM(value)
-
-    def set_doubleSpinBoxKoncentracijaCRM(self, x):
-        """Metoda postavlja koncentraciju CRM-a u gui widget"""
-        value = x['value']
-        self.doubleSpinBoxKoncentracijaCRM.setValue(value)
-
-    def promjena_doubleSpinBoxSljedivostCRM(self, x):
-        """slot koji dokumentu javlja promjenu sljedivosti CRM-a"""
-        value = self.doubleSpinBoxSljedivostCRM.value()
-        self.dokument.set_sljedivostCRM(value)
-
-    def set_doubleSpinBoxSljedivostCRM(self, x):
-        """Metoda postavlja sljedivost CRM u gui widget"""
-        value = x['value']
-        self.doubleSpinBoxSljedivostCRM.setValue(value)
-################################################################################
-    #postavke izvjesca groupbox
-    def promjena_normaPlainTextEdit(self):
-        """slot koji postavlja tekst norme u dokument"""
-        value = self.normaPlainTextEdit.toPlainText()
-        self.dokument.set_norma(value)
-
-    def set_normaPlainTextEdit(self, x):
-        """Metoda koja postavlja tekst norme iz dokumenta u gui widget"""
-        value = x['value']
-        self.normaPlainTextEdit.setPlainText(value)
-        self.normaPlainTextEdit.moveCursor(QtGui.QTextCursor.End)
-
-    def promjena_oznakaIzvjescaLineEdit(self, x):
-        """slot koji postavlja oznaku izvjesca u dokument"""
-        value = self.oznakaIzvjescaLineEdit.text()
-        self.dokument.set_oznakaIzvjesca(value)
-
-    def set_oznakaIzvjescaLineEdit(self, x):
-        """Metoda koja postavlja oznaku izvjesca iz dokumenta u gui widget"""
-        value = x['value']
-        self.oznakaIzvjescaLineEdit.setText(value)
-
-    def promjena_brojObrascaLineEdit(self, x):
-        """slot koji postavlja broj obrasca u dokument"""
-        value = self.brojObrascaLineEdit.text()
-        self.dokument.set_brojObrasca(value)
-
-    def set_brojObrascaLineEdit(self, x):
-        """Metoda koja postavlja broj obrasca iz dokumenta u gui widget"""
-        value = x['value']
-        self.brojObrascaLineEdit.setText(value)
-
-    def promjena_revizijaLineEdit(self, x):
-        """slot koji postavlja broj revizije u dokument"""
-        value = self.revizijaLineEdit.text()
-        self.dokument.set_revizija(value)
-
-    def set_revizijaLineEdit(self, x):
-        """Metoda koja postavlja broj revizije iz dokumenta u gui widget"""
-        value = x['value']
-        self.revizijaLineEdit.setText(value)
-
-    def promjena_datumUmjeravanjaLineEdit(self, x):
-        """slot koji postavlja datum umjeravanja u dokument"""
-        value = self.datumUmjeravanjaLineEdit.text()
-        self.dokument.set_datumUmjeravanja(value)
-
-    def set_datumUmjeravanjaLineEdit(self, x):
-        """metoda postavlja datum umjeravanja iz dokumenta u gui widget"""
-        value = x['value']
-        self.datumUmjeravanjaLineEdit.setText(value)
-################################################################################
-    #okolisni uvijeti tjekom provjere groupbox
-    def promjena_temperaturaDoubleSpinBox(self, x):
-        """slot koji postavlja temperaturu (okolisni uvijeti) u dokument"""
-        value = self.temperaturaDoubleSpinBox.value()
-        self.dokument.set_temperatura(value)
-
-    def set_temperaturaDoubleSpinBox(self, x):
-        """metoda postavlja temperaturu (okolisni uvijeti) iz dokumenta u gui
-        widget"""
-        value = x['value']
-        self.temperaturaDoubleSpinBox.setValue(value)
-
-    def promjena_vlagaDoubleSpinBox(self, x):
-        """slot koji postavlja relativnu vlagu (okolisni uvijeti) u dokumnet"""
-        value = self.vlagaDoubleSpinBox.value()
-        self.dokument.set_vlaga(value)
-
-    def set_vlagaDoubleSpinBox(self, x):
-        """Metoda postavlja relativnu vlagu (okolisni uvijeti) iz dokumenta u
-        gui widget"""
-        value = x['value']
-        self.vlagaDoubleSpinBox.setValue(value)
-
-    def promjena_tlakDoubleSpinBox(self, x):
-        """slot koji postavlja tlak (okolisni uvijeti) u dokument"""
-        value = self.tlakDoubleSpinBox.value()
-        self.dokument.set_tlak(value)
-
-    def set_tlakDoubleSpinBox(self, x):
-        """metoda postavlja tlak (okolisni uvijeti) iz dokumenta u gui widget"""
-        value = x['value']
-        self.tlakDoubleSpinBox.setValue(value)
-################################################################################
-    #napomena groupbox
-    def promjena_napomenaPlainTextEdit(self):
-        """slot koji postavlja tekst napomena u dokument"""
-        value = self.napomenaPlainTextEdit.toPlainText()
-        self.dokument.set_napomena(value)
-
-    def set_napomenaPlainTextEdit(self, x):
-        """metoda postavlja tekst napomene iz dokumenta u gui widget"""
-        value = x['value']
-        self.napomenaPlainTextEdit.setPlainText(value)
-        self.napomenaPlainTextEdit.moveCursor(QtGui.QTextCursor.End)
-################################################################################
-    def set_connections(self):
-        """povezivanje kontrolnih elemenata"""
-        self.comboKomponenta.currentIndexChanged.connect(self.promjena_izbora_komponente)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_komponente(PyQt_PyObject)'),
-                     self.set_listu_comboKomponenta)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_izabranaKomponenta(PyQt_PyObject)'),
-                     self.set_izabranu_komponentu)
-        self.comboUredjaj.currentIndexChanged.connect(self.promjena_izbora_uredjaja)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_uredjaja(PyQt_PyObject)'),
-                     self.set_listu_comboUredjaji)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_izabraniUredjaj(PyQt_PyObject)'),
-                     self.set_izabrani_uredjaj)
-        self.comboPostaja.currentIndexChanged.connect(self.promjena_izbora_postaje)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_listaPostaja(PyQt_PyObject)'),
-                     self.set_listu_comboPostaja)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_izabranaPostaja(PyQt_PyObject)'),
-                     self.set_izabranu_postaju)
-        self.comboDilucija.currentIndexChanged.connect(self.promjena_izbora_dilucije)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_listaDilucija(PyQt_PyObject)'),
-                     self.set_listu_comboDilucija)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_izabranaDilucija(PyQt_PyObject)'),
-                     self.set_izabranu_diluciju)
-        self.comboZrak.currentIndexChanged.connect(self.promjena_izbora_zraka)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_listaZrak(PyQt_PyObject)'),
-                     self.set_listu_comboZrak)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_izabraniZrak(PyQt_PyObject)'),
-                     self.set_izabrani_zrak)
-        self.checkKonverter.toggled.connect(self.toggle_konverter)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_provjeraKonvertera(PyQt_PyObject)'),
-                     self.set_checkKonverter)
-        self.checkOdaziv.toggled.connect(self.toggle_odaziv)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('display_odaziv(PyQt_PyObject)'),
-                     self.set_checkOdaziv)
-        self.checkUmjeravanje.toggled.connect(self.toggle_umjeravanje)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('display_umjeravanje(PyQt_PyObject)'),
-                     self.set_checkUmjeravanje)
-        self.checkPonovljivost.toggled.connect(self.toggle_ponovljivost)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('display_ponovljivost(PyQt_PyObject)'),
-                     self.set_checkPonovljivost)
-        self.checkLinearnost.toggled.connect(self.toggle_linearnost)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('display_linearnost(PyQt_PyObject)'),
-                     self.set_checkLinearnost)
-        self.izvorPlainTextEdit.textChanged.connect(self.promjena_izvorPlainTextEdit)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_izvorCRM(PyQt_PyObject)'),
-                     self.set_izvorPlainTextEdit)
-        self.doubleSpinBoxKoncentracijaCRM.valueChanged.connect(self.promjena_doubleSpinBoxKoncentracijaCRM)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_koncentracijaCRM(PyQt_PyObject)'),
-                     self.set_doubleSpinBoxKoncentracijaCRM)
-        self.doubleSpinBoxSljedivostCRM.valueChanged.connect(self.promjena_doubleSpinBoxSljedivostCRM)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_sljedivostCRM(PyQt_PyObject)'),
-                     self.set_doubleSpinBoxSljedivostCRM)
-        self.dilucijaProizvodjacLineEdit.textChanged.connect(self.promjena_dilucijaProizvodjacLineEdit)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_proizvodjacDilucija(PyQt_PyObject)'),
-                     self.set_dilucijaProizvodjacLineEdit)
-        self.dilucijaSljedivostLineEdit.textChanged.connect(self.promjena_dilucijaSljedivostLineEdit)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_sljedivostDilucija(PyQt_PyObject)'),
-                     self.set_dilucijaSljedivostLineEdit)
-        self.zrakProizvodjacLineEdit.textChanged.connect(self.promjena_zrakProizvodjacLineEdit)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_proizvodjacZrak(PyQt_PyObject)'),
-                     self.set_zrakProizvodjacLineEdit)
-        self.doubleSpinBoxSljedivostCistiZrak.valueChanged.connect(self.promjena_doubleSpinBoxSljedivostCistiZrak)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_sljedivostZrak(PyQt_PyObject)'),
-                     self.set_doubleSpinBoxSljedivostCistiZrak)
-        self.normaPlainTextEdit.textChanged.connect(self.promjena_normaPlainTextEdit)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_norma(PyQt_PyObject)'),
-                     self.set_normaPlainTextEdit)
-        self.oznakaIzvjescaLineEdit.textChanged.connect(self.promjena_oznakaIzvjescaLineEdit)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_oznakaIzvjesca(PyQt_PyObject)'),
-                     self.set_oznakaIzvjescaLineEdit)
-        self.brojObrascaLineEdit.textChanged.connect(self.promjena_brojObrascaLineEdit)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_brojObrasca(PyQt_PyObject)'),
-                     self.set_brojObrascaLineEdit)
-        self.revizijaLineEdit.textChanged.connect(self.promjena_revizijaLineEdit)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_revizija(PyQt_PyObject)'),
-                     self.set_revizijaLineEdit)
-        self.datumUmjeravanjaLineEdit.textChanged.connect(self.promjena_datumUmjeravanjaLineEdit)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_datumUmjeravanja(PyQt_PyObject)'),
-                     self.set_datumUmjeravanjaLineEdit)
-        self.temperaturaDoubleSpinBox.valueChanged.connect(self.promjena_temperaturaDoubleSpinBox)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_temperatura(PyQt_PyObject)'),
-                     self.set_temperaturaDoubleSpinBox)
-        self.vlagaDoubleSpinBox.valueChanged.connect(self.promjena_vlagaDoubleSpinBox)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_vlaga(PyQt_PyObject)'),
-                     self.set_vlagaDoubleSpinBox)
-        self.tlakDoubleSpinBox.valueChanged.connect(self.promjena_tlakDoubleSpinBox)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_tlak(PyQt_PyObject)'),
-                     self.set_tlakDoubleSpinBox)
-        #promjena teksta napomene
-        self.napomenaPlainTextEdit.textChanged.connect(self.promjena_napomenaPlainTextEdit)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_napomena(PyQt_PyObject)'),
-                     self.set_napomenaPlainTextEdit)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_mjernaJedinica(PyQt_PyObject)'),
-                     self.set_mjernaJedinica)
-        self.doubleSpinBoxOpseg.valueChanged.connect(self.promjena_opseg)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_opseg(PyQt_PyObject)'),
-                     self.set_opseg)

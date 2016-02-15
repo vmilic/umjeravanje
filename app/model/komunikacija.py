@@ -47,13 +47,10 @@ class KomunikacijskiObjekt(QtCore.QObject):
                 start = datetime.datetime.now()
                 #posalji request za podacima
                 upit = self.protokol.generiraj_upit()
-
-                #sys.stdout.buffer.write(upit)
                 self.veza.salji(upit)
                 time.sleep(0.2)
                 #prezumi podatke
                 response=self.veza.primi()
-                #sys.stdout.buffer.write(response[0])
                 podatak = self.protokol.parse_rezultat(response)
                 #emitiraj vrijednost podatka slusateljima
                 self.emit(QtCore.SIGNAL('nova_vrijednost_od_veze(PyQt_PyObject)'),

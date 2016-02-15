@@ -7,7 +7,7 @@ Created on Tue Nov  3 14:48:17 2015
 import numpy as np
 import logging
 from PyQt4 import QtGui
-import app.model.frejm_model as modeli
+import app.model.qt_models as modeli
 
 
 class IzborNazivaStupacaWizard(QtGui.QWizard):
@@ -74,12 +74,12 @@ class PageIzborStupaca(QtGui.QWizardPage):
         """
         self.frejm = self.wizard().frejm
         self.moguci = self.wizard().moguci
-        self.deviceLabel.setText('Izabrani uredjaj: {0}'.format(self.wizard().get_uredjaj()))
+        self.deviceLabel.setText('Izabrani uredjaj: {0}'.format(self.wizard().get_uredjaj().get_serial()))
         if 'None' not in self.moguci:
             self.moguci.append('None')
         try:
             self.model = modeli.BaseFrejmModel(frejm=self.frejm)
-            self.delegat = modeli.ComboBoxDelegate(stupci = self.moguci, parent=self.tableView)
+            self.delegat = modeli.ComboBoxDelegate(stupci=self.moguci, parent=self.tableView)
             self.tableView.setModel(self.model)
             self.tableView.setItemDelegateForRow(0, self.delegat)
             for col in range(len(self.frejm.columns)):
@@ -162,7 +162,7 @@ class PageSpremanjeFileova(QtGui.QWizardPage):
     def __init__(self, parent=None):
         QtGui.QWizard.__init__(self, parent)
         self.setTitle('Spremanje podataka u csv file')
-        self.setSubTitle('Ako želite, možete spremiti podatke u file. Moguće je prije spremanja minutno usrednjiti podatke (average).')
+        self.setSubTitle('Ako želite, možete spremiti podatke u file. Moguće je prije spremanja usrednjiti podatke (minutni average).')
 
         self.sekundniTable = QtGui.QTableView()
         self.gumbSpremiSekundne = QtGui.QPushButton('Spremi...')

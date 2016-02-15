@@ -4,48 +4,43 @@ Created on Fri Oct 23 11:47:06 2015
 
 @author: DHMZ-Milic
 """
+import copy
 import numpy as np
 import pandas as pd
 from PyQt4 import QtCore, uic
-import app.view.pomocni as view_helpers
+from app.pomocni import pomocni
+from app.model.qt_models import SiroviFrameModel
 
-
-BASE3, FORM3 = uic.loadUiType('./app/view/uiFiles/tab_konverter.ui')
-class KonverterPanel(BASE3, FORM3):
-    def __init__(self, dokument=None, parent=None):
-        super(BASE3, self).__init__(parent)
+BASE_TAB_KONVERTER, FORM_TAB_KONVERTER = uic.loadUiType('./app/view/uiFiles/tab_konverter.ui')
+class TabKonverter(BASE_TAB_KONVERTER, FORM_TAB_KONVERTER):
+    def __init__(self, datastore=None, plin='konverter', parent=None):
+        super(BASE_TAB_KONVERTER, self).__init__(parent)
         self.setupUi(self)
-        self.dokument = dokument
-        self.plin = 'konverter'
-        self.model = self.dokument.get_model(mjerenje='konverter')
-
-        ### postavljanje inicijalnih vrijednosti kontrolnih elemenata ###
-        self.konverterOpseg.setValue(self.dokument.get_opseg())
-        self.cnox50SpinBox.setValue(self.dokument.get_cNOx50())
-        self.cnox95SpinBox.setValue(self.dokument.get_cNOx95())
-        self.labelKonverterOpseg.setText(self.dokument.get_mjernaJedinica())
-        self.labelKonverter50.setText(self.dokument.get_mjernaJedinica())
-        self.labelKonverter95.setText(self.dokument.get_mjernaJedinica())
-
+        self.datastore = datastore
+        self.plin = plin
+        self.model = SiroviFrameModel(tocke=self.datastore.get_tocke(self.plin),
+                                      frejm=self.datastore.tabData[self.plin].get_frejm(),
+                                      start=self.datastore.tabData[self.plin].get_startIndeks())
         ### postavljanje tablica ###
-        self.konverterRezultatView = view_helpers.TablicaKonverterRezultati()
-        self.konverterRezultatView.set_mjerna_jedinica(self.dokument.get_mjernaJedinica())
-        self.konverterRezultatView.set_tocke(self.model.get_tocke())
+        self.konverterRezultatView = pomocni.TablicaKonverterRezultati()
+        self.konverterRezultatView.set_mjerna_jedinica(self.datastore.get_izabranaMjernaJedinica())
+        self.konverterRezultatView.set_tocke(self.datastore.tabData['konverter'].get_tocke())
         self.konverterRezultatView.set_data(self.generiraj_nan_frejm_rezultata_konvertera())
         self.layoutKonverterRezultati.addWidget(self.konverterRezultatView)
         self.layoutKonverterRezultati.addStretch(-1)
-
-        self.tablicaKonverter = view_helpers.TablicaKonverterParametri()
+        self.tablicaKonverter = pomocni.TablicaKonverterParametri()
         self.tablicaKonverter.set_values([np.NaN, np.NaN, np.NaN, np.NaN])
-
         self.layoutKonverterParametri.addWidget(self.tablicaKonverter)
         self.layoutKonverterParametri.addStretch(-1)
-
-        self.tablicaKriterija = view_helpers.TablicaKonverterKriterij()
+        self.tablicaKriterija = pomocni.TablicaKonverterKriterij()
         self.layoutKonverterKriterij.addWidget(self.tablicaKriterija)
         self.layoutKonverterKriterij.addStretch(-1)
 
-        self.setup_connections()
+    def get_model(self):
+        return self.model
+
+    def set_model(self, x):
+        self.model = x
 
     def generiraj_nan_frejm_rezultata_konvertera(self):
         """
@@ -59,79 +54,19 @@ class KonverterPanel(BASE3, FORM3):
             index=indeks)
         return frejm
 
-    def setup_connections(self):
-        #promjena opsega
-        self.konverterOpseg.valueChanged.connect(self.promjena_konverterOpseg)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_opseg(PyQt_PyObject)'),
-                     self.set_konverterOpseg)
-        #promjena cnox50 parametra
-        self.cnox50SpinBox.valueChanged.connect(self.promjena_cnox50SpinBox)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_cNOx50(PyQt_PyObject)'),
-                     self.set_cnox50SpinBox)
-        #promjena cnox95 parametra
-        self.cnox95SpinBox.valueChanged.connect(self.promjena_cnox95SpinBox)
-        self.connect(self.dokument,
-                     QtCore.SIGNAL('promjena_cNOx95(PyQt_PyObject)'),
-                     self.set_cnox95SpinBox)
-
     def konverter_request_recalculate(self):
         """emit zahtjeva za ponovnim racunanjem rezultata"""
         self.emit(QtCore.SIGNAL('konverter_request_recalculate'))
 
-    def promjena_konverterOpseg(self, x):
-        """slot koji zapisuje opseg konvertera u dokument (povezan sa opsegom
-        umjeravanja)"""
-        value = float(self.konverterOpseg.value())
-        self.dokument.set_opseg(value)
-
-    def set_konverterOpseg(self, x):
-        """setter opsega provjere konvertera. x je mapa sa kljucevima
-        'value', 'recalculate'.
-        """
-        value = x['value']
-        recalculate = x['recalculate']
-        self.konverterOpseg.setValue(value)
-        if recalculate:
-            self.konverter_request_recalculate()
-
-    def promjena_cnox50SpinBox(self, x):
-        """slot koji zapisuje parametar cnox50 u dokument"""
-        value = float(self.cnox50SpinBox.value())
-        self.dokument.set_cNOx50(value)
-
-    def set_cnox50SpinBox(self, x):
-        """metoda postavlja parametar cNOx50 iz dokumenta u gui widget.
-        x je lista [value, boolean]"""
-        value = x['value']
-        recalculate = x['recalculate']
-        self.cnox50SpinBox.setValue(value)
-        if recalculate:
-            self.konverter_request_recalculate()
-
-    def promjena_cnox95SpinBox(self, x):
-        """slot koji zapisuje parametar cnox95 u dokument"""
-        value = float(self.cnox95SpinBox.value())
-        self.dokument.set_cNOx95(value)
-
-    def set_cnox95SpinBox(self, x):
-        """metoda postavlja parametar cNOx95 iz dokumenta u gui widget.
-        x je mapa sa kljucevima 'value', 'recalculate' """
-        value = x['value']
-        recalculate = x['recalculate']
-        self.cnox95SpinBox.setValue(value)
-        if recalculate:
-            self.konverter_request_recalculate()
-
-    def update_rezultat(self, x):
+    def update_rezultat(self, ulaz):
         """update gui elemenata za prikaz rezultata sa novim podacima
         x je mapa:
         {'rezultat':frejm sa podacima,
          'efikasnost':lista efikasnosti konvertera,
          'ec_kriterij':nested lista podataka za prikaz kriterija prihvatljivosti}"""
-        jedinica = self.dokument.get_mjernaJedinica()
+        jedinica = self.datastore.get_izabranaMjernaJedinica()
         tocke = self.model.get_tocke()
+        x = copy.deepcopy(ulaz)
         frejm = x['rezultat']
         eff = x['efikasnost']
         krit = x['ec_kriterij']

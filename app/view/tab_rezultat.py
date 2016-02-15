@@ -4,32 +4,26 @@ Created on Mon Oct  5 10:50:23 2015
 
 @author: DHMZ-Milic
 """
-import sip
 import gc
+import sip
 import logging
 import pandas as pd
 from PyQt4 import QtGui, QtCore, uic
 import app.view.canvas as canvas
-import app.view.pomocni as view_helpers
+from app.pomocni import pomocni
+from app.model.qt_models import SiroviFrameModel
 
-BASE4, FORM4 = uic.loadUiType('./app/view/uiFiles/tab_rezultat.ui')
-class RezultatPanel(BASE4, FORM4):
+
+BASE_TAB_REZULTAT, FORM_TAB_REZULTAT = uic.loadUiType('./app/view/uiFiles/tab_rezultat.ui')
+class TabRezultat(BASE_TAB_REZULTAT, FORM_TAB_REZULTAT):
     """
     Panel za prikaz rezultata umjeravanja.
-
-    novi memberi za set/get i ponasanje taba (tablica sa testovima za mjerenje)
-
-    self.checkBoxReport
-    self.checkBoxUmjeravanje
-    self.checkBoxPonovljivost
-    self.checkBoxLinearnost
     """
-    def __init__(self, dokument=None, plin=None, parent=None):
-        super(BASE4, self).__init__(parent)
+    def __init__(self, datastore=None, plin=None, parent=None):
+        super(BASE_TAB_REZULTAT, self).__init__(parent)
         self.setupUi(self)
-        self.dokument = dokument
+        self.datastore = datastore
         self.plin = plin
-
         #nazivi boxeva
         self.graf1GroupBox.setTitle(", ".join(['graf koncentracije', self.plin]))
         self.graf2GroupBox.setTitle(", ".join(['graf individualnih mjerenja', self.plin]))
@@ -44,15 +38,25 @@ class RezultatPanel(BASE4, FORM4):
         rezultat = self.generiraj_nan_frejm_rezultata_umjeravanja()
         self.postavi_tablicu_rezultata_umjeravanja(rezultat)
         #slope i offset data
-        self.tablicaPrilagodba = view_helpers.TablicaFunkcijePrilagodbe()
+        self.tablicaPrilagodba = pomocni.TablicaFunkcijePrilagodbe()
         self.slopeLayout.addWidget(self.tablicaPrilagodba)
         #kriterij
-        self.tablicaParametri = view_helpers.TablicaUmjeravanjeKriterij()
+        self.tablicaParametri = pomocni.TablicaUmjeravanjeKriterij()
         self.kriterijLayout.addWidget(self.tablicaParametri)
+        #model za tablicu
+        self.model = SiroviFrameModel(tocke=self.datastore.get_tocke(self.plin),
+                                      frejm=self.datastore.tabData[self.plin].get_frejm(),
+                                      start=self.datastore.tabData[self.plin].get_startIndeks())
+
+    def get_model(self):
+        return self.model
+
+    def set_model(self, model):
+        self.model = model
 
     def generiraj_nan_frejm_rezultata_umjeravanja(self):
         """generiranje izlaznog frejma za prikaz"""
-        tocke = self.dokument.get_tocke(mjerenje=self.plin)
+        tocke = self.datastore.get_tocke(self.plin)
         frejm = pd.DataFrame(
             columns=['cref', 'U', 'c', u'\u0394', 'sr', 'r'],
             index=list(range(len(tocke))))
@@ -89,17 +93,17 @@ class RezultatPanel(BASE4, FORM4):
         #korak 3, stvaram novi widget (tablicu) i dodjelujem je istom imenu
         frejm = rezultat.copy()
         try:
-            self.tablicaRezultataUmjeravanja = view_helpers.TablicaUmjeravanje(
-                tocke=self.dokument.get_tocke(mjerenje=self.plin),
+            self.tablicaRezultataUmjeravanja = pomocni.TablicaUmjeravanje(
+                tocke=self.datastore.get_tocke(self.plin),
                 data=frejm,
-                jedinica=self.dokument.get_mjernaJedinica(),
+                jedinica=self.datastore.get_izabranaMjernaJedinica(),
                 parent=None)
         except Exception as err:
             logging.error(str(err), exc_info=True)
-            self.tablicaRezultataUmjeravanja = view_helpers.TablicaUmjeravanje(
-                tocke=self.dokument.get_tocke(mjerenje=self.plin),
-                data=self.dokument.generiraj_nan_frejm_rezultata_umjeravanja(),
-                jedinica=self.dokument.get_mjernaJedinica(),
+            self.tablicaRezultataUmjeravanja = pomocni.TablicaUmjeravanje(
+                tocke=self.datastore.get_tocke(self.plin),
+                data=self.generiraj_nan_frejm_rezultata_umjeravanja(),
+                jedinica=self.datastore.get_izabranaMjernaJedinica(),
                 parent=None)
         finally:
             #korak 4, insert novog widgeta na isto mjesto u layout
@@ -141,7 +145,7 @@ class RezultatPanel(BASE4, FORM4):
         update gui elemenata panela ovisno o prosljedjenim parametrima u mapi
         """
         rezultat = mapa['umjeravanje']
-        slopeData = mapa['prilagodba'] #lista(slope, offset, prilagodbaA, prilagodbaB)
+        slopeData = mapa['prilagodba'] #dictionary (slope, offset, prilagodbaA, prilagodbaB)
         testovi = mapa['testovi'] #dictionary... koji ima kljuceve : srz, srs, rz, rmax...
         #grafovi
         self.prikazi_grafove(rezultat, slopeData)
@@ -149,9 +153,10 @@ class RezultatPanel(BASE4, FORM4):
         self.postavi_tablicu_rezultata_umjeravanja(rezultat)
         #prilagodba
         prilagodba = [str(round(slopeData['prilagodbaA'], 3)), str(round(slopeData['prilagodbaB'], 1))]
+        #invalid value encountered in rint
         self.tablicaPrilagodba.set_values(prilagodba)
         #hide ako je umjeravanje off
-        if self.dokument.get_provjeraUmjeravanje():
+        if self.datastore.get_checkUmjeravanje():
             self.rezultatiGroupBox.show()
             self.slopeGroupBox.show()
         else:
@@ -159,10 +164,10 @@ class RezultatPanel(BASE4, FORM4):
             self.slopeGroupBox.hide()
         #testovi
         kriterij = []
-        if self.dokument.get_provjeraPonovljivost():
+        if self.datastore.get_checkPonovljivost():
             kriterij.append(testovi['srz'])
             kriterij.append(testovi['srs'])
-        if self.dokument.get_provjeraLinearnost():
+        if self.datastore.get_checkLinearnost():
             kriterij.append(testovi['rz'])
             kriterij.append(testovi['rmax'])
         self.tablicaParametri.set_values(kriterij)
@@ -178,16 +183,10 @@ class RezultatPanel(BASE4, FORM4):
         """
         self.crefCanvas.clear_graf()
         self.mjerenjaCanvas.clear_graf()
-
         #dohvati rezultat umjeravanja:
-        testLinearnosti = self.dokument.get_provjeraLinearnost()
-        tocke = self.dokument.get_tocke(mjerenje=self.plin)
-        mjerenja = self.dokument.get_mjerenja()
-        mjerenje = mjerenja[self.plin]
-        model = mjerenje['model']
-        frejm = model.get_frejm()
-        calc = mjerenje['kalkulator']
-
+        testLinearnosti = self.datastore.get_checkLinearnost()
+        tocke = self.datastore.get_tocke(self.plin)
+        frejm = self.datastore.tabData[self.plin].get_frejm()
         if self.plin in frejm.columns:
             x = list(rezultat.loc[:, 'cref'])
             y = list(rezultat.loc[:, 'c'])
@@ -204,6 +203,8 @@ class RezultatPanel(BASE4, FORM4):
             if testLinearnosti:
                 self.mjerenjaCanvas.crtaj(frejm, tocke)
             else:
-                z, s = calc.pronadji_zero_span_tocke()
+                z, s = pomocni.pronadji_zero_span_tocke(tocke)
                 zs = [z, s]
                 self.mjerenjaCanvas.crtaj(frejm, zs)
+
+

@@ -71,25 +71,26 @@ class PostavkeVezeWizard(QtGui.QWizard):
     """
     Wizard klasa postavke veze sa uredjajem kojeg umjeravamo
     """
-    def __init__(self, parent=None, dokument=None):
+    def __init__(self, parent=None, uredjaj=None, konfig=None, used=None):
         QtGui.QWizard.__init__(self, parent)
-        if dokument == None:
-            raise ValueError('Wizard nije inicijaliziran sa instancom dokumenta.')
-        self.doc = dokument
-        self.mapaUredjaja = self.doc.get_uredjaji()
-        self.uredjaji = sorted(list(self.mapaUredjaja.keys())) #sorted lista svih uredjaja
+        if uredjaj == None:
+            raise ValueError('Wizard nije inicijaliziran sa instancom uredjaja.')
+        if used == None:
+            self.used = []
+        else:
+            self.used = used
+        self.uredjaj = uredjaj
+        self.konfig = konfig
         # opcije
         self.setWizardStyle(QtGui.QWizard.ModernStyle)
         self.setMinimumSize(600, 600)
         self.setWindowTitle("Postavke veze uredjaja")
         self.setOption(QtGui.QWizard.IndependentPages, on=False)
         # stranice wizarda
-        self.izborUredjaja = PageIzborUredjaja(parent=self)
-        self.izborVeze = PageIzborVeze(parent=self)
-        self.izborProtokola = PageIzborProtokola(parent=self)
-        self.setPage(1, self.izborUredjaja)
-        self.setPage(2, self.izborVeze)
-        self.setPage(3, self.izborProtokola)
+        self.izborVeze = PageIzborVeze(uredjaj=self.uredjaj, parent=self)
+        self.izborProtokola = PageIzborProtokola(uredjaj=self.uredjaj, konfig=self.konfig, used=self.used, parent=self)
+        self.setPage(1, self.izborVeze)
+        self.setPage(2, self.izborProtokola)
         self.setStartId(1)
 
     def get_postavke_veze(self):
@@ -97,66 +98,13 @@ class PostavkeVezeWizard(QtGui.QWizard):
         return mapa
 
 
-class PageIzborUredjaja(QtGui.QWizardPage):
-    """
-    Stranice za izbor uredjaja s kojim se pokusavamo spojiti. (stranica1)
-    """
-    def __init__(self, parent = None):
-        QtGui.QWizard.__init__(self, parent)
-        self.setTitle('Izabor uredjaja')
-        self.setSubTitle('Izaberite serijski broj uredjaja sa kojim se pokušavate spojiti.')
-        self.izabraniUredjaj = None
-        # widgets
-        self.labelComboGrupa = QtGui.QLabel('Izbor grupe :')
-        self.labelComboUredjaj = QtGui.QLabel('Izbor Uredjaja :')
-        self.comboSaGrupom = QtGui.QComboBox()
-        self.comboSaUredjajima = QtGui.QComboBox()
-        # layout
-        layout = QtGui.QGridLayout()
-        layout.addWidget(self.labelComboGrupa, 0, 0)
-        layout.addWidget(self.comboSaGrupom, 0, 1)
-        layout.addWidget(self.labelComboUredjaj, 1, 0)
-        layout.addWidget(self.comboSaUredjajima, 1, 1)
-        layout.setColumnStretch(1, 2)
-        layout.setColumnStretch(2, -1)
-        self.setLayout(layout)
-
-        #connections
-        self.comboSaGrupom.currentIndexChanged.connect(self.select_lista1_group)
-        self.comboSaUredjajima.currentIndexChanged.connect(self.select_uredjaj)
-
-    def initializePage(self):
-        self.grupa = grupiraj_uredjaje_prema_komponentama(self.wizard().mapaUredjaja)
-        self.lista1combo = sorted(list(self.grupa.keys()))
-        self.comboSaGrupom.addItems(self.lista1combo)
-        try:
-            self.select_lista1_group(grupa=self.lista1combo[0]) #potencijalno lose TypeError
-        except Exception as err:
-            logging.error(str(err), exc_info=True)
-            pass
-        self.izabraniUredjaj = self.comboSaUredjajima.currentText()
-
-    def select_lista1_group(self, x, grupa=None):
-        if grupa == None:
-            grupa = self.comboSaGrupom.currentText()
-
-        self.comboSaUredjajima.clear()
-        devices = self.grupa[grupa]
-        if 'NOVI' not in devices:
-            devices.append('NOVI')
-        self.comboSaUredjajima.addItems(devices)
-        self.izabraniUredjaj = self.comboSaUredjajima.currentText()
-
-    def select_uredjaj(self, x):
-        self.izabraniUredjaj = self.comboSaUredjajima.currentText()
-
-
 class PageIzborVeze(QtGui.QWizardPage):
     """Stranica wizarda za izbor tipa veze (stranica2)"""
-    def __init__(self, parent=None):
+    def __init__(self, uredjaj=None, parent=None):
         QtGui.QWizardPage.__init__(self, parent)
+        self.uredjaj = uredjaj
         self.setTitle('Izbor veze')
-        self.setSubTitle('Izaberte način spajanja sa uređjajem')
+        self.setSubTitle('Izaberte način spajanja sa uredjajem {0}'.format(self.uredjaj.get_serial()))
         self.labelVeza = QtGui.QLabel('Tip veze :')
         self.comboBoxVeza = QtGui.QComboBox()
         self.izabranaVeza = None
@@ -180,9 +128,11 @@ class PageIzborVeze(QtGui.QWizardPage):
 
 class PageIzborProtokola(QtGui.QWizardPage):
     """Stranica za izbor protokola veze (stranica3)"""
-    def __init__(self, parent=None):
+    def __init__(self, uredjaj=None, konfig=None, used=None, parent=None):
         QtGui.QWizardPage.__init__(self, parent)
-
+        self.uredjaj = uredjaj
+        self.konfig = konfig
+        self.used = used
         #rs232 defaults
         self.rs232defaults = {
             'baudrate':str(self.dohvati_konfig_element('RS232', 'baudrate', 9600)),
@@ -191,7 +141,7 @@ class PageIzborProtokola(QtGui.QWizardPage):
             'parity':str(self.dohvati_konfig_element('RS232', 'parity', 'none'))}
 
         self.setTitle('Izbor protokola')
-        self.setSubTitle('Izaberi postavke komunikacijskog protokola')
+        self.setSubTitle('Izaberi postavke komunikacijskog protokola sa uredjajem {0}'.format(self.uredjaj.get_serial()))
         self.postavkeProtokola = {}
         self.ipAddressLabel = QtGui.QLabel('IP adresa :')
         self.ipAddress = QtGui.QLineEdit()
@@ -200,7 +150,9 @@ class PageIzborProtokola(QtGui.QWizardPage):
         tipoviRS232veze = ['Hessen, BCC', 'Hessen, text']
         self.tipRS232veze.addItems(tipoviRS232veze)
         self.portLabel = QtGui.QLabel('Port :')
-        listaPortova = list_serial_ports()
+        dostupni = set(list_serial_ports())
+        koristeni = set(self.used)
+        listaPortova = sorted(list(dostupni.difference(koristeni)))
         self.port = QtGui.QComboBox()
         self.port.addItems(listaPortova)
         self.brzinaLabel = QtGui.QLabel('Brzina (Baud Rate):')
@@ -246,7 +198,7 @@ class PageIzborProtokola(QtGui.QWizardPage):
 
     def dohvati_konfig_element(self, section, option, fallback):
         try:
-            string_value = self.wizard().doc.cfg.get_konfig_element(section, option)
+            string_value = self.konfig.get_konfig_element(section, option)
             return string_value
         except Exception:
             return fallback
@@ -291,7 +243,7 @@ class PageIzborProtokola(QtGui.QWizardPage):
 
     def get_postavke(self):
         veza = self.wizard().izborVeze.izabranaVeza
-        uredjaj = self.wizard().izborUredjaja.izabraniUredjaj
+        uredjaj = self.uredjaj.get_serial()
         self.postavkeProtokola['uredjaj'] = uredjaj
         self.postavkeProtokola['veza'] = veza
         if veza == 'TCP':

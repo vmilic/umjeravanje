@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed May 20 09:12:51 2015
+Created on Mon Feb  1 10:13:19 2016
 
 @author: DHMZ-Milic
 """
+import logging
 import configparser
 import numpy as np
-from PyQt4 import QtGui
-import logging
+from app.model.tocke import Tocka
 
 
 class MainKonfig(object):
@@ -16,7 +16,7 @@ class MainKonfig(object):
     """
     def __init__(self, cfg=None, parent=None):
         if not isinstance(cfg, configparser.ConfigParser):
-            raise TypeError('Objektu nije prosljedjena instanca ConfigParser.')
+            raise TypeError('MainKonfig objektu nije zadana instanca ConfigParser.')
         # konfiguracijski objekt
         self.cfg = cfg
         # REST podaci
@@ -44,7 +44,7 @@ class MainKonfig(object):
             lista = [i.strip() for i in lista]
         except AttributeError as err:
             msg = ", ".join([str(err), 'default = []'])
-            logging.error(msg, exc_info=True)
+            logging.warning(msg, exc_info=True)
             lista = []
         return lista
 
@@ -58,7 +58,7 @@ class MainKonfig(object):
             lista = [i.strip() for i in lista]
         except AttributeError as err:
             msg = ", ".join([str(err), 'default = []'])
-            logging.error(msg, exc_info=True)
+            logging.warning(msg, exc_info=True)
             lista = []
         return lista
 
@@ -72,7 +72,7 @@ class MainKonfig(object):
             lista = [i.strip() for i in lista]
         except AttributeError as err:
             msg = ", ".join([str(err), 'default = []'])
-            logging.error(msg, exc_info=True)
+            logging.warning(msg, exc_info=True)
             lista = []
         return lista
 
@@ -87,7 +87,7 @@ class MainKonfig(object):
             lista = [i.strip() for i in lista]
         except AttributeError as err:
             msg = ", ".join([str(err), 'default = []'])
-            logging.error(msg, exc_info=True)
+            logging.warning(msg, exc_info=True)
             lista = []
         return lista
 
@@ -137,10 +137,10 @@ class MainKonfig(object):
         if not self.cfg.has_option(section, 'crefFaktor'):
             self.log_neispravnu_tocku(section, 'crefFaktor')
             return None
-        objekt = Tocka(ime=section,
-                       start=self.cfg.getint(section, 'startIndeks'),
-                       end=self.cfg.getint(section, 'endIndeks'),
-                       cref=self.cfg.getfloat(section, 'crefFaktor'))
+        ime = section
+        cref = self.cfg.getfloat(section, 'crefFaktor')
+        start = self.cfg.getint(section, 'startIndeks')
+        end = self.cfg.getint(section, 'endIndeks')
         try:
             r = self.cfg.getint(section, 'r')
             g = self.cfg.getint(section, 'g')
@@ -152,38 +152,7 @@ class MainKonfig(object):
             b = np.random.randint(low=0, high=255)
             a = 90
             msg = str(err) + ', Koristim random boju kao default'
-            logging.error(msg, exc_info=True)
-        objekt.set_konfig_rgba_color(r, g, b, a)
+            logging.warning(msg)
+        objekt = Tocka(ime=ime, start=start, end=end, cref=cref,
+                       r=r, g=g, b=b, a=a)
         return objekt
-
-
-class Tocka(object):
-    """Objekt koji definira tocku mjerenja."""
-    def __init__(self, ime='TOCKA', start=0, end=0, cref=0.5):
-        self.ime = ime
-        self.indeksi = set(range(start, end))
-        self.crefFaktor = cref
-        r, g, b = list(np.random.randint(0, high=255, size=3))
-        self.boja = QtGui.QColor(r, g, b, 90)
-
-    def set_konfig_rgba_color(self, r, g, b, a):
-        """setter za boju iz konfig filea"""
-        self.boja = QtGui.QColor(r, g, b, a)
-
-    def test_indeks_unutar_tocke(self, indeks):
-        """Provjera da li je trazeni indeks unutar indeksa tocke."""
-        return indeks in self.indeksi
-
-    def test_indeksi_tocke_se_preklapaju(self, setIndeksa):
-        """Provjera da li se indeksi tocke preklapaju sa nekim setom indeksa.
-        Ako su indeksi razliciti metoda vraca False. Ako se neki
-        indeksi podudaraju, metoda vraca True.
-
-        Trazim duljinu presjeka dva seta indeksa.. output je 0 samo ako se indeksi
-        unutar setova razlikuju. funkcija bool samo pretvara rezultat u True / False.
-        """
-        return bool(len(self.indeksi.intersection(setIndeksa)))
-
-    def __str__(self):
-        """Metoda vraca ime tocke"""
-        return self.ime

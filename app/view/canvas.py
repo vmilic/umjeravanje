@@ -5,13 +5,14 @@ Created on Thu Apr  9 12:27:25 2015
 @author: DHMZ-Milic
 
 """
+import logging
+import datetime
+import matplotlib
 import numpy as np
 import pandas as pd
-import datetime
-import logging
-from PyQt4 import QtGui
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigCanvas
+from PyQt4 import QtGui, QtCore
 from matplotlib.figure import Figure
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigCanvas
 
 
 class Kanvas(FigCanvas):
@@ -81,7 +82,7 @@ class Kanvas(FigCanvas):
             a = float(self.slope)
             b = float(self.offset)
         except Exception as err:
-            logging.error('problem sa slope i offset za crtanje pravca. '+str(err), exc_info=True)
+            logging.warning('slope i/ili offset nije broj. slope={0}, offset={1}'.format(str(self.slope), str(self.offset)))
             a = None
             b = None
         if a is not None and b is not None:
@@ -92,7 +93,7 @@ class Kanvas(FigCanvas):
                 korelacija = np.corrcoef(x, y)[0][1]
                 korelacija = round(korelacija, 4)
             except Exception as err:
-                logging.error(str(err), exc_info=True)
+                logging.error('problem kod racunanja korelacije, {0}'.format(str(err)))
                 korelacija = np.NaN
             if b > 0:
                 tekstl1 = 'pravac: c={0}*cref+{1}'.format(str(round(a, 2)), str(round(b, 2)))
@@ -132,7 +133,10 @@ class KanvasMjerenja(Kanvas):
             if x != [] and y != []:
                 minlist.append(min(x))
                 maxlist.append(max(x))
-                r, g, b, a = tocka.boja.getRgb()
+                r= tocka.get_red()
+                g= tocka.get_green()
+                b = tocka.get_blue()
+                a = tocka.get_alpha()
                 boja = (r/255, g/255, b/255)
                 alpha = a/255
                 self.axes.scatter(x,
@@ -283,6 +287,24 @@ class RiseFallKanvas(FigCanvas):
         self.meta = meta
         self.setup_labels()
         self.fig.set_tight_layout(True)
+        self.cid = self.mpl_connect('button_press_event', self.on_pick) #callback za pick
+
+    def on_pick(self, event):
+        """callback metoda za button_press_event na grafu. Emitira se pandas timestamp."""
+        if event.inaxes == self.axes:
+            try:
+                xpoint = matplotlib.dates.num2date(event.xdata) #datetime.datetime
+                #problem.. rounding offset aware i offset naive datetimes..workaround
+                xpoint = datetime.datetime(xpoint.year,
+                                           xpoint.month,
+                                           xpoint.day,
+                                           xpoint.hour,
+                                           xpoint.minute,
+                                           xpoint.second)
+                xpoint = pd.to_datetime(xpoint)
+                self.emit(QtCore.SIGNAL('izabrano_vrijeme(PyQt_PyObject)'), xpoint)
+            except Exception as err:
+                logging.error(str(err), exc_info=True)
 
     def setup_labels(self):
         """

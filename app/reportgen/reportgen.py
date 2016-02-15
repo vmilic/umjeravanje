@@ -12,7 +12,7 @@ Created on Mon Nov  9 09:07:26 2015
 """
 import numpy as np
 import pandas as pd
-import app.model.pomocne_funkcije as helperi
+from app.pomocni import pomocni
 
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -31,7 +31,6 @@ class ReportGenerator(object):
         """
         postavke za report, fontovi isl...
         """
-        self.dokument = None
         PAGE_WIDTH, PAGE_HEIGHT = A4
         try:
             pdfmetrics.registerFont(TTFont('FreeSans', './app/reportgen/freefont-20120503/FreeSans.ttf'))
@@ -70,9 +69,9 @@ class ReportGenerator(object):
         #defaultne vrijednosti polja iz mape - isti kljuc je string unutar []
         stranica = str(stranica)
         total = str(total)
-        norma = self.dokument.get_norma()
-        broj_obrasca = self.dokument.get_brojObrasca()
-        revizija = self.dokument.get_revizija()
+        norma = str(self.datastore.get_izabranaNormaObrasca())
+        broj_obrasca = str(self.datastore.get_izabraniBrojObrasca())
+        revizija = str(self.datastore.get_izabranaRevizijaIzvjesca())
         #logo
         logotip = Image(self.logo)
         logotip.drawHeight = 0.75*inch*1.25
@@ -115,14 +114,14 @@ class ReportGenerator(object):
         """
         stil1 = self.generate_paragraph_style()
         stil2 = self.generate_paragraph_style(font='FreeSansBold')
-        oznaka_izvjesca = self.dokument.get_oznakaIzvjesca()
-        lokacija = self.dokument.get_izabranaPostaja()
-        proizvodjac = self.dokument.get_proizvodjacUredjaja()
-        model = self.dokument.get_oznakaModelaUredjaja()
-        tvornicka_oznaka = self.dokument.get_izabraniUredjaj()
-        datum_umjeravanja = self.dokument.get_datumUmjeravanja()
-        mjerna_jedinica = self.dokument.get_mjernaJedinica()
-        zadani_opseg = self.dokument.get_opseg()
+        oznaka_izvjesca = str(self.datastore.get_izabranaOznakaIzvjesca())
+        lokacija = str(self.datastore.get_izabranaPostaja())
+        proizvodjac = str(self.datastore.get_uredjaj().get_proizvodjac())
+        model = str(self.datastore.get_uredjaj().get_oznakaModela())
+        tvornicka_oznaka = str(self.datastore.get_uredjaj().get_serial())
+        datum_umjeravanja = str(self.datastore.get_izabraniDatum())
+        mjerna_jedinica = str(self.datastore.get_izabranaMjernaJedinica())
+        zadani_opseg = str(self.datastore.get_izabraniOpseg())
         popis = ['Od 0',
                  mjerna_jedinica,
                  'do',
@@ -178,10 +177,10 @@ class ReportGenerator(object):
         stil1 = self.generate_paragraph_style(font='FreeSansBold', align=TA_CENTER)
         stil2 = self.generate_paragraph_style(font='FreeSansBold')
         stil3 = self.generate_paragraph_style()
-        mjerna_jedinica = self.dokument.get_mjernaJedinica()
-        crm_vrsta = self.dokument.get_izvorCRM()
-        crm_C = " ".join([str(round(self.dokument.get_koncentracijaCRM(), 1)), mjerna_jedinica])
-        crm_U = " ".join([str(round(self.dokument.get_sljedivostCRM(), 1)), '%'])
+        mjerna_jedinica = str(self.datastore.get_izabranaMjernaJedinica())
+        crm_vrsta = str(self.datastore.get_izabranaVrstaCRM())
+        crm_C = " ".join([str(round(self.datastore.get_koncentracijaCRM(), 1)), mjerna_jedinica])
+        crm_U = " ".join([str(round(self.datastore.get_UCRM(), 1)), '%'])
         a1 = Paragraph('Certificirani referentni materijal', stil1)
         b1 = Paragraph('Vrsta:', stil2)
         b2 = Paragraph(crm_vrsta, stil3)
@@ -217,9 +216,14 @@ class ReportGenerator(object):
         stil1 = self.generate_paragraph_style(font='FreeSansBold', align=TA_CENTER)
         stil2 = self.generate_paragraph_style(font='FreeSansBold')
         stil3 = self.generate_paragraph_style()
-        kalibracijska_jedinica_proizvodjac = self.dokument.get_proizvodjacDilucija()
-        kalibracijska_jedinica_model = self.dokument.get_izabranaDilucija()
-        kalibracijska_jedinica_sljedivost = self.dokument.get_sljedivostDilucija()
+
+        txt = self.datastore.get_izabranaDilucija()
+        dilucija = self.datastore.get_objekt_izabrane_dilucije(txt)
+
+        kalibracijska_jedinica_proizvodjac = str(dilucija.get_proizvodjac())
+        kalibracijska_jedinica_model = str(dilucija.get_model())
+        kalibracijska_jedinica_sljedivost = str(dilucija.get_sljedivost())
+
         a1 = Paragraph('Kalibracijska jedinica', stil1)
         b1 = Paragraph('Proizvođač:', stil2)
         b2 = Paragraph(kalibracijska_jedinica_proizvodjac, stil3)
@@ -254,10 +258,13 @@ class ReportGenerator(object):
         stil1 = self.generate_paragraph_style(font='FreeSansBold', align=TA_CENTER)
         stil2 = self.generate_paragraph_style(font='FreeSansBold')
         stil3 = self.generate_paragraph_style()
-        cisti_zrak_proizvodjac = self.dokument.get_proizvodjacZrak()
-        cisti_zrak_model = self.dokument.get_izabraniZrak()
-        mjerna_jedinica = self.dokument.get_mjernaJedinica()
-        cisti_zrak_U = " ".join([str(round(self.dokument.get_sljedivostZrak(), 1)), mjerna_jedinica])
+
+        txt = self.datastore.get_izabraniGenerator()
+        generator = self.datastore.get_objekt_izabranog_generatora(txt)
+        cisti_zrak_proizvodjac = str(generator.get_proizvodjac())
+        cisti_zrak_model = str(generator.get_model())
+        mjerna_jedinica = str(self.datastore.get_izabranaMjernaJedinica())
+        cisti_zrak_U = " ".join([str(round(generator.get_maxNOx(), 1)), mjerna_jedinica])
         a1 = Paragraph('Izvor čistog zraka', stil1)
         b1 = Paragraph('Proizvođač:', stil2)
         b2 = Paragraph(cisti_zrak_proizvodjac, stil3)
@@ -294,23 +301,26 @@ class ReportGenerator(object):
         #problem... za koje mjerenje...
         listaPocetaka = []
         listaKrajeva = []
-        for plin in self.rezultati:
-            start, kraj = self.dokument.get_pocetak_i_kraj_umjeravanja(mjerenje=plin)
-            if len(self.rezultati) > 1:
-                start = " ".join([str(start), '(', str(plin), ')'])
-                kraj = " ".join([str(kraj), '(', str(plin), ')'])
-            else:
-                start = str(start)
-                kraj = str(kraj)
+        if self.plin == 'NO':
+            #NO i NOx dijele pocetak i kraj umjeravanja.
+            model = self.umjeravanje.dictTabova['NO'].get_model()
+            start = " ".join([str(model.get_startUmjeravanja()), '( NO, NOx )'])
+            kraj = " ".join([str(model.get_krajUmjeravanja()), '( NO, NOx )'])
             listaPocetaka.append(start)
             listaKrajeva.append(kraj)
-        if self.dokument.get_provjeraKonvertera():
-            start, kraj = self.dokument.get_pocetak_i_kraj_umjeravanja(mjerenje='konverter')
-            start = " ".join([str(start), '( konverter )'])
-            kraj = " ".join([str(kraj), '( konverter )'])
+            #konverter
+            if self.datastore.get_checkKonverter():
+                model = self.umjeravanje.dictTabova['konverter'].get_model()
+                start = " ".join([str(model.get_startUmjeravanja()), '( konverter )'])
+                kraj = " ".join([str(model.get_krajUmjeravanja()), '( konverter )'])
+                listaPocetaka.append(start)
+                listaKrajeva.append(kraj)
+        else:
+            model = self.umjeravanje.dictTabova[self.plin].get_model()
+            start = " ".join([str(model.get_startUmjeravanja()), '(', str(self.plin), ')'])
+            kraj = " ".join([str(model.get_krajUmjeravanja()), '(', str(self.plin), ')'])
             listaPocetaka.append(start)
             listaKrajeva.append(kraj)
-
         vrijeme_pocetka_umjeravanja = ", ".join(listaPocetaka)
         vrijeme_kraja_umjeravanja = ", ".join(listaKrajeva)
         a1 = Paragraph('Vrijeme početka umjeravanja:', stil1)
@@ -341,9 +351,9 @@ class ReportGenerator(object):
         stil1 = self.generate_paragraph_style(font='FreeSansBold', align=TA_CENTER)
         stil2 = self.generate_paragraph_style(font='FreeSansBold')
         stil3 = self.generate_paragraph_style()
-        temperatura = str(round(self.dokument.get_temperatura(), 1))
-        vlaga = str(round(self.dokument.get_vlaga(), 1))
-        tlak_zraka = str(round(self.dokument.get_tlak(), 1))
+        temperatura = str(round(self.datastore.get_izabranaTemperatura(), 1))
+        vlaga = str(round(self.datastore.get_izabranaVlaga(), 1))
+        tlak_zraka = str(round(self.datastore.get_izabraniTlak(), 1))
         a1 = Paragraph('Okolišni uvijeti tjekom provjere', stil1)
         b1 = Paragraph('Temperatura:', stil2)
         b2 = Paragraph(temperatura, stil3)
@@ -380,7 +390,7 @@ class ReportGenerator(object):
         """Generiranje tablice za napomenu"""
         stil1 = self.generate_paragraph_style(font='FreeSansBold', align=TA_CENTER)
         stil3 = self.generate_paragraph_style()
-        napomena = self.dokument.get_napomena()
+        napomena = str(self.datastore.get_izabranaNapomena())
         if len(napomena):
             a1 = Paragraph('Napomena', stil1)
             b1 = Paragraph(napomena, stil3)
@@ -466,7 +476,7 @@ class ReportGenerator(object):
         """
         linearnost = True
         stil1 = self.generate_paragraph_style(align=TA_CENTER)
-        jedinica = self.dokument.get_mjernaJedinica()
+        jedinica = str(self.datastore.get_izabranaMjernaJedinica())
         if not isinstance(frejm, pd.core.frame.DataFrame):
             frejm = pd.DataFrame(index=list(range(5)), columns=['cref', 'U', 'c', u'\u0394', 'sr', 'r'])
         #korekcije zbog provjere linearnosti
@@ -474,7 +484,7 @@ class ReportGenerator(object):
         droplist = [i for i in range(len(frejm.index)) if np.isnan(frejm.iloc[i, stupac])]
         frejm.drop(frejm.index[droplist], inplace=True)
         isl = list(frejm.columns).index('r') #indeks stupca linearnosti
-        if self.dokument.get_provjeraLinearnost():
+        if self.datastore.get_checkLinearnost():
             #drop stupca za provjeru linearnosti 'r'
             frejm.drop(frejm.columns[isl], inplace=True, axis=1) #drop column provjera linearnosti
             linearnost = False
@@ -556,9 +566,9 @@ class ReportGenerator(object):
             tablica.setStyle(stil_tablice)
         return tablica
 
-    def generiraj_tablicu_funkcije_prilagodbe_za_plin(self, plin=None):
+    def generiraj_tablicu_funkcije_prilagodbe_za_plin(self):
         """generiranje tablice sa koeficijentima pravca prilagodbe"""
-        if plin == None:
+        if self.plin == None:
             return None
 
         stil1 = self.generate_paragraph_style(font='FreeSansBold', align=TA_CENTER)
@@ -572,21 +582,26 @@ class ReportGenerator(object):
             [a1, '', ''],
             [b1, '', '']]
 
-        slopeData = self.rezultati[plin]['prilagodba']
-        gas = Paragraph(str(plin), stil3)
+        rezultat = self.datastore.tabData[self.plin].get_rezultat()
+        if rezultat == None:
+            return None
+        slopeData = rezultat['prilagodba']
+        gas = Paragraph(str(self.plin), stil3)
         a = 'A = {0}'.format(str(round(slopeData['prilagodbaA'], 3)))
         a = Paragraph(a, stil4)
         b = 'B = {0}'.format(str(round(slopeData['prilagodbaB'], 1)))
         b = Paragraph(b, stil4)
         layout_tablice.append([gas, a, b])
-        #special NO slucaj'
-        if plin == 'NO':
-            slopeDataNOx = self.rezultati['NOx']['prilagodba']
+        #special NO slucaj, dodaj i NOx slope data
+        if self.plin == 'NO':
+            rezultatNOx = self.datastore.tabData['NOx'].get_rezultat()
+            slopeDataNOx = rezultatNOx['prilagodba']
             c = 'A = {0}'.format(str(round(slopeDataNOx['prilagodbaA'], 3)))
             c = Paragraph(c, stil4)
             d = 'B = {0}'.format(str(round(slopeDataNOx['prilagodbaB'], 1)))
             d = Paragraph(d, stil4)
-            layout_tablice.append(['NOx', a, b])
+            gas = Paragraph('NOx', stil3)
+            layout_tablice.append([gas, c, d])
 
         stil_tablice = TableStyle(
             [
@@ -664,147 +679,44 @@ class ReportGenerator(object):
         tablica.setStyle(stil_tablice)
         return tablica
 
-    def provjeri_ispravnost_testa(self, testovi=None, kljuc=None):
-        """
-        metoda provjerava da li je test ispravan...
-        ulazni parametra je mapa testova (dict) i kljuc koji definira test.
-        Pod svakim kljucem se nalazi lista.
-
-        Ako je 5 element liste == 'DA' vrati True
-        """
-        if kljuc in testovi:
-            if testovi[kljuc][5] == 'DA':
-                return True
-            else:
-                return False
-        else:
-            return False
-
-
-    def generiraj_stranice_reporta_za_zadani_plin(self, plin, parts, stranica, nStranica, razmak):
-        """
-        metoda sluzi za generiranje stranica plina
-
-        plin = string naziv plina
-        parts = lista vec postojecih elemenata za report na koju se dodaje
-        stranica = broj trenutne stranice
-        nStranica = ukupni broj stranica
-
-        podaci se nazale u mapi self.rezultati[plin]
-
-        metoda vraca tuple elemenata
-        (parts, stranica)
-        """
-        trenutnaStranica = stranica
-        if self.dokument.get_provjeraUmjeravanje():
-            parts.append(PageBreak())
-            trenutnaStranica += 1
-            head2 = self.generiraj_header_tablicu(stranica=trenutnaStranica,
-                                                  total=nStranica)
-            parts.append(head2)
-            parts.append(razmak)
-            naziv = " ".join(['REZULTATI UMJERAVANJA:', plin])
-            stilNaziva = self.generate_paragraph_style(font='FreeSansBold', align=TA_CENTER)
-            naziv = Paragraph(naziv, stilNaziva)
-            parts.append(naziv)
-            parts.append(razmak)
-            frejm_rezultata = self.rezultati[plin]['umjeravanje']
-            tabla9 = self.generiraj_tablicu_rezultata_umjeravanja(frejm=frejm_rezultata)
-            parts.append(tabla9)
-            parts.append(razmak)
-            tabla10 = self.generiraj_tablicu_funkcije_prilagodbe_za_plin(plin=plin)
-            if tabla10 != None:
-                parts.append(tabla10)
-
-        dictTestova = self.rezultati[plin]['testovi']
-        if len(dictTestova):
-            parts.append(PageBreak()) #page break
-            trenutnaStranica += 1 #pomakni broj stranice
-            head3 = self.generiraj_header_tablicu(stranica=trenutnaStranica,
-                                                  total=nStranica)
-            parts.append(head3)
-            parts.append(razmak)
-            ocjena = True
-            for specificTest in dictTestova:
-                test = self.provjeri_ispravnost_testa(testovi=dictTestova, kljuc=specificTest)
-                ocjena = ocjena and test
-
-            if ocjena:
-                tabla8 = self.generiraj_tablicu_ocjene_umjeravanja(zadovoljava='DA',
-                                                                   komponenta=str(plin))
-            else:
-                tabla8 = self.generiraj_tablicu_ocjene_umjeravanja(zadovoljava='NE',
-                                                                   komponenta=str(plin))
-            parts.append(tabla8)
-            parts.append(razmak)
-            #slaganje testova tocnim redosljedom s time da nan vrijednosti ne stavljam u report
-            kriterij = []
-            if self.dokument.get_provjeraPonovljivost():
-                if 'srs' in dictTestova:
-                    if not np.isnan(dictTestova['srs'][3]):
-                        kriterij.append(dictTestova['srs'])
-                if 'srz' in dictTestova:
-                    if not np.isnan(dictTestova['srz'][3]):
-                        kriterij.append(dictTestova['srz'])
-            if self.dokument.get_provjeraLinearnost():
-                if 'rz' in dictTestova:
-                    if not np.isnan(dictTestova['rz'][3]):
-                        kriterij.append(dictTestova['rz'])
-                if 'rmax' in dictTestova:
-                    if not np.isnan(dictTestova['rmax'][3]):
-                        kriterij.append(dictTestova['rmax'])
-            if self.dokument.get_provjeraKonvertera():
-                if 'ec' in dictTestova:
-                    if not np.isnan(dictTestova['ec'][3]):
-                        kriterij.append(dictTestova['ec'])
-            if self.dokument.get_provjeraOdaziv():
-                if 'rise' in dictTestova:
-                    if not np.isnan(dictTestova['rise'][3]):
-                        kriterij.append(dictTestova['rise'])
-                if 'fall' in dictTestova:
-                    if not np.isnan(dictTestova['fall'][3]):
-                        kriterij.append(dictTestova['fall'])
-                if 'diff' in dictTestova:
-                    if not np.isnan(dictTestova['diff'][3]):
-                        kriterij.append(dictTestova['diff'])
-            tabla11 = self.generiraj_tablicu_kriterija(kriterij=kriterij)
-            parts.append(tabla11)
-        return (parts, trenutnaStranica)
-
-    @helperi.activate_wait_spinner
-    def generiraj_report(self, ime, dokument, rezultati):
+    @pomocni.activate_wait_spinner
+    def generiraj_report(self, ime_filea, plin, umjeravanje):
         """
         metoda za generiranje izvjestaja:
-        ime --> path + naziv pdf filea
-        dokument --> instanca dokumenta
-        rezultati --> nested mapa rezultata
         """
-        self.ime = ime
-        self.dokument = dokument
-        self.rezultati = rezultati
+        self.ime = ime_filea
+        self.plin = plin
+        self.umjeravanje = umjeravanje
+        self.datastore = self.umjeravanje.datastore
 
-        #ukupan broj stranica [umjeravanje, testovi, prilagodba]
+        #lista flowable elemenata za report
+        parts = []
+        razmak = Spacer(1, 0.29*inch)
+
+        #ukupan broj stranica
         nStranica = 1
-        if self.dokument.get_provjeraUmjeravanje():
-            nStranica = nStranica + len(self.rezultati)
-        for komponenta in self.rezultati:
-            if self.rezultati[komponenta]['testovi']:
-                nStranica = nStranica + 1
+        if self.datastore.get_checkUmjeravanje():
+            nStranica += 1
+        #moguci testovi
+        k1 = self.datastore.get_checkPonovljivost()
+        k2 = self.datastore.get_checkLinearnost()
+        k3 = self.datastore.get_checkOdaziv()
+        k4 = self.datastore.get_checkKonverter()
+        if k1 or k2 or k3 or k4:
+            nStranica += 1
 
         #trenutna stranica
         trenutnaStranica = 1
 
         #pdf templata
-        doc = SimpleDocTemplate(ime,
+        doc = SimpleDocTemplate(ime_filea,
                                 pagesize=A4,
                                 topMargin=0.4*inch,
                                 bottomMargin=0.4*inch,
                                 leftMargin=0.5*inch,
                                 rightMargin=0.5*inch,
                                 allowSplitting=0)
-        #lista flowable elemenata za report
-        parts = []
-        razmak = Spacer(1, 0.29*inch)
+
         #Generiranje prve stranice reporta (Uredjaj, CRM, vrijeme, okolisni uvijeti...)
         head1 = self.generiraj_header_tablicu(stranica=trenutnaStranica,
                                               total=nStranica)
@@ -831,17 +743,92 @@ class ReportGenerator(object):
         tabla7 = self.generiraj_tablicu_datum_mjeritelj_voditelj()
         parts.append(tabla7)
         #kraj prve stranice
-        for plin in self.rezultati:
-            parts, trenutnaStranica = self.generiraj_stranice_reporta_za_zadani_plin(plin,
-                                                                                     parts,
-                                                                                     trenutnaStranica,
-                                                                                     nStranica,
-                                                                                     razmak)
-        parts.append(razmak)
-        #generiraj tablicu sa napomenom ako napomena postoji
-        tablicaNapomene = self.generiraj_tablicu_napomene()
-        if tablicaNapomene != None:
-            parts.append(tablicaNapomene)
+        if self.datastore.get_checkUmjeravanje():
+            rezultati = self.datastore.tabData[self.plin].get_rezultat()
+            if rezultati != None:
+                parts.append(PageBreak())
+                trenutnaStranica += 1
+                head2 = self.generiraj_header_tablicu(stranica=trenutnaStranica,
+                                                      total=nStranica)
+                parts.append(head2)
+                parts.append(razmak)
+                naziv = " ".join(['REZULTATI UMJERAVANJA:', self.plin])
+                stilNaziva = self.generate_paragraph_style(font='FreeSansBold', align=TA_CENTER)
+                naziv = Paragraph(naziv, stilNaziva)
+                parts.append(naziv)
+                parts.append(razmak)
+                frejm_rezultata = rezultati['umjeravanje']
+                tabla9 = self.generiraj_tablicu_rezultata_umjeravanja(frejm=frejm_rezultata)
+                parts.append(tabla9)
+                parts.append(razmak)
+                #NOx case za tablicu prilagodbe
+                tabla10 = self.generiraj_tablicu_funkcije_prilagodbe_za_plin()
+                if tabla10 != None:
+                    parts.append(tabla10)
+            else:
+                pass
+        testovi = {}
+        if self.datastore.get_checkPonovljivost() or self.datastore.get_checkLinearnost():
+            rezultatUmjeravanje = self.datastore.tabData[self.plin].get_rezultat()
+            if rezultatUmjeravanje != None:
+                testoviUmjeravanje = rezultatUmjeravanje['testovi']
+                testovi.update(testoviUmjeravanje)
+        if self.datastore.get_checkOdaziv():
+            odazivtab = "-".join([self.plin, 'odaziv'])
+            rezultatOdaziv = self.datastore.tabData[odazivtab].get_rezultat()
+            if rezultatOdaziv != None:
+                testoviOdaziv = rezultatOdaziv['kriterij']
+                testovi.update(testoviOdaziv)
+        if self.datastore.get_checkKonverter():
+            rezultatKonverter = self.datastore.tabData['konverter'].get_rezultat()
+            if rezultatKonverter != None:
+                testoviKonverter = rezultatKonverter['ec_kriterij']
+                testoviKonverter = {'ec':testoviKonverter}
+                testovi.update(testoviKonverter)
+        if len(testovi):
+            #druga stranica
+            parts.append(PageBreak()) #page break
+            trenutnaStranica += 1 #pomakni broj stranice
+            head3 = self.generiraj_header_tablicu(stranica=trenutnaStranica,
+                                                  total=nStranica)
+            parts.append(head3)
+            parts.append(razmak)
+            #provjera ispravnosti testova
+            ocjena = True
+            for i in testovi:
+                #Ako je 5 element liste == 'DA' test je OK
+                test = testovi[i][5] == 'DA'
+                ocjena = ocjena and test
+            if ocjena:
+                tabla8 = self.generiraj_tablicu_ocjene_umjeravanja(zadovoljava='DA',
+                                                                   komponenta=str(plin))
+            else:
+                tabla8 = self.generiraj_tablicu_ocjene_umjeravanja(zadovoljava='NE',
+                                                                   komponenta=str(plin))
+            parts.append(tabla8)
+            parts.append(razmak)
+            #slaganje testova tocnim redosljedom s time da nan vrijednosti ne stavljam u report
+            kriterij = []
+            if self.datastore.get_checkPonovljivost():
+                if 'srs' in testovi:
+                    kriterij.append(testovi['srs'])
+                if 'srz' in testovi:
+                    kriterij.append(testovi['srz'])
+            if self.datastore.get_checkLinearnost():
+                if 'rz' in testovi:
+                    kriterij.append(testovi['rz'])
+                if 'rmax' in testovi:
+                    kriterij.append(testovi['rmax'])
+            if self.datastore.get_checkKonverter():
+                if 'ec' in testovi:
+                    kriterij.append(testovi['ec'])
+            if self.datastore.get_checkOdaziv():
+                if 'rise' in testovi:
+                    kriterij.append(testovi['rise'])
+                if 'fall' in testovi:
+                    kriterij.append(testovi['fall'])
+            tabla11 = self.generiraj_tablicu_kriterija(kriterij=kriterij)
+            parts.append(tabla11)
             parts.append(razmak)
         #generiraj kraj ispitnog izvjesca
         annotation2_stil = self.generate_paragraph_style()

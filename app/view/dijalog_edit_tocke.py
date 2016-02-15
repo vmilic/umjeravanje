@@ -5,48 +5,46 @@ Created on Tue Aug  4 09:14:05 2015
 @author: DHMZ-Milic
 """
 from PyQt4 import QtGui, uic
-import app.model.frejm_model as modeli
-import copy
+from app.model.qt_models import SiroviFrameModel
 
-BASE3, FORM3 = uic.loadUiType('./app/view/uiFiles/edit_tocku.ui')
-class EditTockuDijalog(BASE3, FORM3):
+
+BASE_EDIT_TOCKU, FORM_EDIT_TOCKU = uic.loadUiType('./app/view/uiFiles/dijalog_edit_tocku.ui')
+class EditTockuDijalog(BASE_EDIT_TOCKU, FORM_EDIT_TOCKU):
     """
     Dijalog za edit pojedine tocke
     """
-    def __init__(self, parent=None, dokument=None, mjerenje=None, indeks=None):
-        """inicijalizacija sa instancom dokumenta, izabranim mjerenjem i indeksom
-        tocke s kojom radimo"""
-        super(BASE3, self).__init__(parent)
+    def __init__(self, parent=None, frejm=None, tocke=None, start=None, indeks=None):
+        """
+        -frejm : pandas dataframe podataka
+        -tocke : lista objekata "Tocka", sve tocke umjeravanja
+        -start : int, pocetni indeks umjeravanja
+        -indeks : int, indeks pod kojim se nalazi tocka u listi tocke
+        """
+        super(BASE_EDIT_TOCKU, self).__init__(parent)
         self.setupUi(self)
 
-        self.dokument = dokument
-        self.mjerenje = mjerenje
-        self.indeks = indeks
-
-        docModel = self.dokument.get_model(mjerenje=self.mjerenje)
-        frejm = docModel.get_frejm().copy()
-        tocke = copy.deepcopy(docModel.get_tocke())
-        start = docModel.get_start()
-
-        self.model = modeli.SiroviFrameModel(frejm=frejm, tocke=tocke, start=start)
-        self.tocka = self.model.get_tocke()[self.indeks]
         self.frejm = frejm
+        self.tocke = tocke
+        self.indeks = indeks
+        self.start = start
+
+        self.tocka = self.tocke[self.indeks]
+        self.model = SiroviFrameModel(frejm=frejm, tocke=tocke, start=start)
         self.tableViewPodaci.setModel(self.model)
         self.tableViewPodaci.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
-
         try:
-            minIndeks = list(frejm.index)[min(self.tocka.indeksi)]
-            maxIndeks = list(frejm.index)[max(self.tocka.indeksi)]
+            minIndeks = list(frejm.index)[min(self.tocka.get_indeksi())]
+            maxIndeks = list(frejm.index)[max(self.tocka.get_indeksi())]
         except Exception:
             minIndeks = None
             maxIndeks = None
-        cref = float(self.tocka.crefFaktor)
+        cref = float(self.tocka.get_crefFaktor())
 
         self.crefDoubleSpinBox.setValue(cref)
         self.labelStart.setText(str(minIndeks))
         self.labelEnd.setText(str(maxIndeks))
-        self.labelBrojPodataka.setText(str(len(self.tocka.indeksi)))
-        stil = self.color_to_style_string(self.tocka.boja)
+        self.labelBrojPodataka.setText(str(len(self.tocka.get_indeksi())))
+        stil = self.color_to_style_string(self.tocka.get_color())
         self.gumbBoja.setStyleSheet(stil)
 
         #connect elemente sa slotovima
@@ -79,7 +77,7 @@ class EditTockuDijalog(BASE3, FORM3):
         red = self.selektiraniIndeks
         if red is not None:
             minIndeks = red
-            maxIndeks = max(self.tocka.indeksi)
+            maxIndeks = max(self.tocka.get_indeksi())
             if minIndeks == maxIndeks:
                 return
             if minIndeks > maxIndeks:
@@ -88,16 +86,15 @@ class EditTockuDijalog(BASE3, FORM3):
             if len(raspon) < 15:
                 QtGui.QMessageBox.information(self, 'Pogreska', 'Tocka mora imati barem 15 minutnih vrijednosti.')
                 return
-            sveTocke = self.model.get_tocke()
-            testPreklapanja = [tocka for tocka in sveTocke if tocka != self.tocka]
+            testPreklapanja = [tocka for tocka in self.tocke if tocka != self.tocka]
             testPreklapanja = [tocka.test_indeksi_tocke_se_preklapaju(raspon) for tocka in testPreklapanja]
             if True in testPreklapanja:
                 QtGui.QMessageBox.information(self, 'Pogreska', 'Tocke se ne smiju preklapati.')
                 return
-            self.tocka.indeksi = raspon
+            self.tocka.set_indeksi(raspon)
             noviStart = list(self.frejm.index)[minIndeks]
             self.labelStart.setText(str(noviStart))
-            self.labelBrojPodataka.setText(str(len(self.tocka.indeksi)))
+            self.labelBrojPodataka.setText(str(len(self.tocka.get_indeksi())))
             self.model.layoutChanged.emit()
             self.tableViewPodaci.update()
 
@@ -107,7 +104,7 @@ class EditTockuDijalog(BASE3, FORM3):
         """
         red = self.selektiraniIndeks
         if red is not None:
-            minIndeks = min(self.tocka.indeksi)
+            minIndeks = min(self.tocka.get_indeksi())
             maxIndeks = red
             if minIndeks == maxIndeks:
                 return
@@ -117,16 +114,15 @@ class EditTockuDijalog(BASE3, FORM3):
             if len(raspon) < 15:
                 QtGui.QMessageBox.information(self, 'Pogreska', 'Tocka mora imati barem 15 minutnih vrijednosti')
                 return
-            sveTocke = self.model.get_tocke()
-            testPreklapanja = [tocka for tocka in sveTocke if tocka != self.tocka]
+            testPreklapanja = [tocka for tocka in self.tocke if tocka != self.tocka]
             testPreklapanja = [tocka.test_indeksi_tocke_se_preklapaju(raspon) for tocka in testPreklapanja]
             if True in testPreklapanja:
                 QtGui.QMessageBox.information(self, 'Pogreska', 'Tocke se ne smiju preklapati.')
                 return
-            self.tocka.indeksi = raspon
+            self.tocka.set_indeksi(raspon)
             noviKraj = list(self.frejm.index)[maxIndeks]
             self.labelEnd.setText(str(noviKraj))
-            self.labelBrojPodataka.setText(str(len(self.tocka.indeksi)))
+            self.labelBrojPodataka.setText(str(len(self.tocka.get_indeksi())))
             self.model.layoutChanged.emit()
             self.tableViewPodaci.update()
 
@@ -134,18 +130,20 @@ class EditTockuDijalog(BASE3, FORM3):
         """
         postavljanje nove cref vrijednosti
         """
-        self.tocka.crefFaktor = value
+        self.tocka.set_crefFaktor(value)
 
     def promjena_boje(self, x):
         """
         promjena boje tocke uz pomoc dijaloga. Update boje gumba u istu boju
         """
-        oldColor = self.tocka.boja.rgba()
-        newColor, test = QtGui.QColorDialog.getRgba(oldColor)
-        if test:
-            color = QtGui.QColor().fromRgba(newColor)
-            self.tocka.boja = color
-            stil = self.color_to_style_string(color)
+        oldColor = self.tocka.get_color()
+        newColor = QtGui.QColorDialog.getColor(oldColor, self, 'Promjena boje tocke', QtGui.QColorDialog.ShowAlphaChannel)
+        if newColor.isValid():
+            self.tocka.set_red(newColor.red())
+            self.tocka.set_green(newColor.green())
+            self.tocka.set_blue(newColor.blue())
+            self.tocka.set_alpha(newColor.alpha())
+            stil = self.color_to_style_string(newColor)
             self.gumbBoja.setStyleSheet(stil)
             #signaliziraj promjenu model i view
             self.tableViewPodaci.update()
