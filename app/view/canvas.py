@@ -200,6 +200,19 @@ class GrafPreuzetihPodataka(FigCanvas):
         for i in rc:
             self.randomBoje.append(i)
 
+        self.ymin = 0.0
+        self.ymax = 100.0
+
+    def set_ymax(self, value):
+        value = float(value)
+        if value != self.ymax:
+            self.ymax = value
+
+    def set_ymin(self, value):
+        value = float(value)
+        if value != self.ymin:
+            self.ymin = value
+
     def setup_labels(self):
         try:
             self.axes.set_xlabel(self.meta['xlabel'], fontsize=8)
@@ -258,6 +271,7 @@ class GrafPreuzetihPodataka(FigCanvas):
         minimum = minimum - delta
         maksimum = maksimum + delta
         self.axes.set_xlim((minimum, maksimum))
+        self.axes.set_ylim((self.ymin, self.ymax))
         allXLabels = self.axes.get_xticklabels(which='both') #dohvati sve labele
         for label in allXLabels:
             label.set_rotation(20)

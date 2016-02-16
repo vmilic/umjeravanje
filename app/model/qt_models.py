@@ -480,8 +480,8 @@ class SiroviFrameModel(QtCore.QAbstractTableModel):
         """
         if orientation == QtCore.Qt.Vertical:
             if role == QtCore.Qt.DisplayRole:
-                #return str(self.dataFrejm.index[section].time()) #bez datuma vrijeme
-                return str(self.dataFrejm.index[section])
+                return str(self.dataFrejm.index[section].strftime('%Y-%m-%d %H:%M:%S'))
+                #return str(self.dataFrejm.index[section])
         if orientation == QtCore.Qt.Horizontal:
             if role == QtCore.Qt.DisplayRole:
                 try:
@@ -617,8 +617,8 @@ class OdazivModel(QtCore.QAbstractTableModel):
     def headerData(self, section, orientation, role):
         if orientation == QtCore.Qt.Vertical:
             if role == QtCore.Qt.DisplayRole:
-                #return str(self.dataFrejm.index[section].time())
-                return str(self.dataFrejm.index[section])
+                return str(self.dataFrejm.index[section].strftime('%Y-%m-%d %H:%M:%S'))
+                #return str(self.dataFrejm.index[section])
         if orientation == QtCore.Qt.Horizontal:
             if role == QtCore.Qt.DisplayRole:
                 if section == 2:
@@ -723,7 +723,8 @@ class BaseFrejmModel(QtCore.QAbstractTableModel):
                 if section == 0:
                     return 'Vrijeme'
                 else:
-                    return str(self.dataFrejm.index[section-1])
+                    return str(self.dataFrejm.index[section-1].strftime('%Y-%m-%d %H:%M:%S'))
+                    #return str(self.dataFrejm.index[section-1])
         if orientation == QtCore.Qt.Horizontal:
             if role == QtCore.Qt.DisplayRole:
                 return str(self.dataFrejm.columns[section])
@@ -853,7 +854,8 @@ class BareFrameModel(QtCore.QAbstractTableModel):
     def headerData(self, section, orientation, role):
         if orientation == QtCore.Qt.Vertical:
             if role == QtCore.Qt.DisplayRole:
-                return str(self.dataFrejm.index[section].time())
+                return str(self.dataFrejm.index[section].strftime('%Y-%m-%d %H:%M:%S'))
+                #return str(self.dataFrejm.index[section].time())
         if orientation == QtCore.Qt.Horizontal:
             if role == QtCore.Qt.DisplayRole:
                 return str(self.dataFrejm.columns[section])

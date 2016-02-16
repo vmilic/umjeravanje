@@ -181,17 +181,28 @@ class Umjeravanje(BASE_UMJERAVANJE, FORM_UMJERAVANJE):
             uredjaj = self.datastore.get_uredjaj()
             konfig = self.datastore.get_konfig()
             #koristeni serial portovi?
-            self.kolektor = Kolektor(uredjaj=uredjaj, konfig=konfig)
+            self.kolektor = Kolektor(uredjaj=uredjaj, konfig=konfig, parent=self, datastore=self.datastore)
             #connect signal i slot
             self.connect(self.kolektor,
                          QtCore.SIGNAL('spremi_preuzete_podatke(PyQt_PyObject)'),
                          self.aktiviraj_ucitane_podatke)
+            self.connect(self.kolektor,
+                         QtCore.SIGNAL('update_table_view'),
+                         self.tableViewFrejm.update)
             self.glavniTabWidget.addTab(self.kolektor, 'Kolektor')
         else:
-            ind = self.glavniTabWidget.indexOf(self.kolektor)
-            self.glavniTabWidget.removeTab(ind)
-            self.kolektor.close()
-            self.kolektor = QtGui.QWidget()
+            msg = 'Ako ugasite tab za skupljanje podataka, izgubiti cete sve podatke koji nisu spremljeni. Da li zelite ugasiti kolektor?'
+            title = 'Potvrdi gasenje kolektora'
+            chk = QtGui.QMessageBox.question(self, title, msg, QtGui.QMessageBox.Ok | QtGui.QMessageBox.No)
+            if chk == QtGui.QMessageBox.Ok:
+                ind = self.glavniTabWidget.indexOf(self.kolektor)
+                self.glavniTabWidget.removeTab(ind)
+                self.kolektor.close()
+                self.kolektor = QtGui.QWidget()
+            else:
+                self.pushButtonPrikupljanjePodataka.blockSignals(True)
+                self.pushButtonPrikupljanjePodataka.toggle()
+                self.pushButtonPrikupljanjePodataka.blockSignals(False)
 
     def tab_isValid(self, tabname):
         """helper metoda za provjeru da li je zadano mjerenje validno"""
@@ -434,17 +445,21 @@ class Umjeravanje(BASE_UMJERAVANJE, FORM_UMJERAVANJE):
                 self.tableViewFrejm.update()
                 #exit from method
                 return None
+            elif nazivTaba == 'kolektor':
+                model = self.kolektor.get_model()
+                self.tableViewFrejm.setModel(model)
+                self.tableViewFrejm.update()
             else:
                 model = self.dictTabova[nazivTaba].get_model()
                 self.tableViewFrejm.setModel(model)
+                self.tableViewFrejm.update()
+
             #display stupaca u modelu
             if nazivTaba.endswith('-odaziv'):
                 self.glavniTabWidget.currentWidget().update_rezultate()
                 self.tableViewFrejm.resizeColumnToContents(0)
                 self.tableViewFrejm.resizeColumnToContents(1)
                 self.tableViewFrejm.horizontalHeader().setStretchLastSection(True)
-            elif nazivTaba == 'konverter':
-                self.tableViewFrejm.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
             else:
                 self.tableViewFrejm.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
             self.tableViewFrejm.update()

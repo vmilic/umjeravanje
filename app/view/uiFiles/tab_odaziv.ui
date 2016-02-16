@@ -92,6 +92,13 @@
                 </property>
                </widget>
               </item>
+              <item row="2" column="0">
+               <widget class="QPushButton" name="pushButtonSetPrag">
+                <property name="text">
+                 <string>Predlozeni pragovi</string>
+                </property>
+               </widget>
+              </item>
              </layout>
             </widget>
            </item>

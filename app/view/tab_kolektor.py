@@ -24,10 +24,12 @@ class Kolektor(BASE_TAB_KOLEKTOR, FORM_TAB_KOLEKTOR):
     """
     Panel za prikupljanje podataka od instrumenta
     """
-    def __init__(self, uredjaj=None, konfig=None, parent=None):
+    def __init__(self, uredjaj=None, konfig=None, parent=None, datastore=None):
         super(BASE_TAB_KOLEKTOR, self).__init__(parent)
         self.setupUi(self)
 
+        self.datastore = datastore
+        self.plin = 'kolektor'
         self.konfig = konfig
         self.uredjaj = uredjaj
         ### setup komunikacijskog objekta u odvojenom threadu ###
@@ -49,11 +51,21 @@ class Kolektor(BASE_TAB_KOLEKTOR, FORM_TAB_KOLEKTOR):
         self.frejm = pd.DataFrame()
         self.raspon_grafa = int(self.rasponCombo.currentText())
         self.bareFrejmModel = BareFrameModel(frejm=self.frejm)
-        self.dataTableView.setModel(self.bareFrejmModel)
         self.stopButton.setEnabled(False)
         sr = str(self.komObjekt.get_sample_rate())
         self.sampleCombo.setCurrentIndex(self.sampleCombo.findText(sr))
         self.setup_connections()
+        #postavi max vrijednost ovisno o opsegu...
+        self.doubleSpinBoxMaxY.setValue(self.datastore.get_izabraniOpseg())
+
+
+    def get_model(self):
+        """Metoda vraca frejm model preuzetih podataka"""
+        return self.bareFrejmModel
+
+    def update_table_view(self):
+        """signal gui view update"""
+        self.emit(QtCore.SIGNAL('update_table_view'))
 
     def setup_connections(self):
         self.startButton.clicked.connect(self.start_handle)
@@ -63,6 +75,9 @@ class Kolektor(BASE_TAB_KOLEKTOR, FORM_TAB_KOLEKTOR):
         self.spremiButton.clicked.connect(self.spremi_frejm)
         self.postavkeButton.clicked.connect(self.prikazi_wizard_postavki)
         self.rasponCombo.currentIndexChanged.connect(self.promjeni_vremenski_raspon_grafa)
+
+        self.doubleSpinBoxMinY.valueChanged.connect(self.pomakni_ymin)
+        self.doubleSpinBoxMaxY.valueChanged.connect(self.pomakni_ymax)
 
         self.connect(self,
                      QtCore.SIGNAL('start_prikupljanje_podataka'),
@@ -74,6 +89,18 @@ class Kolektor(BASE_TAB_KOLEKTOR, FORM_TAB_KOLEKTOR):
         self.connect(self.komObjekt,
                      QtCore.SIGNAL('problem_sa_prikupljanjem_podataka(PyQt_PyObject)'),
                      self.prikazi_warning_popup)
+
+    def pomakni_ymin(self, x):
+        """pomak min y raspona grafa"""
+        self.graf.set_ymin(x)
+        if len(self.frejm):
+            self.graf.crtaj(frejm=self.frejm, raspon=self.raspon_grafa)
+
+    def pomakni_ymax(self, x):
+        """pomak max y raspona grafa"""
+        self.graf.set_ymax(x)
+        if len(self.frejm):
+            self.graf.crtaj(frejm=self.frejm, raspon=self.raspon_grafa)
 
     def get_used_serial(self):
         """
@@ -132,7 +159,7 @@ class Kolektor(BASE_TAB_KOLEKTOR, FORM_TAB_KOLEKTOR):
             self.frejm = self.frejm.append(tmp)
             self.graf.crtaj(frejm=self.frejm, raspon=self.raspon_grafa)
             self.bareFrejmModel.set_frejm(self.frejm)
-            self.dataTableView.update()
+            self.update_table_view()
         except Exception as err:
             logging.error(str(err), exc_info=True)
             pass
@@ -144,12 +171,14 @@ class Kolektor(BASE_TAB_KOLEKTOR, FORM_TAB_KOLEKTOR):
     def promjeni_vremenski_raspon_grafa(self, x):
         value = int(self.rasponCombo.currentText())
         self.raspon_grafa = value
+        if len(self.frejm):
+            self.graf.crtaj(frejm=self.frejm, raspon=self.raspon_grafa)
 
     def reset_frejm(self):
         """clear trenutnih podataka u frejmu...nema backupa"""
         self.frejm = pd.DataFrame()
         self.bareFrejmModel.set_frejm(self.frejm)
-        self.dataTableView.update()
+        self.update_table_view()
         self.graf.reset_graf()
 
     def spremi_frejm(self):

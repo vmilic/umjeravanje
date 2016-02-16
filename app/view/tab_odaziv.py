@@ -6,6 +6,7 @@ Created on Tue Nov 17 09:08:43 2015
 """
 import numpy as np
 import pandas as pd
+import logging
 from PyQt4 import QtCore, uic
 from app.model.qt_models import OdazivModel, RiseFallResultModel
 import app.view.canvas as canvas
@@ -90,9 +91,39 @@ class TabOdaziv(BASE_TAB_ODAZIV, FORM_TAB_ODAZIV):
     def setup_connections(self):
         self.doubleSpinBoxHigh.valueChanged.connect(self.modify_high_limit)
         self.doubleSpinBoxLow.valueChanged.connect(self.modify_low_limit)
+        self.pushButtonSetPrag.clicked.connect(self.postavi_predlozene_pragove)
         self.connect(self.graf,
                      QtCore.SIGNAL('izabrano_vrijeme(PyQt_PyObject)'),
                      self.selektiraj_najblizi_indeks)
+
+    def postavi_predlozene_pragove(self, x):
+        """
+        Metoda postavlja pragove iz trenutnih podataka iz funnkcije prilagodbe prema formuli:
+
+        rise = (span * 0.9 - B) / A
+        fall = (span * 0.1 - B) / A
+
+        rise : gornji prag
+        fall : donji prag
+        span : trenutni opseg mjerenja
+        B : prilagodbaB (odsjecak na y osi pravca kroz tocku zero i tocku span)
+        A : prilagodbaA (nagib pravca kroz tocku zero i tocku span)
+        """
+        try:
+            rezultatiUmjeravanja = self.datastore.tabData[self.naziv].get_rezultat()
+            prilagodbaA = rezultatiUmjeravanja['prilagodba']['prilagodbaA']
+            prilagodbaB = rezultatiUmjeravanja['prilagodba']['prilagodbaB']
+            #opseg spana...
+            tocke = self.datastore.tabData[self.naziv].get_tocke()
+            zeroTocka, spanTocka = pomocni.pronadji_zero_span_tocke(tocke)
+            spanOpseg = self.datastore.get_izabraniOpseg() * spanTocka.get_crefFaktor()
+            print(spanOpseg)
+            r = (spanOpseg*0.9 - prilagodbaB) / prilagodbaA
+            f = (spanOpseg*0.1 - prilagodbaB) / prilagodbaA
+            self.doubleSpinBoxHigh.setValue(r)
+            self.doubleSpinBoxLow.setValue(f)
+        except Exception as err:
+            logging.error(str(err), exc_info=True)
 
     def selektiraj_najblizi_indeks(self, x):
         """Ulaz je pandas timestamp. Metoda sluzi za scroll tablice podataka na

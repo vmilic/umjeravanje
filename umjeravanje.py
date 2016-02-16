@@ -4,6 +4,8 @@
 Created on Mon May 18 12:21:15 2015
 
 @author: DHMZ-Milic
+#TODO!
+-temp file za preuzimanje podataka...za slucaj power offa ili greske?
 """
 
 import sys
