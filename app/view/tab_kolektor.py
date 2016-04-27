@@ -7,6 +7,7 @@ Created on Thu Oct 15 09:00:51 2015
 Sve potrebno za tab 'Prikupljanje podataka'
 """
 import logging
+import datetime
 import pandas as pd
 from PyQt4 import QtCore, QtGui, uic
 from app.view.canvas import GrafPreuzetihPodataka
@@ -27,6 +28,9 @@ class Kolektor(BASE_TAB_KOLEKTOR, FORM_TAB_KOLEKTOR):
     def __init__(self, uredjaj=None, konfig=None, parent=None, datastore=None):
         super(BASE_TAB_KOLEKTOR, self).__init__(parent)
         self.setupUi(self)
+
+        self.headeri = [] #TODO!
+        self.tempFileName = "_".join(['kolektor_data', datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')])
 
         self.datastore = datastore
         self.plin = 'kolektor'
@@ -145,6 +149,44 @@ class Kolektor(BASE_TAB_KOLEKTOR, FORM_TAB_KOLEKTOR):
         self.spremiButton.setEnabled(True)
         self.postavkeButton.setEnabled(True)
 
+    def upisi_podatke_u_temp_file(self, plinovi, indeks, value):
+        """
+        upisivanje preuzetih podataka u csv file...
+
+        plinovi = lista plinova
+        indeks = datetime objekt vremena zaprimanja podataka
+        value = mapa vrijednosti
+        """
+        with open(self.tempFileName, mode='a') as teh_fajl:
+            if len(self.frejm) == 0:
+                self.headeri = ['vrijeme']
+                for i in plinovi:
+                    self.headeri.append(i)
+                headerLine = ','.join(self.headeri)
+                headerLine = ''.join([headerLine, '\n'])
+                teh_fajl.write(headerLine)
+                vrijednosti = []
+                for i in self.headeri:
+                    if i == 'vrijeme':
+                        vrijednosti.append(indeks.strftime('%Y-%m-%d %H:%M:%S'))
+                    else:
+                        vrijednosti.append(str(value[i][2]))
+                vrijednostiLine = ','.join(vrijednosti)
+                vrijednostiLine = ''.join([vrijednostiLine, '\n'])
+                teh_fajl.write(vrijednostiLine)
+            else:
+                headerLine = ','.join(self.headeri)
+                vrijednosti = []
+                for i in self.headeri:
+                    if i == 'vrijeme':
+                        vrijednosti.append(indeks.strftime('%Y-%m-%d %H:%M:%S'))
+                    else:
+                        vrijednosti.append(str(value[i][2]))
+                vrijednostiLine = ','.join(vrijednosti)
+                vrijednostiLine = ''.join([vrijednostiLine, '\n'])
+                teh_fajl.write(vrijednostiLine)
+
+
     def dodaj_vrijednost_frejmu(self, value):
         """
         metoda dodaje preuzetu vrijednost komunikacijskog objekta u frejm
@@ -152,6 +194,10 @@ class Kolektor(BASE_TAB_KOLEKTOR, FORM_TAB_KOLEKTOR):
         try:
             plinovi = list(value.keys())
             indeks = value[plinovi[0]][0] #podatak o vremenu
+
+            #temp file za kolektor podatke.
+            self.upisi_podatke_u_temp_file(plinovi, indeks, value)
+
             row = {}
             for plin in plinovi:
                 row[plin] = float(value[plin][2])
@@ -160,6 +206,7 @@ class Kolektor(BASE_TAB_KOLEKTOR, FORM_TAB_KOLEKTOR):
             self.graf.crtaj(frejm=self.frejm, raspon=self.raspon_grafa)
             self.bareFrejmModel.set_frejm(self.frejm)
             self.update_table_view()
+
         except Exception as err:
             logging.error(str(err), exc_info=True)
             pass

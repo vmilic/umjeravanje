@@ -4,10 +4,9 @@
 Created on Mon May 18 12:21:15 2015
 
 @author: DHMZ-Milic
-#TODO!
--temp file za preuzimanje podataka...za slucaj power offa ili greske?
+#TODO! multiplatform file locking?
+#TODO! prevent sleep mode?
 """
-
 import sys
 import os
 from PyQt4 import QtGui

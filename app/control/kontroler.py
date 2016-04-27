@@ -18,6 +18,7 @@ from app.view import dijalog_cistiZrak
 from app.view import dijalog_uredjaj
 from app.view import dijalog_komponenta
 from app.view import dijalog_metoda
+from app.pomocni import pomocni
 
 
 class Kontroler(QtGui.QWidget):
@@ -33,7 +34,15 @@ class Kontroler(QtGui.QWidget):
         -parent : parent objekta
         """
         QtGui.QWidget.__init__(self, parent=parent)
-        #inicijalni setup iz konfiga
+        self.workingFolder = os.path.dirname(__file__)
+        self.gui = display.GlavniProzor()
+        self.gui.show() #prikaz guia na ekranu.
+        QtCore.QTimer.singleShot(0, self.initial_dokument_load) #prva stavka u event loopu aplikacije...
+
+    @pomocni.activate_wait_spinner
+    def initial_dokument_load(self):
+        """inicijalni load dokumenta... izdvojen radi boljeg feedbacka prilikom
+        paljenja aplikacije"""
         config = configparser.ConfigParser()
         try:
             config.read('umjeravanje_konfig.cfg', encoding='utf-8')
@@ -44,13 +53,10 @@ class Kontroler(QtGui.QWidget):
             raise SystemExit('Kriticna pogreska, izlaz iz aplikacije.')
 
         self.dokument = dokument.Dokument(cfg=self.konfig)
-        self.workingFolder = os.path.dirname(__file__)
-        self.gui = display.GlavniProzor()
         self.otvoreniProzori = {} #podrska prozorima za prikupljanje podataka preko RS232 veze
         self.idCounter = 1 #podrska prozorima za prikupljanje podataka preko RS232 veze
-        self.gui.show() #prikaz guia na ekranu.
         self.setup_connections()
-
+        self.gui.statusBar().showMessage("Ready...", 2000)
 
     def set_workingFolder(self, x):
         """Metoda postavlja member working folder"""

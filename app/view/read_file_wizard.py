@@ -71,36 +71,96 @@ class PageIzborFile(QtGui.QWizardPage):
     def __init__(self, parent=None, datastore=None):
         QtGui.QWizard.__init__(self, parent)
         self.datastore = datastore
+
         #naslov
         self.setTitle('Izbor datoteke')
         serial = str(self.datastore.get_uredjaj().get_serial())
         subTitle = 'Izaberite csv datoteku sa podacima za uredjaj {0}.'.format(serial)
         self.setSubTitle(subTitle)
+
+        #TODO! separator i enkoding
+        self.le_separator = QtGui.QLineEdit()
+        self.le_enkoding = QtGui.QLineEdit()
+
         #widgets
         self.pathLabel = QtGui.QLabel('Datoteka :')
         self.lineEditPath = QtGui.QLineEdit()
         self.lineEditPath.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.Preferred)
         self.buttonBrowse = QtGui.QPushButton('Browse')
+
+        #TODO! separator
+        self.separatorLabel = QtGui.QLabel('Separator :')
+        self.comboSeparator = QtGui.QComboBox()
+        self.comboSeparator.addItems(['zarez', 'tocka-zarez', 'tab'])
+        separatorLayout = QtGui.QHBoxLayout()
+        separatorLayout.addWidget(self.separatorLabel)
+        separatorLayout.addWidget(self.comboSeparator)
+        separatorLayout.addStretch(-1)
+        #TODO! encoding
+        self.encodingLabel = QtGui.QLabel('Encoding :')
+        self.comboEncoding = QtGui.QComboBox()
+        self.comboEncoding.addItems(['utf-8', 'iso-8859-1'])
+        encodingLayout = QtGui.QHBoxLayout()
+        encodingLayout.addWidget(self.encodingLabel)
+        encodingLayout.addWidget(self.comboEncoding)
+        encodingLayout.addStretch(-1)
+        #TODO! layout za opcije
+        optionsLayout = QtGui.QVBoxLayout()
+        optionsLayout.addLayout(separatorLayout)
+        optionsLayout.addLayout(encodingLayout)
+
         #layout
         mainLayout = QtGui.QHBoxLayout()
         mainLayout.addWidget(self.pathLabel)
         mainLayout.addWidget(self.lineEditPath)
         mainLayout.addWidget(self.buttonBrowse)
-        self.setLayout(mainLayout)
+
+        #layout za opcije encoding....
+        topLayout = QtGui.QVBoxLayout()
+        topLayout.addLayout(optionsLayout)
+        topLayout.addLayout(mainLayout)
+        topLayout.addStretch(-1)
+
+        self.setLayout(topLayout)
+        #self.setLayout(mainLayout)
         #connections
         self.buttonBrowse.clicked.connect(self.locate_file)
+        #connections
+        self.comboSeparator.currentIndexChanged.connect(self.set_separator_text)
+        self.comboEncoding.currentIndexChanged.connect(self.set_enkoding_text)
 #        """
 #        --> registriram sadrzaj widgeta self.lineEditPath kao 'filepath'
 #        --> dostupan je svim drugim stanicama wizarda
 #        --> * na kraju stringa oznacava mandatory field
 #        """
         self.registerField('filepath*', self.lineEditPath)
+        #TODO! field register sep i encoding
+        self.registerField('separator*', self.le_separator)
+        self.registerField('enkoding*', self.le_enkoding)
+
+    def set_enkoding_text(self, x):
+        """setter separatora csv filea"""
+        tekst = self.comboEncoding.currentText()
+        self.le_enkoding.setText(tekst)
+
+    def set_separator_text(self, x):
+        """setter tipa encodinga filea"""
+        tekst = self.comboSeparator.currentText()
+        if tekst == 'tab':
+            separator = '\t'
+        elif tekst == 'tocka-zarez':
+            separator = ';'
+        else:
+            separator = ","
+        self.le_separator.setText(separator)
 
     def initializePage(self):
         """
         Inicijalizacija izbornika
         """
-        pass
+        print('initializePage')
+        self.set_separator_text(True)
+        self.set_enkoding_text(True)
 
     def validatePage(self):
         """
@@ -193,7 +253,9 @@ class PageIzborKomponentiFrejma(QtGui.QWizardPage):
         if 'None' not in self.komponente:
             self.komponente.append('None')
         try:
-            self.df = self.read_csv_file(self.path)
+            #TODO! separator i enkoding ulaznog filea...
+            separator, enkoding = self.field('separator'), self.field('enkoding')
+            self.df = self.read_csv_file(self.path, sep=separator, enc=enkoding)
             self.model = BaseFrejmModel(frejm=self.df)
             self.delegat = ComboBoxDelegate(stupci=self.komponente, parent=self.tableView)
             self.tableView.setModel(self.model)
@@ -267,7 +329,7 @@ class PageIzborKomponentiFrejma(QtGui.QWizardPage):
         combo.setCurrentIndex(ind)
         combo.blockSignals(False)
 
-    def read_csv_file(self, path):
+    def read_csv_file(self, path, sep=',', enc='utf-8'):
         """
         reader csv filea
         """
@@ -276,6 +338,6 @@ class PageIzborKomponentiFrejma(QtGui.QWizardPage):
                             parse_dates=[0],
                             dayfirst=True,
                             header=0,
-                            sep=",",
-                            encoding="iso-8859-1")
+                            sep=sep,
+                            encoding=enc)
         return frejm

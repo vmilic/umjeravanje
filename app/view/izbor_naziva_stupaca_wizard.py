@@ -168,18 +168,58 @@ class PageSpremanjeFileova(QtGui.QWizardPage):
         self.gumbSpremiSekundne = QtGui.QPushButton('Spremi...')
         self.minutniTable = QtGui.QTableView()
         self.gumbSpremiMinutne = QtGui.QPushButton('Spremi minutne...')
+
+        #TODO! separator
+        self.separatorLabel = QtGui.QLabel('Separator :')
+        self.comboSeparator = QtGui.QComboBox()
+        self.comboSeparator.addItems(['zarez', 'tocka-zarez', 'tab'])
+        #TODO! encoding
+        self.encodingLabel = QtGui.QLabel('Encoding :')
+        self.comboEncoding = QtGui.QComboBox()
+        self.comboEncoding.addItems(['utf-8', 'iso-8859-1'])
+        #TODO! layout za opcije
+        optionsLayout = QtGui.QHBoxLayout()
+        optionsLayout.addWidget(self.separatorLabel)
+        optionsLayout.addWidget(self.comboSeparator)
+        optionsLayout.addWidget(self.encodingLabel)
+        optionsLayout.addWidget(self.comboEncoding)
+        optionsLayout.addStretch(-1)
+
         sekundniLayout = QtGui.QVBoxLayout()
         sekundniLayout.addWidget(self.gumbSpremiSekundne)
         sekundniLayout.addWidget(self.sekundniTable)
+
         minutniLayout = QtGui.QVBoxLayout()
         minutniLayout.addWidget(self.gumbSpremiMinutne)
         minutniLayout.addWidget(self.minutniTable)
+
         mainLayout = QtGui.QHBoxLayout()
         mainLayout.addLayout(sekundniLayout)
         mainLayout.addLayout(minutniLayout)
-        self.setLayout(mainLayout)
+
+        #top layout sa opcijama
+        topLayout = QtGui.QVBoxLayout()
+        topLayout.addLayout(optionsLayout)
+        topLayout.addLayout(mainLayout)
+
+        self.setLayout(topLayout)
 
         self.setup_connections()
+
+    def get_enkoding_text(self):
+        """getter separatora csv filea"""
+        return self.comboEncoding.currentText()
+
+    def get_separator_text(self):
+        """getter tipa encodinga filea"""
+        tekst = self.comboSeparator.currentText()
+        if tekst == 'tab':
+            separator = '\t'
+        elif tekst == 'tocka-zarez':
+            separator = ';'
+        else:
+            separator = ","
+        return separator
 
     def initializePage(self):
         """
@@ -201,12 +241,20 @@ class PageSpremanjeFileova(QtGui.QWizardPage):
         filepath = QtGui.QFileDialog.getSaveFileName(parent=self,
                                                      caption='Spremi podatke u csv file',
                                                      filter='CSV file (*.csv);;all (*.*)')
+
+        #TODO! sep and encoding choice
+        separator = self.get_separator_text()
+        enkoding = self.get_enkoding_text()
+
         if filepath:
             try:
                 frejm = self.wizard().sekundniFrejm
                 frejm.to_csv(filepath,
-                             sep=',',
-                             encoding='utf-8')
+                             sep=separator,
+                             float_format='%.4f',
+                             date_format='%Y-%m-%d %H:%M:%S',
+                             index_label='TIMESTAMP',
+                             encoding=enkoding)
             except Exception as err:
                 logging.error(str(err), exc_info=True)
                 QtGui.QMessageBox.warning(self, 'Problem', 'File nije uspješno spremljen')
@@ -218,12 +266,19 @@ class PageSpremanjeFileova(QtGui.QWizardPage):
         filepath = QtGui.QFileDialog.getSaveFileName(parent=self,
                                                      caption='Spremi podatke u csv file',
                                                      filter='CSV file (*.csv);;all (*.*)')
+        #TODO! sep and encoding choice
+        separator = self.get_separator_text()
+        enkoding = self.get_enkoding_text()
+
         if filepath:
             try:
                 frejm = self.wizard().minutniFrejm
                 frejm.to_csv(filepath,
-                             sep=',',
-                             encoding='utf-8')
+                             sep=separator,
+                             float_format='%.4f',
+                             date_format='%Y-%m-%d %H:%M:%S',
+                             index_label='TIMESTAMP',
+                             encoding=enkoding)
             except Exception as err:
                 logging.error(str(err), exc_info=True)
                 QtGui.QMessageBox.warning(self, 'Problem', 'File nije uspješno spremljen')
